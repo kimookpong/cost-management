@@ -19,7 +19,8 @@ export default function Example() {
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState("light");
-  console.log("session", session);
+  const [avatar, setAvatar] = useState("/avatar.png");
+
   useEffect(() => {
     setMounted(theme);
   }, [theme]);
@@ -107,8 +108,9 @@ export default function Example() {
                       <span className="sr-only">Open user menu</span>
                       <img
                         alt=""
-                        src="/avatar.png"
+                        src={avatar}
                         className="size-8 rounded-full"
+                        loading="lazy"
                       />
                     </MenuButton>
                   </div>
@@ -197,16 +199,17 @@ export default function Example() {
               <div className="shrink-0">
                 <img
                   alt=""
-                  src="/avatar.png"
+                  src={avatar}
                   className="size-10 rounded-full"
+                  loading="lazy"
                 />
               </div>
               <div className="ml-3">
-                <div className="text-base/5 font-medium text-white">
-                  {session ? session.user.name : "Tom Cook"}
+                <div className="text-base/5 font-medium text-gray-800 dark:text-white">
+                  {session ? session.user.name : "Username"}
                 </div>
                 <div className="text-sm font-medium text-gray-400">
-                  {session ? session.user.email : ""}
+                  {session ? session.user.userRole : ""}
                 </div>
               </div>
 

@@ -30,6 +30,7 @@ export const authOptions = {
           const user = await executeQuery(
             `SELECT U.USER_ID
               ,U.ROLE
+              ,R.ROLE_NAME
               ,R.ROLE_ACCESS
             FROM CST_USER U
             INNER JOIN CST_ROLE R 
@@ -45,10 +46,11 @@ export const authOptions = {
 
           return {
             id: user[0].id,
+            avatar: userAuth.data.avatar,
             name: userAuth.data.fullname_th,
             username: credentials.username,
             userInfo: userAuth.data,
-            userRole: user[0].role,
+            userRole: user[0].roleName,
             userAccess: JSON.parse(user[0].roleAccess),
           };
         } catch (error) {
@@ -63,6 +65,7 @@ export const authOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        token.avatar = user.avatar;
         token.username = user.username;
         token.userInfo = user.userInfo;
         token.userRole = user.userRole;
@@ -71,6 +74,7 @@ export const authOptions = {
       return token;
     },
     async session({ session, token }) {
+      session.user.avatar = token.avatar;
       session.user.username = token.username;
       session.user.userInfo = token.userInfo;
       session.user.userRole = token.userRole;
