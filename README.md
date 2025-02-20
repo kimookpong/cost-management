@@ -27,8 +27,6 @@ git clone https://github.com/Team-P-JOY/cost-management.git
 cd cost-management
 ```
 
-## 📌 **สิ่งที่เพิ่มเข้าไป**
+## 👨‍💻 ** ทีมพัฒนา (Development Team)**
 
-✅ **เพิ่มหัวข้อ "ทีมพัฒนา (Development Team)"**  
-✅ **ใส่ GitHub ของมึงเป็นลิงก์** ([Hakim Mudor - GitHub](https://github.com/kimookpong))  
-✅ **โครงสร้าง README ครบทุกส่วน**
+✅ ([Hakim Mudor](https://github.com/kimookpong))
