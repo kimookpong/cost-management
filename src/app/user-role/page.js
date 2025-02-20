@@ -2,23 +2,24 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
+import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { navigation } from "@/lib/params";
 
 export default function List() {
-  const breadcrumb = [{ name: "จัดการผู้ใช้งาน", link: "/user" }];
+  const breadcrumb = [{ name: "จัดการสิทธิการใช้งาน", link: "/user-role" }];
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const _onPressAdd = () => {
-    router.push("/user/new");
+    router.push("/user-role/new");
   };
   const _onPressEdit = (id) => {
-    router.push(`/user/${id}`);
+    router.push(`/user-role/${id}`);
   };
   const _onPressDelete = async (id) => {
     const result = await Swal.fire({
@@ -34,7 +35,7 @@ export default function List() {
     });
 
     if (result.isConfirmed) {
-      await axios.delete(`/api/user?id=${id}`);
+      await axios.delete(`/api/user-role?id=${id}`);
       await Swal.fire({
         title: "ลบข้อมูลเรียบร้อย!",
         icon: "success",
@@ -48,7 +49,7 @@ export default function List() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axios.get(`/api/user`);
+        const response = await axios.get(`/api/user-role`);
         const data = response.data;
         if (data.success) {
           setEmployees(data.data);
@@ -67,16 +68,35 @@ export default function List() {
 
   const meta = [
     {
-      key: "fullname",
-      content: "ชื่อ",
+      key: "roleName",
+      content: "ชื่อสิทธิการใช้งาน",
     },
     {
-      key: "role",
-      content: "สิทธิ์การใช้งาน",
+      key: "roleAccess",
+      content: "การอนุญาติเข้าถึง",
+      render: (item) => {
+        return (
+          <div className="flex flex-col gap-1">
+            {JSON.parse(item.roleAccess).map((access, index) => {
+              const navi = navigation.find(
+                (nav) => nav.id === parseInt(access)
+              );
+              if (!navi) return null;
+              return (
+                <span key={index} className="text-sm flex gap-2">
+                  <FiCheckCircle className="w-4 h-4 text-green-900" />
+                  {navi.name}
+                </span>
+              );
+            })}
+          </div>
+        );
+      },
     },
     {
       key: "statusId",
       content: "สถานะ",
+      width: "100",
       render: (item) => {
         return (
           <span
@@ -92,7 +112,7 @@ export default function List() {
       },
     },
     {
-      key: "personId",
+      key: "roleId",
       content: "Action",
       width: "100",
       render: (item) => (
@@ -100,7 +120,7 @@ export default function List() {
           <button
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
-              return _onPressEdit(item.userId);
+              return _onPressEdit(item.roleId);
             }}
           >
             <FiEdit className="w-4 h-4" />
@@ -109,7 +129,7 @@ export default function List() {
           <button
             className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
-              return _onPressDelete(item.userId);
+              return _onPressDelete(item.roleId);
             }}
           >
             <FiTrash2 className="w-4 h-4" />
@@ -125,7 +145,7 @@ export default function List() {
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between items-center">
           <div>
-            <h3 className="font-semibold ">จัดการผู้ใช้งาน</h3>
+            <h3 className="font-semibold ">จัดการสิทธิการใช้งาน</h3>
           </div>
           <div className="flex gap-1">
             <button

@@ -22,6 +22,8 @@ export default function Detail() {
   const isNew = id === "new";
   const [loading, setLoading] = useState(!isNew);
 
+  const [roleOptions, setRoleOptions] = useState([]);
+
   const validationSchema = Yup.object({
     personId: Yup.string().required("กรุณาเลือกผู้ใช้"),
     role: Yup.string().required("กรุณากรอกตำแหน่ง"),
@@ -65,9 +67,9 @@ export default function Detail() {
   });
 
   useEffect(() => {
-    if (!isNew) {
-      setLoading(true);
-      const fetchData = async () => {
+    setLoading(true);
+    const fetchData = async () => {
+      if (!isNew) {
         const response = await axios.get(`/api/user?id=${id}`);
         const data = response.data;
         if (data.success) {
@@ -78,14 +80,27 @@ export default function Detail() {
             statusId: user.statusId?.toString() || "1",
           });
 
+          setRoleOptions(data.role);
+
           setLoading(false);
         } else {
           console.error("Error fetching user data:", err);
           alert("ไม่สามารถโหลดข้อมูลผู้ใช้ได้");
         }
-      };
-      fetchData();
-    }
+      } else {
+        const response = await axios.get(`/api/user?id=new`);
+        const data = response.data;
+        if (data.success) {
+          setRoleOptions(data.role);
+
+          setLoading(false);
+        } else {
+          console.error("Error fetching user data:", err);
+          alert("ไม่สามารถโหลดข้อมูลผู้ใช้ได้");
+        }
+      }
+    };
+    fetchData();
   }, [id]);
 
   const breadcrumb = [
@@ -126,8 +141,11 @@ export default function Detail() {
                     onChange={formik.handleChange}
                     className={className.select}
                   >
-                    <option value="1">Superadmin</option>
-                    <option value="2">User</option>
+                    {roleOptions.map((role) => (
+                      <option key={role.roleId} value={role.roleId}>
+                        {role.roleName}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

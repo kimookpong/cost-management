@@ -20,7 +20,9 @@ const navigation = [
   // { name: "Calendar", icon: FiCalendar, href: "#" },
   // { name: "Reports", icon: FiBarChart2, href: "#" },
   {
+    id: 1,
     name: "แผนการให้บริการห้องปฎิบัติการ",
+    description: "แผนการให้บริการห้องปฎิบัติการ",
     icon: FiSettings,
     child: [
       {
@@ -41,7 +43,9 @@ const navigation = [
     ],
   },
   {
+    id: 2,
     name: "การบริการห้องปฎิบัติการตามปีการศึกษา",
+    description: "การบริการห้องปฎิบัติการตามปีการศึกษา",
     icon: FiArchive,
     child: [
       {
@@ -62,7 +66,9 @@ const navigation = [
     ],
   },
   {
+    id: 3,
     name: "จัดการข้อมูล",
+    description: "จัดการข้อมูล",
     icon: FiBox,
     child: [
       {
@@ -83,7 +89,9 @@ const navigation = [
     ],
   },
   {
+    id: 4,
     name: "จัดการผู้ใช้งาน",
+    description: "จัดการผู้ใช้งาน",
     icon: FiUsers,
     child: [
       {
@@ -92,7 +100,7 @@ const navigation = [
         href: "/user",
       },
       {
-        name: "จัดการกลุ่มผู้ใช้งาน",
+        name: "จัดการสิทธิการใช้งาน",
         icon: FiLock,
         href: "/user-role",
       },

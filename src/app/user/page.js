@@ -71,12 +71,13 @@ export default function List() {
       content: "ชื่อ",
     },
     {
-      key: "role",
+      key: "roleName",
       content: "สิทธิ์การใช้งาน",
     },
     {
       key: "statusId",
       content: "สถานะ",
+      width: "100",
       render: (item) => {
         return (
           <span

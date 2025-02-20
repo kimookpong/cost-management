@@ -4,22 +4,26 @@ import { FiHome } from "react-icons/fi";
 
 export default function Breadcrumb({ paths }) {
   return (
-    <nav className="flex text-sm text-gray-900 dark:text-gray-100 mb-2 bg-gray-100 dark:bg-gray-800 shadow-md rounded-lg px-4 py-2">
-      <span key="main" className="flex items-center">
-        <Link href="/">
-          <FiHome className="mr-1" />
-        </Link>
-      </span>
-      {paths.map((path, index) => (
-        <span key={index} className="flex items-center">
-          <span className="mx-2">/</span>
-          {path.link ? (
-            <Link href={path.link}>{path.name}</Link>
-          ) : (
-            <span>{path.name}</span>
-          )}
-        </span>
-      ))}
-    </nav>
+    // <div className="flex text-sm text-gray-900 dark:text-gray-100 mb-2 bg-gray-100 dark:bg-gray-800 shadow-md rounded-lg px-4 py-2">
+    <div className="breadcrumbs text-sm text-white">
+      <ul>
+        <li>
+          <Link href="/">
+            <FiHome className="mr-1 mb-0.5" />
+            หน้าหลัก
+          </Link>
+        </li>
+        {paths.map((path, index) => (
+          <li key={index}>
+            {path.link ? (
+              <Link href={path.link}>{path.name}</Link>
+            ) : (
+              <span>{path.name}</span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+    // </div>
   );
 }

@@ -39,7 +39,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="collapse bg-gray-100 dark:bg-gray-800">
+      <div className="collapse bg-gray-100 dark:bg-gray-800 mt-2">
         <input type="radio" name="my-accordion-1" defaultChecked />
         <div className="collapse-title text-xl font-medium text-gray-800 dark:text-gray-300">
           Click to open this one and close others
@@ -48,7 +48,7 @@ export default function Dashboard() {
           <p>hello</p>
         </div>
       </div>
-      <div className="collapse bg-base-200">
+      <div className="collapse bg-gray-100 dark:bg-gray-800 mt-2">
         <input type="radio" name="my-accordion-1" />
         <div className="collapse-title text-xl font-medium">
           Click to open this one and close others
@@ -57,7 +57,7 @@ export default function Dashboard() {
           <p>hello</p>
         </div>
       </div>
-      <div className="collapse bg-base-200">
+      <div className="collapse bg-gray-100 dark:bg-gray-800 mt-2">
         <input type="radio" name="my-accordion-1" />
         <div className="collapse-title text-xl font-medium">
           Click to open this one and close others

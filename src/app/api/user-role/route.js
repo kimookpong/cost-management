@@ -4,31 +4,22 @@ import { executeQuery } from "@/lib/oracle";
 export async function GET(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
-    const roles = await executeQuery(
-      `SELECT ROLE_ID,ROLE_NAME FROM CST_ROLE WHERE FLAG_DEL = 0`
-    );
-    if (id == "new") {
-      return NextResponse.json({ success: true, role: roles });
-    } else if (id) {
+    if (id) {
       const users = await executeQuery(
-        `SELECT * FROM CST_USER WHERE USER_ID = :id`,
+        `SELECT * FROM CST_ROLE WHERE ROLE_ID = :id`,
         { id }
       );
-      return NextResponse.json({ success: true, data: users, role: roles });
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          ...users[0],
+          roleAccess: JSON.parse(users[0].roleAccess),
+        },
+      });
     } else {
       const users = await executeQuery(
-        `SELECT U.USER_ID,
-          U.ROLE,
-          R.ROLE_NAME,
-          U.STATUS_ID,
-          P.PERSON_ID,
-          P.TITLE_NAME || P.FIRST_NAME || ' ' || P.LAST_NAME AS FULLNAME
-        FROM CST_USER U
-        INNER JOIN PBL_VPER_PERSON P 
-          ON U.PERSON_ID = P.PERSON_ID
-        INNER JOIN CST_ROLE R
-          ON U.ROLE = R.ROLE_ID
-        WHERE U.FLAG_DEL = 0`
+        `SELECT * FROM CST_ROLE WHERE FLAG_DEL = 0`
       );
       return NextResponse.json({ success: true, data: users });
     }
@@ -43,9 +34,9 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { personId, role, statusId } = body;
+    const { roleName, roleAccess, statusId } = body;
 
-    if (!personId || !role || !statusId) {
+    if (!roleName || !roleAccess || !statusId) {
       return NextResponse.json(
         { success: false, message: "Missing fields" },
         { status: 400 }
@@ -53,8 +44,8 @@ export async function POST(req) {
     }
 
     await executeQuery(
-      "INSERT INTO CST_USER (PERSON_ID, ROLE, STATUS_ID, FLAG_DEL) VALUES (:personId, :role, :statusId, 0)",
-      [personId, role, statusId]
+      "INSERT INTO CST_ROLE (ROLE_NAME, ROLE_ACCESS, STATUS_ID, FLAG_DEL) VALUES (:roleName, :roleAccess, :statusId, 0)",
+      [roleName, JSON.stringify(roleAccess), statusId]
     );
     return NextResponse.json(
       { success: true, message: "User added successfully" },
@@ -72,9 +63,9 @@ export async function PUT(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
     const body = await req.json();
-    const { personId, role, statusId } = body;
+    const { roleName, roleAccess, statusId } = body;
 
-    if (!id || !personId || !role || !statusId) {
+    if (!id || !roleName || !roleAccess || !statusId) {
       return NextResponse.json(
         { success: false, message: "Missing fields" },
         { status: 400 }
@@ -82,10 +73,10 @@ export async function PUT(req) {
     }
 
     await executeQuery(
-      `UPDATE CST_USER 
-       SET PERSON_ID = :personId, ROLE = :role, STATUS_ID = :statusId 
-       WHERE USER_ID = :id`,
-      { personId, role, statusId, id }
+      `UPDATE CST_ROLE 
+       SET ROLE_NAME = :roleName, ROLE_ACCESS = :roleAccess, STATUS_ID = :statusId 
+       WHERE ROLE_ID = :id`,
+      [roleName, JSON.stringify(roleAccess), statusId, id]
     );
 
     return NextResponse.json({
@@ -105,7 +96,7 @@ export async function DELETE(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
     const users = await executeQuery(
-      `UPDATE CST_USER SET FLAG_DEL = 1 WHERE USER_ID = :id`,
+      `UPDATE CST_ROLE SET FLAG_DEL = 1 WHERE ROLE_ID = :id`,
       { id }
     );
     return NextResponse.json({ success: true, data: users });

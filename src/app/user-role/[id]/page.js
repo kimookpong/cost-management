@@ -6,15 +6,8 @@ import { useParams, useRouter } from "next/navigation";
 import Content from "@/components/Content";
 import Swal from "sweetalert2";
 import { useFormik } from "formik";
+import { navigation } from "@/lib/params";
 import * as Yup from "yup";
-import dynamic from "next/dynamic";
-
-const UserAutocomplete = dynamic(
-  () => import("@/components/UserAutocomplete"),
-  {
-    ssr: false,
-  }
-);
 
 export default function Detail() {
   const { id } = useParams();
@@ -23,22 +16,23 @@ export default function Detail() {
   const [loading, setLoading] = useState(!isNew);
 
   const validationSchema = Yup.object({
-    personId: Yup.string().required("กรุณาเลือกผู้ใช้"),
-    role: Yup.string().required("กรุณากรอกตำแหน่ง"),
+    roleName: Yup.string().required("กรุณากรอกชื่อสิทธิ"),
+    roleAccess: Yup.array().min(1, "กรุณาเลือกอย่างน้อย 1 การอนุญาติเข้าถึง"),
     statusId: Yup.string().required("กรุณาเลือกสถานะ"),
   });
 
   const formik = useFormik({
     initialValues: {
-      personId: "",
-      role: "1",
+      roleName: "",
+      roleAccess: [],
       statusId: "1",
     },
     validationSchema,
     onSubmit: async (values) => {
+      console.log("🔹 ส่งข้อมูล:", values);
       try {
         if (isNew) {
-          await axios.post(`/api/user`, values);
+          await axios.post(`/api/user-role`, values);
           await Swal.fire({
             title: "เพิ่มข้อมูลใหม่เรียบร้อย!",
             icon: "success",
@@ -47,7 +41,7 @@ export default function Detail() {
             timer: 1000,
           });
         } else {
-          await axios.put(`/api/user?id=${id}`, values);
+          await axios.put(`/api/user-role?id=${id}`, values);
           await Swal.fire({
             title: "แก้ไขข้อมูลเรียบร้อย!",
             icon: "success",
@@ -58,7 +52,7 @@ export default function Detail() {
         }
         router.back();
       } catch (error) {
-        console.error("Error saving user:", error);
+        console.error("❌ Error saving user:", error);
         alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
       }
     },
@@ -68,19 +62,21 @@ export default function Detail() {
     if (!isNew) {
       setLoading(true);
       const fetchData = async () => {
-        const response = await axios.get(`/api/user?id=${id}`);
-        const data = response.data;
-        if (data.success) {
-          const user = data.data[0];
-          formik.setValues({
-            personId: user.personId || "",
-            role: user.role?.toString() || "1",
-            statusId: user.statusId?.toString() || "1",
-          });
+        try {
+          const response = await axios.get(`/api/user-role?id=${id}`);
+          const data = response.data;
+          if (data.success) {
+            const user = data.data;
+            formik.setValues({
+              roleName: user.roleName || "",
+              roleAccess: user.roleAccess || [],
+              statusId: user.statusId?.toString() || "1",
+            });
 
-          setLoading(false);
-        } else {
-          console.error("Error fetching user data:", err);
+            setLoading(false);
+          }
+        } catch (err) {
+          console.error("❌ Error fetching user data:", err);
           alert("ไม่สามารถโหลดข้อมูลผู้ใช้ได้");
         }
       };
@@ -89,76 +85,135 @@ export default function Detail() {
   }, [id]);
 
   const breadcrumb = [
-    { name: "จัดการผู้ใช้งาน", link: "/user" },
+    { name: "จัดการสิทธิการใช้งาน", link: "" },
     { name: isNew ? "เพิ่มใหม่" : "แก้ไข" },
   ];
+
+  const handleCheckboxChange = (e) => {
+    const { value, checked } = e.target;
+    formik.setFieldValue(
+      "roleAccess",
+      checked
+        ? [...formik.values.roleAccess, value]
+        : formik.values.roleAccess.filter((item) => item !== value)
+    );
+  };
 
   return (
     <Content breadcrumb={breadcrumb}>
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
-            {isNew ? "เพิ่มผู้ใช้งานใหม่" : "แก้ไขข้อมูลผู้ใช้"}
+            {isNew ? "เพิ่มสิทธิใหม่" : "แก้ไขข้อมูลสิทธิ"}
           </h3>
         </div>
 
         {loading ? (
-          <div className="p-6 text-center">กำลังโหลดข้อมูล...</div>
+          <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+            กำลังโหลดข้อมูล...
+          </div>
         ) : (
           <form onSubmit={formik.handleSubmit}>
             <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-              <div className="sm:col-span-12">
-                <label className={className.label}>พนักงาน</label>
-                <UserAutocomplete formik={formik} label="personId" />
-                {formik.touched.personId && formik.errors.personId && (
+              {/* Name */}
+              <div className="sm:col-span-8">
+                <label className={className.label}>ชื่อสิทธิ</label>
+                <input
+                  type="text"
+                  name="roleName"
+                  value={formik.values.roleName}
+                  onChange={formik.handleChange}
+                  className={`${className.input} ${
+                    formik.touched.roleName && formik.errors.roleName
+                      ? "border-red-500"
+                      : ""
+                  }`}
+                />
+                {formik.touched.roleName && formik.errors.roleName && (
                   <p className="mt-1 text-sm text-red-500">
-                    {formik.errors.personId}
+                    {formik.errors.roleName}
                   </p>
                 )}
               </div>
 
-              <div className="sm:col-span-6">
-                <label className={className.label}>สิทธิการใช้งาน</label>
-                <div className="mt-2 grid grid-cols-1">
-                  <select
-                    name="role"
-                    value={formik.values.role}
-                    onChange={formik.handleChange}
-                    className={className.select}
-                  >
-                    <option value="1">Superadmin</option>
-                    <option value="2">User</option>
-                  </select>
-                </div>
+              {/* Status ID */}
+              <div className="sm:col-span-4">
+                <label className={className.label}>สถานะ</label>
+                <select
+                  name="statusId"
+                  value={formik.values.statusId}
+                  onChange={formik.handleChange}
+                  className={className.select}
+                >
+                  <option value="1">ใช้งาน</option>
+                  <option value="0">ไม่ใช้งาน</option>
+                </select>
               </div>
 
-              <div className="sm:col-span-6">
-                <label className={className.label}>สถานะ</label>
-                <div className="mt-2 grid grid-cols-1">
-                  <select
-                    name="statusId"
-                    value={formik.values.statusId}
-                    onChange={formik.handleChange}
-                    className={className.select}
-                  >
-                    <option value="1">ใช้งาน</option>
-                    <option value="0">ไม่ใช้งาน</option>
-                  </select>
+              <div className="sm:col-span-12">
+                <label className={className.label}>การอนุญาติเข้าถึง</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {navigation.map((item, index) => (
+                    <label key={index} className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        name="roleAccess"
+                        value={item.id}
+                        checked={formik.values.roleAccess.includes(
+                          item.id.toString()
+                        )}
+                        onChange={handleCheckboxChange}
+                        className={`checkbox ${
+                          formik.touched.roleAccess && formik.errors.roleAccess
+                            ? "checkbox-error"
+                            : "checkbox-success"
+                        }`}
+                      />
+                      <div className="flex flex-col">
+                        <span
+                          className={`font-semibold ${
+                            formik.touched.roleAccess &&
+                            formik.errors.roleAccess
+                              ? "text-red-500"
+                              : "text-gray-900 dark:text-gray-300"
+                          }`}
+                        >
+                          {item.name}
+                        </span>
+                        <p
+                          className={`text-sm ${
+                            formik.touched.roleAccess &&
+                            formik.errors.roleAccess
+                              ? "text-red-300"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {item.description}
+                        </p>
+                      </div>
+                    </label>
+                  ))}
                 </div>
+                {formik.touched.roleAccess && formik.errors.roleAccess && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {formik.errors.roleAccess}
+                  </p>
+                )}
               </div>
             </div>
 
+            {/* ปุ่ม Submit */}
             <div className="md:col-span-2 flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
-                className="cursor-pointer p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
                 onClick={() => router.back()}
               >
                 ยกเลิก
               </button>
               <button
                 type="submit"
-                className="cursor-pointer p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
               >
                 {isNew ? "เพิ่มผู้ใช้งาน" : "บันทึกข้อมูล"}
               </button>
@@ -173,7 +228,6 @@ export default function Detail() {
 const className = {
   label: "mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300",
   input:
-    "block w-full px-3 py-1.5 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600",
-  select:
-    "block w-full px-4 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600",
+    "block w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
+  select: "block w-full px-4 py-2 border rounded-md dark:bg-gray-800",
 };
