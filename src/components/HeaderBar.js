@@ -19,7 +19,7 @@ export default function Example() {
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState("light");
-
+  console.log("session", session);
   useEffect(() => {
     setMounted(theme);
   }, [theme]);
