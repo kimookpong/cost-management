@@ -29,10 +29,10 @@ cd cost-management
 
 ## 👨‍💻 **ทีมพัฒนา (Development Team)**
 
-| รูปโปรไฟล์                                       | ชื่อ                                            | GitHub                                    |
-| ------------------------------------------------ | ----------------------------------------------- | ----------------------------------------- |
-| ![](https://github.com/sthongchan27.png?size=50) | [sthongchan27](https://github.com/sthongchan27) | [GitHub](https://github.com/sthongchan27) |
-| ![](https://github.com/kimookpong.png?size=50)   | [kimookpong](https://github.com/kimookpong)     | [GitHub](https://github.com/kimookpong)   |
-| ![](https://github.com/manitgithub.png?size=50)  | [manitgithub](https://github.com/manitgithub)   | [GitHub](https://github.com/manitgithub)  |
-| ![](https://github.com/natdanaisu.png?size=50)   | [natdanaisu](https://github.com/natdanaisu)     | [GitHub](https://github.com/natdanaisu)   |
-| ![](https://github.com/Yapaka51.png?size=50)     | [Yapaka51](https://github.com/Yapaka51)         | [GitHub](https://github.com/Yapaka51)     |
+| รูปโปรไฟล์                                       | ชื่อ                                            |
+| ------------------------------------------------ | ----------------------------------------------- |
+| ![](https://github.com/sthongchan27.png?size=50) | [sthongchan27](https://github.com/sthongchan27) |
+| ![](https://github.com/kimookpong.png?size=50)   | [kimookpong](https://github.com/kimookpong)     |
+| ![](https://github.com/manitgithub.png?size=50)  | [manitgithub](https://github.com/manitgithub)   |
+| ![](https://github.com/natdanaisu.png?size=50)   | [natdanaisu](https://github.com/natdanaisu)     |
+| ![](https://github.com/Yapaka51.png?size=50)     | [Yapaka51](https://github.com/Yapaka51)         |
