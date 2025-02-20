@@ -29,8 +29,8 @@ cd cost-management
 
 ## 👨‍💻 **ทีมพัฒนา (Development Team)**
 
-[<img src="https://github.com/sthongchan27.png" width="50" height="50" style="border-radius: 50%;" />](https://github.com/sthongchan27)
-[<img src="https://github.com/kimookpong.png" width="50" height="50" style="border-radius: 50%;" />](https://github.com/kimookpong)
-[<img src="https://github.com/manitgithub.png" width="50" height="50" style="border-radius: 50%;" />](https://github.com/manitgithub)
-[<img src="https://github.com/natdanaisu.png" width="50" height="50" style="border-radius: 50%;" />](https://github.com/natdanaisu)
-[<img src="https://github.com/Yapaka51.png" width="50" height="50" style="border-radius: 50%;" />](https://github.com/Yapaka51)
+[<img src="https://github.com/sthongchan27.png" width="50" height="50" style="border-radius:50" />](https://github.com/sthongchan27)
+[<img src="https://github.com/kimookpong.png" width="50" height="50" style="border-radius:50" />](https://github.com/kimookpong)
+[<img src="https://github.com/manitgithub.png" width="50" height="50" style="border-radius:50" />](https://github.com/manitgithub)
+[<img src="https://github.com/natdanaisu.png" width="50" height="50" style="border-radius:50" />](https://github.com/natdanaisu)
+[<img src="https://github.com/Yapaka51.png" width="50" height="50" style="border-radius:50" />](https://github.com/Yapaka51)
