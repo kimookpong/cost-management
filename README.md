@@ -29,4 +29,4 @@ cd cost-management
 
 ## 👨‍💻 ** ทีมพัฒนา (Development Team)**
 
-✅ ([Hakim Mudor](https://github.com/kimookpong))
+✅ [<img src="https://github.com/kimookpong.png" width="50" height="50" />](https://github.com/kimookpong)
