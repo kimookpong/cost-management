@@ -36,7 +36,8 @@ export const authOptions = {
             INNER JOIN CST_ROLE R 
               ON U.ROLE = R.ROLE_ID
             WHERE U.PERSON_ID = :id 
-              AND U.FLAG_DEL = 0`,
+              AND U.FLAG_DEL = 0
+              AND U.STATUS_ID = 1`,
             { id: parseInt(userAuth.data.person_id) }
           );
 

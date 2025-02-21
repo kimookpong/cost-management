@@ -14,11 +14,6 @@ import {
 } from "react-icons/fi";
 
 const navigation = [
-  // { name: "หน้าหลัก", icon: FiHome, href: "/" },
-  // { name: "Team", icon: FiUsers, href: "#" },
-  // { name: "Projects", icon: FiBriefcase, href: "#" },
-  // { name: "Calendar", icon: FiCalendar, href: "#" },
-  // { name: "Reports", icon: FiBarChart2, href: "#" },
   {
     id: 1,
     name: "แผนการให้บริการห้องปฎิบัติการ",
@@ -28,17 +23,17 @@ const navigation = [
       {
         name: "กำหนดรายวิชา",
         icon: FiChevronsRight,
-        href: "/user",
+        href: "/assignCourse",
       },
       {
         name: "กำหนดผู้รับผิดชอบ",
         icon: FiChevronsRight,
-        href: "/userRole",
+        href: "/assignUser",
       },
       {
         name: "กำหนดแผนการใช้ห้องปฎิบัติการ",
         icon: FiChevronsRight,
-        href: "/userRole",
+        href: "/assignPlan",
       },
     ],
   },
