@@ -23,17 +23,17 @@ const navigation = [
       {
         name: "กำหนดรายวิชา",
         icon: FiChevronsRight,
-        href: "/assignCourse",
+        href: "/assign-course",
       },
       {
         name: "กำหนดผู้รับผิดชอบ",
         icon: FiChevronsRight,
-        href: "/assignUser",
+        href: "/assign-user",
       },
       {
         name: "กำหนดแผนการใช้ห้องปฎิบัติการ",
         icon: FiChevronsRight,
-        href: "/assignPlan",
+        href: "/assign-plan",
       },
     ],
   },
