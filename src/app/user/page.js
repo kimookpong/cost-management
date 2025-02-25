@@ -6,13 +6,14 @@ import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 import axios from "axios";
-import Swal from "sweetalert2";
+import { confirmDialog, toastDialog } from "@/lib/stdLib";
 
 export default function List() {
   const breadcrumb = [{ name: "จัดการผู้ใช้งาน", link: "/user" }];
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reload, setReload] = useState(0);
   const [error, setError] = useState(null);
   const _onPressAdd = () => {
     router.push("/user/new");
@@ -21,27 +22,15 @@ export default function List() {
     router.push(`/user/${id}`);
   };
   const _onPressDelete = async (id) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-      background: "#1f2937",
-      color: "#fff",
-    });
+    const result = await confirmDialog(
+      "คุณแน่ใจหรือไม่?",
+      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
+    );
 
     if (result.isConfirmed) {
       await axios.delete(`/api/user?id=${id}`);
-      await Swal.fire({
-        title: "ลบข้อมูลเรียบร้อย!",
-        icon: "success",
-        showCancelButton: false,
-        showConfirmButton: false,
-        timer: 1000,
-      });
+      await toastDialog("ลบข้อมูลเรียบร้อย!", "success");
+      setReload(reload + 1);
     }
   };
 
@@ -63,7 +52,7 @@ export default function List() {
     }
 
     fetchData();
-  }, []);
+  }, [reload]);
 
   const meta = [
     {
@@ -96,6 +85,7 @@ export default function List() {
       key: "personId",
       content: "Action",
       width: "100",
+      sort: false,
       render: (item) => (
         <div className="flex gap-1">
           <button

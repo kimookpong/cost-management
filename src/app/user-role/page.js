@@ -8,11 +8,13 @@ import TableList from "@/components/TableList";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { navigation } from "@/lib/params";
+import { confirmDialog, toastDialog } from "@/lib/stdLib";
 
 export default function List() {
   const breadcrumb = [{ name: "จัดการสิทธิการใช้งาน", link: "/user-role" }];
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
+  const [reload, setReload] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const _onPressAdd = () => {
@@ -22,27 +24,15 @@ export default function List() {
     router.push(`/user-role/${id}`);
   };
   const _onPressDelete = async (id) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-      background: "#1f2937",
-      color: "#fff",
-    });
+    const result = await confirmDialog(
+      "คุณแน่ใจหรือไม่?",
+      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
+    );
 
     if (result.isConfirmed) {
       await axios.delete(`/api/user-role?id=${id}`);
-      await Swal.fire({
-        title: "ลบข้อมูลเรียบร้อย!",
-        icon: "success",
-        showCancelButton: false,
-        showConfirmButton: false,
-        timer: 1000,
-      });
+      await toastDialog("ลบข้อมูลเรียบร้อย!", "success");
+      setReload(reload + 1);
     }
   };
 
@@ -64,7 +54,7 @@ export default function List() {
     }
 
     fetchData();
-  }, []);
+  }, [reload]);
 
   const meta = [
     {

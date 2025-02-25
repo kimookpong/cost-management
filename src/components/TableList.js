@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { FiChevronLeft, FiChevronRight, FiSearch } from "react-icons/fi";
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiSearch,
+  FiXCircle,
+} from "react-icons/fi";
 
 const TableList = ({ data, meta, loading }) => {
   const [dataDisplay, setDataDisplay] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState({ key: "", order: "" });
   const itemsPerPage = 10;
   const totalPages =
     data.length > 0 ? Math.ceil(data.length / itemsPerPage) : 1;
@@ -18,18 +24,33 @@ const TableList = ({ data, meta, loading }) => {
       );
     }
 
+    if (sort.key !== "") {
+      filteredData = filteredData.sort((a, b) => {
+        if (sort.order === "asc") {
+          return a[sort.key] > b[sort.key] ? 1 : -1;
+        } else {
+          return a[sort.key] < b[sort.key] ? 1 : -1;
+        }
+      });
+    }
+    if (filteredData.length === 0) {
+      setCurrentPage(1);
+    }
+
     setDataDisplay(
       filteredData.slice(
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
       )
     );
-  }, [data, currentPage, search, meta]);
+  }, [data, currentPage, search, meta, sort]);
 
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm text-gray-500 dark:text-gray-300"></p>
+        <p className="text-sm text-gray-500 dark:text-gray-300">
+          รายการทั้งหมด {data.length} รายการ
+        </p>
 
         <div className="relative w-full max-w-xs">
           <input
@@ -37,9 +58,16 @@ const TableList = ({ data, meta, loading }) => {
             placeholder="ค้นหา..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pr-10 h-10 pl-3 py-2 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-gray-400 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:focus:ring-gray-500"
+            className="w-full pr-10 h-10 pl-3 py-2 text-sm border border-gray-300 rounded shadow-sm focus:outline-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
           />
-          <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-5 h-5" />
+          {search ? (
+            <FiXCircle
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-5 h-5 cursor-pointer"
+              onClick={() => setSearch("")}
+            />
+          ) : (
+            <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-5 h-5 " />
+          )}
         </div>
       </div>
 
@@ -48,17 +76,51 @@ const TableList = ({ data, meta, loading }) => {
           <tr className="border-y border-gray-200 dark:border-gray-700">
             <th
               width="5%"
-              className="p-3 font-medium text-gray-500 dark:text-gray-300 text-center"
+              className="p-2 font-medium text-gray-500 dark:text-gray-300 text-center"
             >
-              #
+              <p className="flex items-center justify-between opacity-70">#</p>
             </th>
             {meta.map((m, index) => (
               <th
                 key={`header-${index}`}
                 width={m.width || ""}
-                className="p-3 text-center font-medium text-gray-500 dark:text-gray-300"
+                className="p-2 text-center font-medium text-gray-500 dark:text-gray-300 "
               >
-                {m.content}
+                {m.sort === false ? (
+                  <p className="flex items-center justify-between opacity-70">
+                    {m.content}
+                  </p>
+                ) : (
+                  <p
+                    className="flex items-center justify-between gap-2 opacity-70 cursor-pointer"
+                    onClick={() => {
+                      if (sort.key === m.key) {
+                        setSort((prev) => ({
+                          key: prev.key,
+                          order: prev.order === "asc" ? "desc" : "asc",
+                        }));
+                      } else {
+                        setSort({ key: m.key, order: "asc" });
+                      }
+                    }}
+                  >
+                    {m.content}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth="2"
+                      stroke="currentColor"
+                      className="w-4 h-4"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
+                      ></path>
+                    </svg>
+                  </p>
+                )}
               </th>
             ))}
           </tr>
@@ -70,11 +132,10 @@ const TableList = ({ data, meta, loading }) => {
                 key={`loading-${index}`}
                 className="border-b border-gray-200 dark:border-gray-700"
               >
-                {/* # (Index) */}
                 <td className="p-3 text-center">
                   <div className="animate-pulse bg-gray-300 dark:bg-gray-700 h-4 w-8 mx-auto rounded-md"></div>
                 </td>
-                {/* คอลัมน์อื่น ๆ */}
+
                 {meta.map((_, i) => (
                   <td key={`loading-cell-${index}-${i}`} className="p-3">
                     <div className="animate-pulse bg-gray-300 dark:bg-gray-700 h-4 w-full rounded-md"></div>
@@ -105,8 +166,8 @@ const TableList = ({ data, meta, loading }) => {
               );
             })
           ) : (
-            <tr>
-              <td colSpan={meta.length + 1} className="p-6 text-center">
+            <tr className="border-b border-gray-200 dark:border-gray-700">
+              <td colSpan={meta.length + 1} className="p-8 text-center">
                 <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -114,7 +175,7 @@ const TableList = ({ data, meta, loading }) => {
                     viewBox="0 0 24 24"
                     strokeWidth={2}
                     stroke="currentColor"
-                    className="w-12 h-12 mb-2 text-gray-400 dark:text-gray-500"
+                    className="w-12 h-12 mb-2 text-gray-300 dark:text-gray-500"
                   >
                     <path
                       strokeLinecap="round"
@@ -123,11 +184,8 @@ const TableList = ({ data, meta, loading }) => {
                     />
                   </svg>
 
-                  <p className="text-lg font-medium text-gray-500 dark:text-gray-400">
+                  <p className="text-lg font-medium text-gray-300 dark:text-gray-500">
                     ไม่มีข้อมูล
-                  </p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500">
-                    ลองเปลี่ยนการค้นหาหรือเพิ่มข้อมูลใหม่
                   </p>
                 </div>
               </td>
@@ -136,7 +194,6 @@ const TableList = ({ data, meta, loading }) => {
         </tbody>
       </table>
 
-      {/* Pagination */}
       {data.length > itemsPerPage && (
         <div className="flex items-center justify-between py-3">
           <p className="text-sm text-gray-500 dark:text-gray-300">

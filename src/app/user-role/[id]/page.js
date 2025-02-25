@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import { useFormik } from "formik";
 import { navigation } from "@/lib/params";
 import * as Yup from "yup";
+import { toastDialog } from "@/lib/stdLib";
 
 export default function Detail() {
   const { id } = useParams();
@@ -33,27 +34,14 @@ export default function Detail() {
       try {
         if (isNew) {
           await axios.post(`/api/user-role`, values);
-          await Swal.fire({
-            title: "เพิ่มข้อมูลใหม่เรียบร้อย!",
-            icon: "success",
-            showCancelButton: false,
-            showConfirmButton: false,
-            timer: 1000,
-          });
         } else {
           await axios.put(`/api/user-role?id=${id}`, values);
-          await Swal.fire({
-            title: "แก้ไขข้อมูลเรียบร้อย!",
-            icon: "success",
-            showCancelButton: false,
-            showConfirmButton: false,
-            timer: 1000,
-          });
         }
+        toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
         router.back();
       } catch (error) {
-        console.error("❌ Error saving user:", error);
-        alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+        toastDialog("เกิดข้อผิดพลาดในการบันทึกข้อมูล!", "error", 2000);
+        console.error("❌ Error saving data:", error);
       }
     },
   });
@@ -76,8 +64,8 @@ export default function Detail() {
             setLoading(false);
           }
         } catch (err) {
-          console.error("❌ Error fetching user data:", err);
-          alert("ไม่สามารถโหลดข้อมูลผู้ใช้ได้");
+          console.error("❌ Error fetching data:", err);
+          toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
         }
       };
       fetchData();
