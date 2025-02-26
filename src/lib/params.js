@@ -62,26 +62,27 @@ const navigation = [
   },
   {
     id: 3,
-    name: "จัดการข้อมูล",
-    description: "จัดการข้อมูล",
+    name: "ครุภัณฑ์ ",
+    description: "ครุภัณฑ์ ",
     icon: FiBox,
-    child: [
-      {
-        name: "ครุภัฑณ์",
-        icon: FiChevronsRight,
-        href: "/user",
-      },
-      {
-        name: "วัสดุสิ้นเปลือง, สารเคมี",
-        icon: FiChevronsRight,
-        href: "/userRole",
-      },
-      {
-        name: "วัสดุสิ้นไม่เปลือง",
-        icon: FiChevronsRight,
-        href: "/userRole",
-      },
-    ],
+    href: "/matter",
+    // child: [
+    //   {
+    //     name: "ครุภัฑณ์",
+    //     icon: FiChevronsRight,
+    //     href: "/materials",
+    //   },
+    //   {
+    //     name: "วัสดุสิ้นเปลือง, สารเคมี",
+    //     icon: FiChevronsRight,
+    //     href: "/userRole",
+    //   },
+    //   {
+    //     name: "วัสดุสิ้นไม่เปลือง",
+    //     icon: FiChevronsRight,
+    //     href: "/userRole",
+    //   },
+    // ],
   },
   {
     id: 4,

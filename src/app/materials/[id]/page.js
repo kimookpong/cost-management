@@ -10,7 +10,7 @@ import * as Yup from "yup";
 import dynamic from "next/dynamic";
 
 const UserAutocomplete = dynamic(
-  () => import("@/components/UserAutocomplete"),
+  () => import("@/components/UserAutocomplete"), //
   {
     ssr: false,
   }
@@ -71,19 +71,19 @@ export default function Detail() {
           const response = await axios.get(`/api/materials?id=${id}`);
           const data = response.data;
           if (data.success) {
-            const user = data.data[0];
+            const unit = data.data[0];
             formik.setValues({
-              unitId: user.unitId || "",
-              unitName: user.unitName?.toString() || "",
-              status: user.status?.toString() || "1",
+              unitId: unit.unitId || "",
+              unitName: unit.unitName?.toString() || "",
+              status: unit.status?.toString() || "1",
             });
             setLoading(false);
           } else {
-            console.error("Error fetching user data:", data.error);
+            console.error("Error fetching unit data:", data.error);
             alert("ไม่สามารถโหลดข้อมูลได้");
           }
         } catch (err) {
-          console.error("Error fetching user data:", err);
+          console.error("Error fetching unit data:", err);
           alert("ไม่สามารถโหลดข้อมูลได้");
         }
       };

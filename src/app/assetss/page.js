@@ -12,17 +12,17 @@ import Link from "next/link";
 export default function List() {
   const breadcrumb = [
     { name: "ครุภัณฑ์", link: "/matter" },
-    { name: "จัดการผู้ใช้งาน", link: "/materials" },
+    { name: "จัดการครุภัณฑ์", link: "/assetss" },
   ];
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const _onPressAdd = () => {
-    router.push("/materials/new");
+    router.push("/assetss/new");
   };
   const _onPressEdit = (id) => {
-    router.push(`/materials/${id}`);
+    router.push(`/assetss/${id}`);
   };
   const _onPressDelete = async (id) => {
     const result = await Swal.fire({
@@ -39,7 +39,7 @@ export default function List() {
     });
 
     if (result.isConfirmed) {
-      await axios.delete(`/api/materials?id=${id}`);
+      await axios.delete(`/api/assetss?id=${id}`);
       await Swal.fire({
         title: "ลบข้อมูลเรียบร้อย!",
         icon: "success",
@@ -54,8 +54,9 @@ export default function List() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axios.get(`/api/materials`);
+        const response = await axios.get(`/api/assetss`);
         const data = response.data;
+        console.log("ข้อมูลที่ได้รับจาก API:", data); // Log the data to the console
         if (data.success) {
           setEmployees(data.data);
         } else {
@@ -73,12 +74,28 @@ export default function List() {
 
   const meta = [
     {
+      key: "assetNameTh",
+      content: "ชื่อครุภัณฑ์",
+    },
+    {
       key: "unitName",
-      content: "ชื่อหน่วยนับ",
+      content: "หน่วยนับ",
+    },
+    {
+      key: "brandName",
+      content: "ยี่ห้อ",
+    },
+    {
+      key: "catNo",
+      content: "Category No.",
+    },
+    {
+      key: "version",
+      content: "รุ่น",
     },
     {
       key: "status",
-      content: "สถานะการใช้งาน",
+      content: "สถานะ",
       render: (item) => {
         return (
           <div className="flex justify-center items-center">
@@ -101,20 +118,18 @@ export default function List() {
       render: (item) => (
         <div className="flex gap-1">
           <button
-            className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn btn-xs cursor-pointer  text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressEdit(item.unitId);
             }}>
             <FiEdit className="w-4 h-4" />
-            แก้ไข
           </button>
           <button
-            className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn btn-xs cursor-pointer  text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressDelete(item.unitId);
             }}>
             <FiTrash2 className="w-4 h-4" />
-            ลบ
           </button>
         </div>
       ),
@@ -142,7 +157,9 @@ export default function List() {
             </label>
           </Link>
           <div className="flex gap-2 items-center p-4">
-            <h3 className="text-2xl font-semibold ">จัดการข้อมูล</h3>
+            <h3 className="text-2xl items-left font-semibold ">
+              จัดการครุภัณฑ์
+            </h3>
           </div>
           <div className="flex gap-1 ml-auto">
             <button

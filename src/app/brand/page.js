@@ -12,22 +12,23 @@ import Link from "next/link";
 export default function List() {
   const breadcrumb = [
     { name: "ครุภัณฑ์", link: "/matter" },
-    { name: "จัดการผู้ใช้งาน", link: "/materials" },
+    { name: "จัดการข้อมูลยี่ห้อ", link: "/brand" },
   ];
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const _onPressAdd = () => {
-    router.push("/materials/new");
+    router.push("/brand/new");
   };
   const _onPressEdit = (id) => {
-    router.push(`/materials/${id}`);
+    router.push(`/brand/${id}`);
   };
+
   const _onPressDelete = async (id) => {
     const result = await Swal.fire({
       title: "ยืนยันการลบข้อมูล ?",
-      // text: "You won't be able to revert this!",
+      //   text: "You won't be able to revert this!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -39,22 +40,28 @@ export default function List() {
     });
 
     if (result.isConfirmed) {
-      await axios.delete(`/api/materials?id=${id}`);
-      await Swal.fire({
-        title: "ลบข้อมูลเรียบร้อย!",
-        icon: "success",
-        showCancelButton: false,
-        showConfirmButton: false,
-        timer: 1000,
-      });
-      window.location.reload();
+      try {
+        await axios.delete(`/api/brand?id=${id}`);
+
+        await Swal.fire({
+          title: "ลบข้อมูลเรียบร้อย!",
+          icon: "success",
+          showCancelButton: false,
+          showConfirmButton: false,
+          timer: 1000,
+        });
+        window.location.reload();
+      } catch (error) {
+        console.error("Error deleting brand:", error);
+        alert("เกิดข้อผิดพลาดในการลบข้อมูล");
+      }
     }
   };
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axios.get(`/api/materials`);
+        const response = await axios.get(`/api/brand`);
         const data = response.data;
         if (data.success) {
           setEmployees(data.data);
@@ -73,9 +80,10 @@ export default function List() {
 
   const meta = [
     {
-      key: "unitName",
-      content: "ชื่อหน่วยนับ",
+      key: "brandName",
+      content: "ชื่อยี่ห้อ",
     },
+
     {
       key: "status",
       content: "สถานะการใช้งาน",
@@ -95,7 +103,7 @@ export default function List() {
       },
     },
     {
-      key: "unitId",
+      key: "brandId",
       content: "Action",
       width: "100",
       render: (item) => (
@@ -103,7 +111,7 @@ export default function List() {
           <button
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
-              return _onPressEdit(item.unitId);
+              return _onPressEdit(item.brandId);
             }}>
             <FiEdit className="w-4 h-4" />
             แก้ไข
@@ -111,7 +119,7 @@ export default function List() {
           <button
             className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
-              return _onPressDelete(item.unitId);
+              return _onPressDelete(item.brandId);
             }}>
             <FiTrash2 className="w-4 h-4" />
             ลบ
@@ -141,8 +149,10 @@ export default function List() {
               </svg>
             </label>
           </Link>
-          <div className="flex gap-2 items-center p-4">
-            <h3 className="text-2xl font-semibold ">จัดการข้อมูล</h3>
+          <div>
+            <h3 className="text-2xl items-center font-semibold ">
+              จัดการข้อมูลยี่ห้อ
+            </h3>
           </div>
           <div className="flex gap-1 ml-auto">
             <button
