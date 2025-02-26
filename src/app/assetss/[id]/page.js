@@ -3,7 +3,6 @@
 import { useForm } from "react-hook-form";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useFormik } from "formik";
 import Content from "@/components/Content";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -91,16 +90,18 @@ export default function AssetForm() {
           title: "เพิ่มข้อมูลใหม่เรียบร้อย!",
           icon: "success",
           timer: 1000,
+        }).then(() => {
+          router.push("/assetss"); // ไปที่หน้า assetss หลังจาก Swal ปิด
         });
-        router.push("/assetss");
       } else {
         await axios.put(`/api/assetss?id=${id}`, values);
         await Swal.fire({
           title: "แก้ไขข้อมูลเรียบร้อย!",
           icon: "success",
           timer: 1000,
+        }).then(() => {
+          router.push("/assetss"); // ไปที่หน้า assetss หลังจาก Swal ปิด
         });
-        router.push("/assetss");
       }
       router.back();
     } catch (error) {
@@ -114,24 +115,23 @@ export default function AssetForm() {
       <div className="container mx-auto p-4">
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h3 className="font-semibold text-gray-700">
+            <h3 className="font-semibold text-gray-700 text-2xl">
               {isNew ? "เพิ่มข้อมูลครุภัณฑ์" : "แก้ไขข้อมูลครุภัณฑ์"}
             </h3>
           </div>
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="form-control max-w-2xl mx-auto space-y-4 p-2">
+            className="form-control max-w-6xl mx-auto space-y-4 p-2">
             <div className="grid md:grid-cols-2 gap-4">
               {/* Asset Names */}
               <div className="form-control">
                 <label className={className.label}>
-                  ชื่อครุภัณฑ์ (ภาษาไทย)
+                  ชื่อครุภัณฑ์ (ภาษาไทย) *
                 </label>
                 <input
-                  // name="assetNameTh"//
                   type="text"
                   {...register("assetNameTh", {
-                    required: "Thai name is required",
+                    required: "ระบุข้อมูลนี้",
                   })}
                   className={className.input}
                 />
@@ -151,10 +151,9 @@ export default function AssetForm() {
                 <input
                   type="text"
                   {...register("assetNameEng", {
-                    required: "English name is required",
+                    required: "ระบุข้อมูลนี้",
                   })}
                   className={className.input}
-                  placeholder="ชื่อครุภัณฑ์"
                 />
                 {errors.assetNameEng && (
                   <label className={className.label}>
@@ -165,156 +164,251 @@ export default function AssetForm() {
                 )}
               </div>
 
-              {/* Dynamic Select */}
-              <div className="form-control">
-                <label className={className.label}>หน่วยนับ</label>
-                <select {...register("unitId")} className={className.select}>
-                  <option value="">- เลือก -</option>
-                  {options.map((option) => (
-                    <option key={option.unitId} value={option.unitId}>
-                      {option.unitName}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* หน่วยนับ และ ยี่ห้อ */}
+              <div className="grid grid-cols-3 gap-2">
+                {/* Type and Category */}
+                <div className="form-control">
+                  <label className={className.label}>ประเภทครุภัณฑ์ *</label>
+                  <select
+                    {...register("invtypeId", {
+                      required: "ระบุข้อมูลนี้",
+                    })}
+                    className={className.select}>
+                    <option value="">- เลือก -</option>
+                    {type.map((types) => (
+                      <option key={types.invtypeId} value={types.invtypeId}>
+                        {types["invtype Name"]}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.invtypeId && (
+                    <label className={className.label}>
+                      <span className="label-text-alt text-error">
+                        {errors.invtypeId.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
 
-              {/* Brand Select */}
-              <div className="form-control">
-                <label className={className.label}>ยี่ห้อ</label>
-                <select {...register("brandId")} className={className.select}>
-                  <option value="">- เลือก -</option>
-                  {brands.map((brand) => (
-                    <option key={brand.brandId} value={brand.brandId}>
-                      {brand.brandName}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <div className="form-control">
+                  <label className={className.label}>หน่วยนับ *</label>
+                  <select
+                    {...register("unitId", {
+                      required: "ระบุข้อมูลนี้",
+                    })}
+                    className="w-50 px-1 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white text-black focus:outline-indigo-600">
+                    <option value="">- เลือก -</option>
+                    {options.map((option) => (
+                      <option key={option.unitId} value={option.unitId}>
+                        {option.unitName}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.unitId && (
+                    <label className={className.label}>
+                      <span className="label-text-alt text-error">
+                        {errors.unitId.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
 
-              {/* Amount and Version */}
-              <div className="form-control">
-                <label className={className.label}>ขนาด/ขนาดบรรจุ</label>
-                <input
-                  type="text"
-                  {...register("amountUnit")}
-                  className={className.input}
-                  placeholder="ขนาด/ขนาดบรรจุ"
-                />
+                <div className="form-control">
+                  <label className={className.label}>ยี่ห้อ *</label>
+                  <select
+                    {...register("brandId", {
+                      required: "ระบุข้อมูลนี้",
+                    })}
+                    className="w-50 px-1 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white text-black focus:outline-indigo-600">
+                    <option value="">- เลือก -</option>
+                    {brands.map((brand) => (
+                      <option key={brand.brandId} value={brand.brandId}>
+                        {brand.brandName}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.brandId && (
+                    <label className={className.label}>
+                      <span className="label-text-alt text-error">
+                        {errors.brandId.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Amount and Version */}
+                <div className="form-control">
+                  <label className={className.label}>ขนาด/ขนาดบรรจุ *</label>
+                  <input
+                    type="text"
+                    {...register("amountUnit", {
+                      required: "ระบุข้อมูลนี้",
+                    })}
+                    className={className.input}
+                    placeholder="ขนาด/ขนาดบรรจุ"
+                  />
+                  {errors.amountUnit && (
+                    <label className={className.label}>
+                      <span className="label-text-alt text-error">
+                        {errors.amountUnit.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
 
-              <div className="form-control">
-                <label className={className.label}>รุ่น</label>
-                <input
-                  type="text"
-                  {...register("version")}
-                  className={className.input}
-                  placeholder="รุ่น"
-                />
-              </div>
-
-              {/* Type and Category */}
-              <div className="form-control">
-                <label className={className.label}>ประเภทครุภัณฑ์</label>
-                <select {...register("invtypeId")} className={className.select}>
-                  <option value="">- เลือก -</option>
-                  {type.map((types) => (
-                    <option key={types.invtypeId} value={types.invtypeId}>
-                      {types["invtype Name"]}
-                    </option>
-                  ))}
-                </select>
+                <div className="form-control">
+                  <label className={className.label}>รุ่น *</label>
+                  <input
+                    type="text"
+                    {...register("version")}
+                    className={className.input}
+                    placeholder="รุ่น"
+                  />
+                  {errors.version && (
+                    <label className={className.label}>
+                      <span className="label-text-alt text-error">
+                        {errors.version.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
               </div>
 
               {showCategoryAndGrade && (
                 <>
                   <div className="form-control">
-                    <label className={className.label}>Category No.</label>
+                    <label className={className.label}>Category No. *</label>
                     <input
                       type="text"
-                      {...register("catNo")}
+                      {...register("catNo", {
+                        required: "ระบุข้อมูลนี้",
+                      })}
                       className={className.input}
                       placeholder="Category Number"
                     />
+                    {errors.catNo && (
+                      <label className={className.label}>
+                        <span className="label-text-alt text-error">
+                          {errors.catNo.message}
+                        </span>
+                      </label>
+                    )}
                   </div>
                   <div className="form-control">
-                    <label className={className.label}>Grade</label>
+                    <label className={className.label}>Grade *</label>
                     <input
                       type="text"
-                      {...register("grade")}
+                      {...register("grade", {
+                        required: "ระบุข้อมูลนี้",
+                      })}
                       className={className.input}
                       placeholder="Grade"
                     />
+                    {errors.grade && (
+                      <label className={className.label}>
+                        <span className="label-text-alt text-error">
+                          {errors.grade.message}
+                        </span>
+                      </label>
+                    )}
                   </div>
                 </>
               )}
-
-              {/* Pricing */}
-              <div className="form-control">
-                <label className={className.label}>ราคาต่อหน่วย (บาท)</label>
-                <input
-                  type="text"
-                  {...register("unitPrice", {
-                    pattern: {
-                      value: /^\d*\.?\d*$/,
-                      message: "Please enter a valid number",
-                    },
-                  })}
-                  className={className.input}
-                  placeholder="0.00"
-                />
-                {errors.unitPrice && (
+              <div className="grid grid-cols-2 gap-4">
+                {/* Pricing */}
+                <div className="form-control">
                   <label className={className.label}>
-                    <span className="label-text-alt text-error">
-                      {errors.unitPrice.message}
-                    </span>
+                    ราคาต่อหน่วย (บาท) *
                   </label>
-                )}
-              </div>
+                  <input
+                    type="text"
+                    {...register("unitPrice", {
+                      required: "ระบุข้อมูลนี้",
+                      pattern: {
+                        value: /^\d*\.?\d*$/,
+                        message: "Please enter a valid number",
+                      },
+                    })}
+                    className={className.input}
+                    placeholder="0.00"
+                  />
+                  {errors.unitPrice && (
+                    <label className={className.label}>
+                      <span className="label-text-alt text-error">
+                        {errors.unitPrice.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
 
-              <div className="form-control">
-                <label className={className.label}>ราคาต่อแพ็ค (บาท)</label>
-                <input
-                  type="text"
-                  {...register("packPrice", {
-                    pattern: {
-                      value: /^\d*\.?\d*$/,
-                      message: "Please enter a valid number",
-                    },
-                  })}
-                  className={className.input}
-                  placeholder="0.00"
-                />
-                {errors.packPrice && (
-                  <label className={className.label}>
-                    <span className="label-text-alt text-error">
-                      {errors.packPrice.message}
-                    </span>
-                  </label>
-                )}
+                <div className="form-control">
+                  <label className={className.label}>ราคาต่อแพ็ค (บาท) *</label>
+                  <input
+                    type="text"
+                    {...register("packPrice", {
+                      required: "ระบุข้อมูลนี้",
+                      pattern: {
+                        value: /^\d*\.?\d*$/,
+                        message: "Please enter a valid number",
+                      },
+                    })}
+                    className={className.input}
+                    placeholder="0.00"
+                  />
+                  {errors.packPrice && (
+                    <label className={className.label}>
+                      <span className="label-text-alt text-error">
+                        {errors.packPrice.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Responsible Person */}
+                <div className="form-control">
+                  <label className={className.label}>ผู้รับผิดชอบ *</label>
+                  <select
+                    {...register("invgroupId", {
+                      required: "ระบุข้อมูลนี้",
+                    })}
+                    className={className.select}>
+                    <option value="">- เลือก -</option>
+                    {group.map((groups) => (
+                      <option key={groups.invgroupId} value={groups.invgroupId}>
+                        {groups.invgroupName}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.invgroupId && (
+                    <label className={className.label}>
+                      <span className="label-text-alt text-error">
+                        {errors.invgroupId.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
 
-              {/* Responsible Person */}
-              <div className="form-control">
-                <label className={className.label}>ผู้รับผิดชอบ</label>
-                <select
-                  {...register("invgroupId")}
-                  className={className.select}>
-                  <option value="">- เลือก -</option>
-                  {group.map((groups) => (
-                    <option key={groups.invgroupId} value={groups.invgroupId}>
-                      {groups.invgroupName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Status */}
-              <div className="form-control">
-                <label className={className.label}>สถานะ</label>
-                <select {...register("status")} className={className.select}>
-                  <option value="1">ใช้งาน</option>
-                  <option value="0">ไม่ใช้งาน</option>
-                </select>
+                {/* Status */}
+                <div className="form-control">
+                  <label className={className.label}>สถานะ *</label>
+                  <select
+                    {...register("status", {
+                      required: "ระบุข้อมูลนี้",
+                    })}
+                    className={className.select}>
+                    <option value="1">ใช้งาน</option>
+                    <option value="0">ไม่ใช้งาน</option>
+                  </select>
+                  {errors.status && (
+                    <label className={className.label}>
+                      <span className="label-text-alt text-error">
+                        {errors.status.message}
+                      </span>
+                    </label>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -343,5 +437,5 @@ const className = {
   input:
     "block w-full px-3 py-1.5 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white text-black focus:outline-indigo-600",
   select:
-    "block w-full px-4 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white text-black focus:outline-indigo-600",
+    "block w-50 px-1 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white text-black focus:outline-indigo-600",
 };

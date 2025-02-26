@@ -100,8 +100,8 @@ export default function Detail() {
     <Content breadcrumb={breadcrumb}>
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h3 className="font-semibold">
-            {isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล"}
+          <h3 className="font-semibold text-2xl">
+            {isNew ? "ข้อมูลหน่วยนับ" : "แก้ไขข้อมูลหน่วยนับ"}
           </h3>
         </div>
 
@@ -153,7 +153,7 @@ export default function Detail() {
               <button
                 type="submit"
                 className="cursor-pointer p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                {isNew ? "เพิ่มหน่วยนับ" : "บันทึกข้อมูล"}
+                {isNew ? "บันทึก" : "บันทึก"}
               </button>
             </div>
           </form>
@@ -168,5 +168,5 @@ const className = {
   input:
     "block w-full px-3 py-1.5 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600",
   select:
-    "block w-full px-4 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600",
+    "block w-32 px-4 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600",
 };

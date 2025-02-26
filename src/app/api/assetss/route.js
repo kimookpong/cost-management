@@ -65,13 +65,8 @@ export async function POST(req) {
     // ตรวจสอบค่าที่จำเป็น
     if (
       !assetNameTh ||
-      !assetNameEng ||
-      !amountUnit ||
-      !version ||
       isNaN(parsedBrandId) ||
-      !catNo ||
-      !grade ||
-      isNaN(parsedUnitId) ||
+      isNaN(parsedUnitId) || // ต้องเป็นตัวเลข ถ้าไม่ใช่ให้ return 400 Bad Request กลับไป
       isNaN(parsedUnitPrice) ||
       isNaN(parsedPackPrice) ||
       isNaN(parsedInvgroupId) ||
