@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import Content from "@/components/Content";
-import Swal from "sweetalert2";
 import { useFormik } from "formik";
 import { navigation } from "@/lib/params";
 import * as Yup from "yup";
@@ -190,7 +189,6 @@ export default function Detail() {
               </div>
             </div>
 
-            {/* ปุ่ม Submit */}
             <div className="md:col-span-2 flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
@@ -203,7 +201,7 @@ export default function Detail() {
                 type="submit"
                 className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
               >
-                {isNew ? "เพิ่มผู้ใช้งาน" : "บันทึกข้อมูล"}
+                บันทึกข้อมูล
               </button>
             </div>
           </form>

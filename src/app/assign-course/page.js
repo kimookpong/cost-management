@@ -6,50 +6,39 @@ import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 import axios from "axios";
-import Swal from "sweetalert2";
 import { navigation } from "@/lib/params";
+import { confirmDialog, toastDialog } from "@/lib/stdLib";
 
 export default function List() {
-  const breadcrumb = [{ name: "กำหนดรายวิชา", link: "/assignCourse" }];
+  const breadcrumb = [{ name: "จัดการสิทธิการใช้งาน", link: "/assign-course" }];
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
+  const [reload, setReload] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const _onPressAdd = () => {
-    router.push("/assignCourse/new");
+    router.push("/assign-course/create");
   };
   const _onPressEdit = (id) => {
-    router.push(`/assignCourse/${id}`);
+    router.push(`/assign-course/${id}`);
   };
   const _onPressDelete = async (id) => {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, delete it!",
-      background: "#1f2937",
-      color: "#fff",
-    });
+    const result = await confirmDialog(
+      "คุณแน่ใจหรือไม่?",
+      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
+    );
 
     if (result.isConfirmed) {
-      await axios.delete(`/api/user-role?id=${id}`);
-      await Swal.fire({
-        title: "ลบข้อมูลเรียบร้อย!",
-        icon: "success",
-        showCancelButton: false,
-        showConfirmButton: false,
-        timer: 1000,
-      });
+      await axios.delete(`/api/assign-course?id=${id}`);
+      await toastDialog("ลบข้อมูลเรียบร้อย!", "success");
+      setReload(reload + 1);
     }
   };
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axios.get(`/api/user-role`);
+        const response = await axios.get(`/api/assign-course`);
         const data = response.data;
         if (data.success) {
           setEmployees(data.data);
@@ -64,7 +53,7 @@ export default function List() {
     }
 
     fetchData();
-  }, []);
+  }, [reload]);
 
   const meta = [
     {
@@ -145,7 +134,7 @@ export default function List() {
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between items-center">
           <div>
-            <h3 className="font-semibold ">กำหนดรายวิชา</h3>
+            <h3 className="font-semibold ">จัดการสิทธิการใช้งาน</h3>
           </div>
           <div className="flex gap-1">
             <button

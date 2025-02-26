@@ -14,7 +14,7 @@ export default function Dashboard({
       <div className="flex-1 flex flex-col transition-all">
         <HeaderBar />
         <div className="flex-1 flex flex-col overflow-hidden justify-center items-center">
-          <div className="flex-1 overflow-y-auto p-2 max-w-7xl w-full ">
+          <div className="flex-1 overflow-y-auto p-4 w-full ">
             {breadcrumb && <Breadcrumb paths={breadcrumb} />}
             {LoadingPage ? <Loading /> : children}
             {/* {children} */}

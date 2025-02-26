@@ -4,16 +4,22 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useRouter } from "next/navigation";
 import Content from "@/components/Content";
-import Swal from "sweetalert2";
 import { useFormik } from "formik";
-import { navigation } from "@/lib/params";
 import * as Yup from "yup";
+import { toastDialog } from "@/lib/stdLib";
 
 export default function Detail() {
   const { id } = useParams();
   const router = useRouter();
   const isNew = id === "new";
   const [loading, setLoading] = useState(!isNew);
+  const [activeTab, setActiveTab] = useState("tab1");
+
+  const tabs = [
+    { id: "tab1", label: "รายละเอียดวิชา" },
+    { id: "tab2", label: "ผู้รับผิดชอบ" },
+    { id: "tab3", label: "ทรัพยากรตามรายวิชา" },
+  ];
 
   const validationSchema = Yup.object({
     roleName: Yup.string().required("กรุณากรอกชื่อสิทธิ"),
@@ -33,27 +39,14 @@ export default function Detail() {
       try {
         if (isNew) {
           await axios.post(`/api/user-role`, values);
-          await Swal.fire({
-            title: "เพิ่มข้อมูลใหม่เรียบร้อย!",
-            icon: "success",
-            showCancelButton: false,
-            showConfirmButton: false,
-            timer: 1000,
-          });
         } else {
           await axios.put(`/api/user-role?id=${id}`, values);
-          await Swal.fire({
-            title: "แก้ไขข้อมูลเรียบร้อย!",
-            icon: "success",
-            showCancelButton: false,
-            showConfirmButton: false,
-            timer: 1000,
-          });
         }
+        toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
         router.back();
       } catch (error) {
-        console.error("❌ Error saving user:", error);
-        alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+        toastDialog("เกิดข้อผิดพลาดในการบันทึกข้อมูล!", "error", 2000);
+        console.error("❌ Error saving data:", error);
       }
     },
   });
@@ -76,8 +69,8 @@ export default function Detail() {
             setLoading(false);
           }
         } catch (err) {
-          console.error("❌ Error fetching user data:", err);
-          alert("ไม่สามารถโหลดข้อมูลผู้ใช้ได้");
+          console.error("❌ Error fetching data:", err);
+          toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
         }
       };
       fetchData();
@@ -89,19 +82,9 @@ export default function Detail() {
     { name: isNew ? "เพิ่มใหม่" : "แก้ไข" },
   ];
 
-  const handleCheckboxChange = (e) => {
-    const { value, checked } = e.target;
-    formik.setFieldValue(
-      "roleAccess",
-      checked
-        ? [...formik.values.roleAccess, value]
-        : formik.values.roleAccess.filter((item) => item !== value)
-    );
-  };
-
   return (
     <Content breadcrumb={breadcrumb}>
-      <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+      <div className="relative flex flex-col w-full text-gray-900 dark:text-gray-300 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
             {isNew ? "เพิ่มสิทธิใหม่" : "แก้ไขข้อมูลสิทธิ"}
@@ -114,95 +97,130 @@ export default function Detail() {
           </div>
         ) : (
           <form onSubmit={formik.handleSubmit}>
-            <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-              {/* Name */}
-              <div className="sm:col-span-8">
-                <label className={className.label}>ชื่อสิทธิ</label>
-                <input
-                  type="text"
-                  name="roleName"
-                  value={formik.values.roleName}
-                  onChange={formik.handleChange}
-                  className={`${className.input} ${
-                    formik.touched.roleName && formik.errors.roleName
-                      ? "border-red-500"
-                      : ""
-                  }`}
-                />
-                {formik.touched.roleName && formik.errors.roleName && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {formik.errors.roleName}
-                  </p>
-                )}
+            <div className="w-full">
+              <div className="flex border-b px-4">
+                {tabs.map((tab) => (
+                  <button
+                    type="button"
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex-1 flex justify-center items-center space-x-2 p-4 transition ${
+                      activeTab === tab.id
+                        ? "text-blue-600 font-semibold border-b-2 border-blue-600 dark:text-blue-400"
+                        : "text-gray-500 dark:text-gray-300"
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
               </div>
 
-              {/* Status ID */}
-              <div className="sm:col-span-4">
-                <label className={className.label}>สถานะ</label>
-                <select
-                  name="statusId"
-                  value={formik.values.statusId}
-                  onChange={formik.handleChange}
-                  className={className.select}
-                >
-                  <option value="1">ใช้งาน</option>
-                  <option value="0">ไม่ใช้งาน</option>
-                </select>
-              </div>
-
-              <div className="sm:col-span-12">
-                <label className={className.label}>การอนุญาติเข้าถึง</label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {navigation.map((item, index) => (
-                    <label key={index} className="flex items-center gap-3">
+              <div>
+                {activeTab === "tab1" && (
+                  <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                    <div className="sm:col-span-12">
+                      <h3 className="font-semibold">รายวิชา :</h3>
+                      <p className="mt-1 text-gray-500">รหัสรายวิชา :</p>
+                    </div>
+                    <div className="sm:col-span-6">
+                      <label className={className.label}>
+                        ผู้รับผิดชอบหลัก
+                      </label>
                       <input
-                        type="checkbox"
-                        name="roleAccess"
-                        value={item.id}
-                        checked={formik.values.roleAccess.includes(
-                          item.id.toString()
-                        )}
-                        onChange={handleCheckboxChange}
-                        className={`checkbox ${
-                          formik.touched.roleAccess && formik.errors.roleAccess
-                            ? "checkbox-error"
-                            : "checkbox-success"
+                        type="text"
+                        name="roleName"
+                        value={formik.values.roleName}
+                        onChange={formik.handleChange}
+                        className={`${className.input} ${
+                          formik.touched.roleName && formik.errors.roleName
+                            ? "border-red-500"
+                            : ""
                         }`}
                       />
-                      <div className="flex flex-col">
-                        <span
-                          className={`font-semibold ${
-                            formik.touched.roleAccess &&
-                            formik.errors.roleAccess
-                              ? "text-red-500"
-                              : "text-gray-900 dark:text-gray-300"
-                          }`}
-                        >
-                          {item.name}
-                        </span>
-                        <p
-                          className={`text-sm ${
-                            formik.touched.roleAccess &&
-                            formik.errors.roleAccess
-                              ? "text-red-300"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          {item.description}
+                      {formik.touched.roleName && formik.errors.roleName && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {formik.errors.roleName}
                         </p>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-                {formik.touched.roleAccess && formik.errors.roleAccess && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {formik.errors.roleAccess}
-                  </p>
+                      )}
+                    </div>
+                    <div className="sm:col-span-6">
+                      <label className={className.label}>
+                        จำนวนห้อง LAB ที่เปิดบริการ
+                      </label>
+                      <input
+                        type="text"
+                        name="roleName"
+                        value={formik.values.roleName}
+                        onChange={formik.handleChange}
+                        className={`${className.input} ${
+                          formik.touched.roleName && formik.errors.roleName
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      />
+                      {formik.touched.roleName && formik.errors.roleName && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {formik.errors.roleName}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="sm:col-span-6">
+                      <label className={className.label}>
+                        จำนวนห้องกลุ่มต่อห้อง
+                      </label>
+                      <input
+                        type="text"
+                        name="roleName"
+                        value={formik.values.roleName}
+                        onChange={formik.handleChange}
+                        className={`${className.input} ${
+                          formik.touched.roleName && formik.errors.roleName
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      />
+                      {formik.touched.roleName && formik.errors.roleName && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {formik.errors.roleName}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="sm:col-span-6">
+                      <label className={className.label}>จำนวนเวลาเรียน</label>
+                      <input
+                        type="text"
+                        name="roleName"
+                        value={formik.values.roleName}
+                        onChange={formik.handleChange}
+                        className={`${className.input} ${
+                          formik.touched.roleName && formik.errors.roleName
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      />
+                      {formik.touched.roleName && formik.errors.roleName && (
+                        <p className="mt-1 text-sm text-red-500">
+                          {formik.errors.roleName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {activeTab === "tab2" && (
+                  <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                    <p>เนื้อหาแท็บที่ 2</p>
+                  </div>
+                )}
+                {activeTab === "tab3" && (
+                  <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                    <p>เนื้อหาแท็บที่ 3</p>
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* ปุ่ม Submit */}
             <div className="md:col-span-2 flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
@@ -215,7 +233,7 @@ export default function Detail() {
                 type="submit"
                 className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
               >
-                {isNew ? "เพิ่มผู้ใช้งาน" : "บันทึกข้อมูล"}
+                บันทึกข้อมูล
               </button>
             </div>
           </form>
@@ -226,7 +244,8 @@ export default function Detail() {
 }
 
 const className = {
-  label: "mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300",
+  label:
+    "mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300",
   input:
     "block w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
   select: "block w-full px-4 py-2 border rounded-md dark:bg-gray-800",

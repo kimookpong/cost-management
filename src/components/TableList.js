@@ -11,7 +11,7 @@ const TableList = ({ data, meta, loading }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "", order: "" });
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
   const totalPages =
     data.length > 0 ? Math.ceil(data.length / itemsPerPage) : 1;
 
@@ -92,7 +92,7 @@ const TableList = ({ data, meta, loading }) => {
                   </p>
                 ) : (
                   <p
-                    className="flex items-center justify-between gap-2 opacity-70 cursor-pointer"
+                    className="flex items-center justify-between gap-1 opacity-70 cursor-pointer"
                     onClick={() => {
                       if (sort.key === m.key) {
                         setSort((prev) => ({
@@ -151,13 +151,13 @@ const TableList = ({ data, meta, loading }) => {
                   key={item.id || currentRow}
                   className="border-b border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
                 >
-                  <td className="p-2 text-center text-gray-900 dark:text-gray-300">
+                  <td className="p-1 text-center text-gray-900 dark:text-gray-300">
                     {currentRow}
                   </td>
                   {meta.map((m, i) => (
                     <td
                       key={`row-${currentRow}-col-${i}`}
-                      className="p-2 text-gray-900 dark:text-gray-300"
+                      className="p-1 text-gray-900 dark:text-gray-300"
                     >
                       {m.render ? m.render(item) : item[m.key] || "-"}
                     </td>
@@ -199,7 +199,7 @@ const TableList = ({ data, meta, loading }) => {
           <p className="text-sm text-gray-500 dark:text-gray-300">
             หน้า {currentPage} / {totalPages}
           </p>
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             <button
               className="border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-600 rounded-md disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}

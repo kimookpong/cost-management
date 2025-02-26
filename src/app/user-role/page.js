@@ -6,7 +6,6 @@ import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 import axios from "axios";
-import Swal from "sweetalert2";
 import { navigation } from "@/lib/params";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 
