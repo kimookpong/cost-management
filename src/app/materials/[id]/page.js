@@ -10,7 +10,7 @@ import * as Yup from "yup";
 import dynamic from "next/dynamic";
 
 const UserAutocomplete = dynamic(
-  () => import("@/components/UserAutocomplete"),
+  () => import("@/components/UserAutocomplete"), //
   {
     ssr: false,
   }
@@ -71,19 +71,19 @@ export default function Detail() {
           const response = await axios.get(`/api/materials?id=${id}`);
           const data = response.data;
           if (data.success) {
-            const user = data.data[0];
+            const unit = data.data[0];
             formik.setValues({
-              unitId: user.unitId || "",
-              unitName: user.unitName?.toString() || "",
-              status: user.status?.toString() || "1",
+              unitId: unit.unitId || "",
+              unitName: unit.unitName?.toString() || "",
+              status: unit.status?.toString() || "1",
             });
             setLoading(false);
           } else {
-            console.error("Error fetching user data:", data.error);
+            console.error("Error fetching unit data:", data.error);
             alert("ไม่สามารถโหลดข้อมูลได้");
           }
         } catch (err) {
-          console.error("Error fetching user data:", err);
+          console.error("Error fetching unit data:", err);
           alert("ไม่สามารถโหลดข้อมูลได้");
         }
       };
@@ -100,8 +100,8 @@ export default function Detail() {
     <Content breadcrumb={breadcrumb}>
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-          <h3 className="font-semibold">
-            {isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล"}
+          <h3 className="font-semibold text-2xl">
+            {isNew ? "ข้อมูลหน่วยนับ" : "แก้ไขข้อมูลหน่วยนับ"}
           </h3>
         </div>
 
@@ -153,7 +153,7 @@ export default function Detail() {
               <button
                 type="submit"
                 className="cursor-pointer p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                {isNew ? "เพิ่มหน่วยนับ" : "บันทึกข้อมูล"}
+                {isNew ? "บันทึก" : "บันทึก"}
               </button>
             </div>
           </form>
@@ -168,5 +168,5 @@ const className = {
   input:
     "block w-full px-3 py-1.5 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600",
   select:
-    "block w-full px-4 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600",
+    "block w-32 px-4 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600",
 };
