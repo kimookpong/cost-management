@@ -15,6 +15,25 @@ import {
 
 const navigation = [
   {
+    id: 3,
+    name: "ข้อมูลเริ่มต้น ",
+    description: "ข้อมูลเริ่มต้น ",
+    icon: FiBox,
+
+    child: [
+      {
+        name: "กำหนดค่าตั้งต้น",
+        icon: FiChevronsRight,
+        href: "/matter",
+      },
+      {
+        name: "ครุภัณฑ์",
+        icon: FiChevronsRight,
+        href: "/matter2",
+      },
+    ],
+  },
+  {
     id: 1,
     name: "แผนการให้บริการห้องปฎิบัติการ",
     description: "แผนการให้บริการห้องปฎิบัติการ",
@@ -60,30 +79,7 @@ const navigation = [
       },
     ],
   },
-  {
-    id: 3,
-    name: "ครุภัณฑ์ ",
-    description: "ครุภัณฑ์ ",
-    icon: FiBox,
-    href: "/matter",
-    // child: [
-    //   {
-    //     name: "ครุภัฑณ์",
-    //     icon: FiChevronsRight,
-    //     href: "/materials",
-    //   },
-    //   {
-    //     name: "วัสดุสิ้นเปลือง, สารเคมี",
-    //     icon: FiChevronsRight,
-    //     href: "/userRole",
-    //   },
-    //   {
-    //     name: "วัสดุสิ้นไม่เปลือง",
-    //     icon: FiChevronsRight,
-    //     href: "/userRole",
-    //   },
-    // ],
-  },
+
   {
     id: 4,
     name: "จัดการผู้ใช้งาน",
