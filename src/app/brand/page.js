@@ -11,8 +11,8 @@ import Link from "next/link";
 
 export default function List() {
   const breadcrumb = [
-    { name: "ครุภัณฑ์", link: "/matter" },
-    { name: "จัดการข้อมูลยี่ห้อ", link: "/brand" },
+    { name: "กำหนดค่าเริ่มต้น", link: "/matter" },
+    { name: "ยี่ห้อ", link: "/brand" },
   ];
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
@@ -150,9 +150,7 @@ export default function List() {
             </label>
           </Link>
           <div>
-            <h3 className="text-2xl items-center font-semibold ">
-              จัดการข้อมูลยี่ห้อ
-            </h3>
+            <h3 className="text-2xl items-center font-semibold ">ยี่ห้อ</h3>
           </div>
           <div className="flex gap-1 ml-auto">
             <button

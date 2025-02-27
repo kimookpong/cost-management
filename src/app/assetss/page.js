@@ -1,20 +1,36 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 import axios from "axios";
 import Swal from "sweetalert2";
 import Link from "next/link";
+// import { c } from "framer-motion/dist/types.d-6pKw1mTI";
 
 export default function List() {
-  const breadcrumb = [
-    { name: "ครุภัณฑ์", link: "/matter" },
-    { name: "จัดการครุภัณฑ์", link: "/assetss" },
-  ];
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const idType = searchParams.get("idType");
+  console.log("idType01", idType);
+  const breadcrumb = [
+    { name: "ข้อมูลครุภัณฑ์", link: "/matter2" },
+    {
+      name:
+        idType === "1"
+          ? "ครุภัณฑ์"
+          : idType === "2"
+          ? "วัสดุสิ้นเปลือง"
+          : idType === "3"
+          ? "วัสดุไม่สิ้นเปลือง"
+          : "ข้อมูลไม่ถูกต้อง",
+      link: "/assetss",
+    },
+  ];
+
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,7 +70,7 @@ export default function List() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axios.get(`/api/assetss`);
+        const response = await axios.get(`/api/assetss?idType=${idType}`); // ใช้ idType ที่ได้จากการใช้ useSearchParams axios คือ การเรียกใช้งาน API ที่เราสร้างไว้
         const data = response.data;
         console.log("ข้อมูลที่ได้รับจาก API:", data); // Log the data to the console
         if (data.success) {
@@ -140,7 +156,7 @@ export default function List() {
     <Content breadcrumb={breadcrumb}>
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between items-center">
-          <Link href="/matter">
+          <Link href="/matter2">
             <label className="swap text-6xl">
               {/* <div className="swap-off">🥶</div> */}
               <svg
@@ -158,7 +174,14 @@ export default function List() {
           </Link>
           <div className="flex gap-2 items-center p-4">
             <h3 className="text-2xl items-left font-semibold ">
-              จัดการครุภัณฑ์
+              {" "}
+              {idType === "1"
+                ? "ครุภัณฑ์"
+                : idType === "2"
+                ? "วัสดุสิ้นเปลือง"
+                : idType === "3"
+                ? "วัสดุไม่สิ้นเปลือง"
+                : "ข้อมูลไม่ถูกต้อง"}
             </h3>
           </div>
           <div className="flex gap-1 ml-auto">

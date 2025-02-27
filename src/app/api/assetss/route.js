@@ -3,29 +3,34 @@ import { executeQuery } from "@/lib/oracle";
 
 export async function GET(req) {
   try {
-    const id = req.nextUrl.searchParams.get("id");
+    const { searchParams } = new URL(req.nextUrl); // ✅ ใช้ req.nextUrl ให้ถูกต้อง
+    const idType = searchParams.get("idType");
+    const id = searchParams.get("id");
+
+    console.log("idType:", idType, "id:", id);
+
+    let sql = `SELECT s.*,u.unit_name,b.brand_name,g.INVGROUP_NAME,t."INVTYPE _NAME" FROM cst_invasset s 
+            inner join cst_invunit u on s.unit_id = u.unit_id
+            inner JOIN cst_invbrand b on s.brand_id = b.brand_id
+            INNER JOIN cst_invgroup g on s.invgroup_id = g.invgroup_id
+            INNER JOIN cst_invtype t on s.invtype_id = t.invtype_id
+            WHERE s.flag_del = 0`;
+
+    let params = [];
+
     if (id) {
-      const asset = await executeQuery(
-        `SELECT s.*,u.unit_name,b.brand_name,g.INVGROUP_NAME,t."INVTYPE _NAME" FROM cst_invasset s 
-            inner join cst_invunit u on s.unit_id = u.unit_id
-            inner JOIN cst_invbrand b on s.brand_id = b.brand_id
-            INNER JOIN cst_invgroup g on s.invgroup_id = g.invgroup_id
-            INNER JOIN cst_invtype t on s.invtype_id = t.invtype_id
-            WHERE s.flag_del = 0 AND ASSET_ID = :id`,
-        { id }
-      );
-      return NextResponse.json({ success: true, data: asset });
-    } else {
-      const asset = await executeQuery(
-        `SELECT s.*,u.unit_name,b.brand_name,g.INVGROUP_NAME,t."INVTYPE _NAME" FROM cst_invasset s 
-            inner join cst_invunit u on s.unit_id = u.unit_id
-            inner JOIN cst_invbrand b on s.brand_id = b.brand_id
-            INNER JOIN cst_invgroup g on s.invgroup_id = g.invgroup_id
-            INNER JOIN cst_invtype t on s.invtype_id = t.invtype_id
-            WHERE s.flag_del = 0`
-      );
-      return NextResponse.json({ success: true, data: asset });
+      sql += ` AND s.ASSET_ID = ?`; // ถ้าใช้ PostgreSQL ให้ใช้ `$1`
+      params.push(id);
+    } else if (idType === "1") {
+      sql += ` AND s.INVTYPE_ID = 1`; // ถ้าใช้ PostgreSQL ให้ใช้ `$1`
+    } else if (idType === "2") {
+      sql += ` AND s.INVTYPE_ID = 2`; // ถ้าใช้ PostgreSQL ให้ใช้ `$1`
+    } else if (idType === "3") {
+      sql += ` AND s.INVTYPE_ID = 3`; // ถ้าใช้ PostgreSQL ให้ใช้ `$1`
     }
+    const assets = await executeQuery(sql, params);
+
+    return NextResponse.json({ success: true, data: assets });
   } catch (error) {
     console.error("Database Error:", error);
     return NextResponse.json(
