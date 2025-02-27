@@ -20,6 +20,7 @@ export default function Detail() {
     course: null,
     class: [],
     users: [],
+    labgroup: [],
   });
 
   const tabs = [
@@ -30,6 +31,7 @@ export default function Detail() {
 
   const validationSchema = Yup.object({
     personId: Yup.string().required("กรุณาเลือกข้อมูล"),
+    labgroupId: Yup.string().required("กรุณาเลือกข้อมูล"),
     labroom: Yup.number()
       .required("กรุณากรอกข้อมูล")
       .min(1, "จำนวนต้องไม่น้อยกว่า 1"),
@@ -57,18 +59,18 @@ export default function Detail() {
     validationSchema,
     onSubmit: async (values) => {
       console.log("🔹 ส่งข้อมูล:", values);
-      // try {
-      //   if (isNew) {
-      //     await axios.post(`/api/user-role`, values);
-      //   } else {
-      //     await axios.put(`/api/user-role?id=${id}`, values);
-      //   }
-      //   toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
-      //   router.back();
-      // } catch (error) {
-      //   toastDialog("เกิดข้อผิดพลาดในการบันทึกข้อมูล!", "error", 2000);
-      //   console.error("❌ Error saving data:", error);
-      // }
+      try {
+        if (isNew) {
+          await axios.post(`/api/assign-course`, values);
+        } else {
+          await axios.put(`/api/assign-course?id=${id}`, values);
+        }
+        toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
+        router.back();
+      } catch (error) {
+        toastDialog("เกิดข้อผิดพลาดในการบันทึกข้อมูล!", "error", 2000);
+        console.error("❌ Error saving data:", error);
+      }
     },
   });
 
@@ -111,18 +113,20 @@ export default function Detail() {
               course: data.course,
               class: data.class,
               users: data.users,
+              labgroup: data.labgroup,
             });
             formik.setValues({
               courseid: data.course?.courseid,
               labgroupId: "",
               schId: searchParams.get("schId"),
-              acadyear: "",
-              semester: "",
-              section: "",
+              acadyear: data.class?.[0]?.acadyear,
+              semester: data.class?.[0]?.semester,
+              section: data.class?.length,
               labroom: "",
               hour: "",
               labgroupNum: "",
               personId: "",
+              userCreated: 1,
             });
 
             setLoading(false);
@@ -150,7 +154,8 @@ export default function Detail() {
       <div className="relative flex flex-col w-full text-gray-900 dark:text-gray-300 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
-            {isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล"}
+            {isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล"} : {data.course?.coursename} (
+            {data.course?.coursecode})
           </h3>
         </div>
 
@@ -185,23 +190,38 @@ export default function Detail() {
                       <h3 className="font-xl font-semibold">
                         {data.course?.coursename} ({data.course?.coursecode})
                       </h3>
-                      <p className="mt-4">
-                        สำนักวิชา : {data.course?.coursename}
-                      </p>
-                      <p className="mt-1">
-                        รายละเอียด : {data.course?.description1}
-                      </p>
+                    </div>
+                    <div className="sm:col-span-4">
+                      <i>สำนักวิชา</i> : {data.course?.coursename}
+                    </div>
+                    <div className="sm:col-span-8">
+                      <i>เทอมการศึกษา</i> : {data.class?.[0]?.semester}/
+                      {data.class?.[0]?.acadyear}
+                    </div>
+                    <div className="sm:col-span-4">
+                      <i>จำนวน Section</i> : {data.class?.length} Section
+                    </div>
+                    <div className="sm:col-span-4">
+                      <i>จำนวน Seat</i> :{" "}
+                      {data.class?.reduce(
+                        (total, item) => total + item.totalseat,
+                        0
+                      )}{" "}
+                      Seat
+                    </div>
+                    <div className="sm:col-span-12">
+                      <i>รายละเอียด</i> : {data.course?.description1}
                     </div>
                     <div className="sm:col-span-6">
                       <label className={className.label}>
                         ผู้รับผิดชอบหลัก
                       </label>
                       <select
-                        name="statusId"
+                        name="personId"
                         value={formik.values.personId}
                         onChange={formik.handleChange}
                         className={`${className.select} ${
-                          formik.touched.labroom && formik.errors.labroom
+                          formik.touched.personId && formik.errors.personId
                             ? "border-red-500"
                             : ""
                         }`}
@@ -211,7 +231,7 @@ export default function Detail() {
                         </option>
                         {data.users.map((user) => (
                           <option key={user.personId} value={user.personId}>
-                            {user.userId} {user.personId}
+                            {user.fullname} ({user.roleName})
                           </option>
                         ))}
                       </select>
@@ -221,10 +241,45 @@ export default function Detail() {
                         </p>
                       )}
                     </div>
-                    <div className="sm:col-span-2">
+                    <div className="sm:col-span-6">
+                      <label className={className.label}>
+                        กลุ่มห้องปฎิบัติการ
+                      </label>
+                      <select
+                        name="labgroupId"
+                        value={formik.values.labgroupId}
+                        onChange={formik.handleChange}
+                        className={`${className.select} ${
+                          formik.touched.labgroupId && formik.errors.labgroupId
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      >
+                        <option value="" disabled>
+                          เลือกกลุ่มห้องปฎิบัติการ
+                        </option>
+                        {data.labgroup.map((labgroup) => (
+                          <option
+                            key={labgroup.labgroupId}
+                            value={labgroup.labgroupId}
+                          >
+                            {labgroup.labgroupName}
+                          </option>
+                        ))}
+                      </select>
+                      {formik.touched.labgroupId &&
+                        formik.errors.labgroupId && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {formik.errors.labgroupId}
+                          </p>
+                        )}
+                    </div>
+
+                    <div className="sm:col-span-4">
                       <label className={className.label}>
                         จำนวนห้อง LAB ที่เปิดบริการ
                       </label>
+
                       <input
                         type="number"
                         name="labroom"
@@ -243,7 +298,7 @@ export default function Detail() {
                       )}
                     </div>
 
-                    <div className="sm:col-span-2">
+                    <div className="sm:col-span-4">
                       <label className={className.label}>
                         จำนวนกลุ่มต่อห้อง
                       </label>
@@ -267,7 +322,7 @@ export default function Detail() {
                         )}
                     </div>
 
-                    <div className="sm:col-span-2">
+                    <div className="sm:col-span-4">
                       <label className={className.label}>
                         จำนวนชั่วโมงเรียน
                       </label>

@@ -60,51 +60,12 @@ export default function List() {
 
   const meta = [
     {
-      key: "roleName",
+      key: "labId",
       content: "ชื่อสิทธิการใช้งาน",
     },
+
     {
-      key: "roleAccess",
-      content: "การอนุญาติเข้าถึง",
-      render: (item) => {
-        return (
-          <div className="flex flex-col gap-1">
-            {JSON.parse(item.roleAccess).map((access, index) => {
-              const navi = navigation.find(
-                (nav) => nav.id === parseInt(access)
-              );
-              if (!navi) return null;
-              return (
-                <span key={index} className="text-sm flex gap-2">
-                  <FiCheckCircle className="w-4 h-4 text-green-900" />
-                  {navi.name}
-                </span>
-              );
-            })}
-          </div>
-        );
-      },
-    },
-    {
-      key: "statusId",
-      content: "สถานะ",
-      width: "100",
-      render: (item) => {
-        return (
-          <span
-            className={`px-2 py-1 text-sm font-medium rounded-full ${
-              item.statusId === 1
-                ? "bg-green-500 text-white"
-                : "bg-red-500 text-white"
-            }`}
-          >
-            {item.statusId === 1 ? "ใช้งาน" : "ไม่ใช้งาน"}
-          </span>
-        );
-      },
-    },
-    {
-      key: "roleId",
+      key: "labId",
       content: "Action",
       width: "100",
       render: (item) => (
@@ -112,7 +73,7 @@ export default function List() {
           <button
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
-              return _onPressEdit(item.roleId);
+              return _onPressEdit(item.labId);
             }}
           >
             <FiEdit className="w-4 h-4" />
@@ -121,7 +82,7 @@ export default function List() {
           <button
             className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
-              return _onPressDelete(item.roleId);
+              return _onPressDelete(item.labId);
             }}
           >
             <FiTrash2 className="w-4 h-4" />

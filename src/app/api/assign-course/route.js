@@ -13,8 +13,28 @@ async function getCourse(courseId) {
   );
 }
 
+async function getLabgroup() {
+  return await executeQuery(
+    `SELECT LABGROUP_ID, LABGROUP_NAME
+    FROM CST_LABGROUP 
+    WHERE FLAG_DEL = 0
+    ORDER BY LABGROUP_NAME ASC`
+  );
+}
+
 async function getUser() {
-  return await executeQuery(`SELECT * FROM CST_USER WHERE FLAG_DEL = 0`, {});
+  return await executeQuery(
+    `SELECT ADMIN.PERSON_ID, 
+      PERSON.TITLE_NAME || PERSON.FIRST_NAME || ' ' || PERSON.LAST_NAME AS FULLNAME,
+      ROLE.ROLE_NAME
+    FROM CST_USER ADMIN
+    INNER JOIN PBL_VPER_PERSON PERSON 
+      ON ADMIN.PERSON_ID = PERSON.PERSON_ID
+    INNER JOIN CST_ROLE ROLE 
+      ON ADMIN.ROLE = ROLE.ROLE_ID
+    WHERE ADMIN.FLAG_DEL = 0
+    ORDER BY PERSON.FIRST_NAME ASC`
+  );
 }
 
 async function getClass(courseId, schId) {
@@ -41,8 +61,11 @@ export async function GET(req) {
     const courseId = req.nextUrl.searchParams.get("courseId");
     const schId = req.nextUrl.searchParams.get("schId");
 
+    const users = await getUser();
+    const labgroup = await getLabgroup();
+
     if (id) {
-      const users = await executeQuery(
+      const data = await executeQuery(
         `SELECT * FROM CST_ROLE WHERE ROLE_ID = :id`,
         { id }
       );
@@ -51,19 +74,28 @@ export async function GET(req) {
         success: true,
         data: {
           ...users[0],
-          roleAccess: JSON.parse(users[0].roleAccess),
+          roleAccess: JSON.parse(data[0].roleAccess),
         },
+      });
+    } else if (!courseId) {
+      const data = await executeQuery(
+        `SELECT * FROM CST_LABCOURSE WHERE FLAG_DEL = 0`
+      );
+      return NextResponse.json({
+        success: true,
+        data: data,
       });
     } else {
       const course = await getCourse(courseId);
       const classData = await getClass(courseId, schId);
-      const users = await getUser();
+
       return NextResponse.json({
         success: true,
         data: [],
         course: course?.[0],
         class: classData,
         users: users,
+        labgroup: labgroup,
       });
     }
   } catch (error) {
@@ -77,9 +109,33 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { roleName, roleAccess, statusId } = body;
+    const {
+      acadyear,
+      courseid,
+      hour,
+      labgroupId,
+      labgroupNum,
+      labroom,
+      personId,
+      schId,
+      section,
+      semester,
+      userCreated,
+    } = body;
 
-    if (!roleName || !roleAccess || !statusId) {
+    if (
+      !acadyear ||
+      !courseid ||
+      !hour ||
+      !labgroupId ||
+      !labgroupNum ||
+      !labroom ||
+      !personId ||
+      !schId ||
+      !section ||
+      !semester ||
+      !userCreated
+    ) {
       return NextResponse.json(
         { success: false, message: "Missing fields" },
         { status: 400 }
@@ -87,8 +143,23 @@ export async function POST(req) {
     }
 
     await executeQuery(
-      "INSERT INTO CST_ROLE (ROLE_NAME, ROLE_ACCESS, STATUS_ID, FLAG_DEL) VALUES (:roleName, :roleAccess, :statusId, 0)",
-      [roleName, JSON.stringify(roleAccess), statusId]
+      `INSERT INTO CST_LABCOURSE
+        (ACADYEAR, COURSEID, HOUR, LABGROUP_ID, LABGROUP_NUM, LABROOM, SCH_ID, SECTION, SEMESTER, PERSON_ID, DATE_CREATED, USER_CREATED)
+      VALUES
+        (:acadyear, :courseid, :hour, :labgroupId, :labgroupNum, :labroom, :schId, :section, :semester, :personId, SYSDATE, :userCreated)`,
+      {
+        acadyear,
+        courseid,
+        hour,
+        labgroupId: parseInt(labgroupId),
+        labgroupNum,
+        labroom,
+        schId,
+        section,
+        semester,
+        personId,
+        userCreated,
+      }
     );
     return NextResponse.json(
       { success: true, message: "User added successfully" },
