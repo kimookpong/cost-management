@@ -2,18 +2,25 @@
 
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Content from "@/components/Content";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toastDialog } from "@/lib/stdLib";
 
 export default function Detail() {
+  const searchParams = useSearchParams();
   const { id } = useParams();
   const router = useRouter();
   const isNew = id === "new";
   const [loading, setLoading] = useState(!isNew);
   const [activeTab, setActiveTab] = useState("tab1");
+
+  const [data, setData] = useState({
+    course: null,
+    class: [],
+    users: [],
+  });
 
   const tabs = [
     { id: "tab1", label: "รายละเอียดวิชา" },
@@ -22,32 +29,46 @@ export default function Detail() {
   ];
 
   const validationSchema = Yup.object({
-    roleName: Yup.string().required("กรุณากรอกชื่อสิทธิ"),
-    roleAccess: Yup.array().min(1, "กรุณาเลือกอย่างน้อย 1 การอนุญาติเข้าถึง"),
-    statusId: Yup.string().required("กรุณาเลือกสถานะ"),
+    personId: Yup.string().required("กรุณาเลือกข้อมูล"),
+    labroom: Yup.number()
+      .required("กรุณากรอกข้อมูล")
+      .min(1, "จำนวนต้องไม่น้อยกว่า 1"),
+    labgroupNum: Yup.number()
+      .required("กรุณากรอกข้อมูล")
+      .min(1, "จำนวนต้องไม่น้อยกว่า 1"),
+    hour: Yup.number()
+      .required("กรุณากรอกข้อมูล")
+      .min(1, "จำนวนต้องไม่น้อยกว่า 1"),
   });
 
   const formik = useFormik({
     initialValues: {
-      roleName: "",
-      roleAccess: [],
-      statusId: "1",
+      courseid: "",
+      labgroupId: "",
+      schId: "1",
+      acadyear: "",
+      semester: "",
+      section: "",
+      labroom: "",
+      hour: "",
+      labgroupNum: "",
+      personId: "",
     },
     validationSchema,
     onSubmit: async (values) => {
       console.log("🔹 ส่งข้อมูล:", values);
-      try {
-        if (isNew) {
-          await axios.post(`/api/user-role`, values);
-        } else {
-          await axios.put(`/api/user-role?id=${id}`, values);
-        }
-        toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
-        router.back();
-      } catch (error) {
-        toastDialog("เกิดข้อผิดพลาดในการบันทึกข้อมูล!", "error", 2000);
-        console.error("❌ Error saving data:", error);
-      }
+      // try {
+      //   if (isNew) {
+      //     await axios.post(`/api/user-role`, values);
+      //   } else {
+      //     await axios.put(`/api/user-role?id=${id}`, values);
+      //   }
+      //   toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
+      //   router.back();
+      // } catch (error) {
+      //   toastDialog("เกิดข้อผิดพลาดในการบันทึกข้อมูล!", "error", 2000);
+      //   console.error("❌ Error saving data:", error);
+      // }
     },
   });
 
@@ -61,9 +82,47 @@ export default function Detail() {
           if (data.success) {
             const user = data.data;
             formik.setValues({
-              roleName: user.roleName || "",
+              personId: user.personId || "",
               roleAccess: user.roleAccess || [],
               statusId: user.statusId?.toString() || "1",
+            });
+
+            setLoading(false);
+          }
+        } catch (err) {
+          console.error("❌ Error fetching data:", err);
+          toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
+        }
+      };
+      fetchData();
+    } else {
+      setLoading(true);
+      const fetchData = async () => {
+        try {
+          const response = await axios.get(`/api/assign-course`, {
+            params: {
+              courseId: searchParams.get("courseId"),
+              schId: searchParams.get("schId"),
+            },
+          });
+          const data = response.data;
+          if (data.success) {
+            setData({
+              course: data.course,
+              class: data.class,
+              users: data.users,
+            });
+            formik.setValues({
+              courseid: data.course?.courseid,
+              labgroupId: "",
+              schId: searchParams.get("schId"),
+              acadyear: "",
+              semester: "",
+              section: "",
+              labroom: "",
+              hour: "",
+              labgroupNum: "",
+              personId: "",
             });
 
             setLoading(false);
@@ -78,16 +137,20 @@ export default function Detail() {
   }, [id]);
 
   const breadcrumb = [
-    { name: "จัดการสิทธิการใช้งาน", link: "" },
-    { name: isNew ? "เพิ่มใหม่" : "แก้ไข" },
+    { name: "แผนการให้บริการห้องปฎิบัติการ" },
+    { name: "กำหนดรายวิชา", link: "/assign-course" },
+    { name: isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล" },
   ];
 
   return (
-    <Content breadcrumb={breadcrumb}>
+    <Content
+      breadcrumb={breadcrumb}
+      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
+    >
       <div className="relative flex flex-col w-full text-gray-900 dark:text-gray-300 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
-            {isNew ? "เพิ่มสิทธิใหม่" : "แก้ไขข้อมูลสิทธิ"}
+            {isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล"}
           </h3>
         </div>
 
@@ -119,90 +182,109 @@ export default function Detail() {
                 {activeTab === "tab1" && (
                   <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
                     <div className="sm:col-span-12">
-                      <h3 className="font-semibold">รายวิชา :</h3>
-                      <p className="mt-1 text-gray-500">รหัสรายวิชา :</p>
+                      <h3 className="font-xl font-semibold">
+                        {data.course?.coursename} ({data.course?.coursecode})
+                      </h3>
+                      <p className="mt-4">
+                        สำนักวิชา : {data.course?.coursename}
+                      </p>
+                      <p className="mt-1">
+                        รายละเอียด : {data.course?.description1}
+                      </p>
                     </div>
                     <div className="sm:col-span-6">
                       <label className={className.label}>
                         ผู้รับผิดชอบหลัก
                       </label>
-                      <input
-                        type="text"
-                        name="roleName"
-                        value={formik.values.roleName}
+                      <select
+                        name="statusId"
+                        value={formik.values.personId}
                         onChange={formik.handleChange}
-                        className={`${className.input} ${
-                          formik.touched.roleName && formik.errors.roleName
+                        className={`${className.select} ${
+                          formik.touched.labroom && formik.errors.labroom
                             ? "border-red-500"
                             : ""
                         }`}
-                      />
-                      {formik.touched.roleName && formik.errors.roleName && (
+                      >
+                        <option value="" disabled>
+                          เลือกผู้รับผิดชอบหลัก
+                        </option>
+                        {data.users.map((user) => (
+                          <option key={user.personId} value={user.personId}>
+                            {user.userId} {user.personId}
+                          </option>
+                        ))}
+                      </select>
+                      {formik.touched.personId && formik.errors.personId && (
                         <p className="mt-1 text-sm text-red-500">
-                          {formik.errors.roleName}
+                          {formik.errors.personId}
                         </p>
                       )}
                     </div>
-                    <div className="sm:col-span-6">
+                    <div className="sm:col-span-2">
                       <label className={className.label}>
                         จำนวนห้อง LAB ที่เปิดบริการ
                       </label>
                       <input
-                        type="text"
-                        name="roleName"
-                        value={formik.values.roleName}
+                        type="number"
+                        name="labroom"
+                        value={formik.values.labroom}
                         onChange={formik.handleChange}
                         className={`${className.input} ${
-                          formik.touched.roleName && formik.errors.roleName
+                          formik.touched.labroom && formik.errors.labroom
                             ? "border-red-500"
                             : ""
                         }`}
                       />
-                      {formik.touched.roleName && formik.errors.roleName && (
+                      {formik.touched.labroom && formik.errors.labroom && (
                         <p className="mt-1 text-sm text-red-500">
-                          {formik.errors.roleName}
+                          {formik.errors.labroom}
                         </p>
                       )}
                     </div>
 
-                    <div className="sm:col-span-6">
+                    <div className="sm:col-span-2">
                       <label className={className.label}>
-                        จำนวนห้องกลุ่มต่อห้อง
+                        จำนวนกลุ่มต่อห้อง
                       </label>
                       <input
-                        type="text"
-                        name="roleName"
-                        value={formik.values.roleName}
+                        type="number"
+                        name="labgroupNum"
+                        value={formik.values.labgroupNum}
                         onChange={formik.handleChange}
                         className={`${className.input} ${
-                          formik.touched.roleName && formik.errors.roleName
+                          formik.touched.labgroupNum &&
+                          formik.errors.labgroupNum
                             ? "border-red-500"
                             : ""
                         }`}
                       />
-                      {formik.touched.roleName && formik.errors.roleName && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {formik.errors.roleName}
-                        </p>
-                      )}
+                      {formik.touched.labgroupNum &&
+                        formik.errors.labgroupNum && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {formik.errors.labgroupNum}
+                          </p>
+                        )}
                     </div>
 
-                    <div className="sm:col-span-6">
-                      <label className={className.label}>จำนวนเวลาเรียน</label>
+                    <div className="sm:col-span-2">
+                      <label className={className.label}>
+                        จำนวนชั่วโมงเรียน
+                      </label>
                       <input
-                        type="text"
-                        name="roleName"
-                        value={formik.values.roleName}
+                        type="number"
+                        name="hour"
+                        value={formik.values.hour}
                         onChange={formik.handleChange}
                         className={`${className.input} ${
-                          formik.touched.roleName && formik.errors.roleName
+                          formik.touched.hour && formik.errors.hour
                             ? "border-red-500"
                             : ""
                         }`}
                       />
-                      {formik.touched.roleName && formik.errors.roleName && (
+                      {formik.touched.hour && formik.errors.hour && (
                         <p className="mt-1 text-sm text-red-500">
-                          {formik.errors.roleName}
+                          {formik.errors.hour}
                         </p>
                       )}
                     </div>

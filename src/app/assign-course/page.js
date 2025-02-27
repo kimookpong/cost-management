@@ -10,7 +10,10 @@ import { navigation } from "@/lib/params";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 
 export default function List() {
-  const breadcrumb = [{ name: "จัดการสิทธิการใช้งาน", link: "/assign-course" }];
+  const breadcrumb = [
+    { name: "แผนการให้บริการห้องปฎิบัติการ" },
+    { name: "กำหนดรายวิชา", link: "/assign-course" },
+  ];
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
   const [reload, setReload] = useState(0);
@@ -130,11 +133,14 @@ export default function List() {
   ];
 
   return (
-    <Content breadcrumb={breadcrumb}>
+    <Content
+      breadcrumb={breadcrumb}
+      title="แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
+    >
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between items-center">
           <div>
-            <h3 className="font-semibold ">จัดการสิทธิการใช้งาน</h3>
+            <h3 className="font-semibold ">กำหนดรายวิชา</h3>
           </div>
           <div className="flex gap-1">
             <button

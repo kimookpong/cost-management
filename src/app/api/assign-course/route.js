@@ -1,20 +1,45 @@
 import { NextResponse } from "next/server";
 import { executeQuery } from "@/lib/oracle";
 
-async function getSemester() {
+async function getCourse(courseId) {
   return await executeQuery(
-    `SELECT SCH_ID, ACADYEAR, SEMESTER 
-    FROM CST_SCHYEAR 
-    WHERE FLAG_DEL = 0 
-      AND STATUS = 1
-    ORDER BY ACADYEAR DESC, SEMESTER DESC`
+    `SELECT COURSE.COURSEID,COURSE.FACULTYID, FAC.FACULTYNAME, COURSE.COURSECODE, COURSE.COURSENAME, COURSE.DESCRIPTION1
+    FROM PBL_AVSREGCOURSE_V COURSE 
+    INNER JOIN PBL_FACULTY_V FAC ON COURSE.FACULTYID = FAC.FACULTYID
+    WHERE COURSE.COURSEID = :courseId`,
+    {
+      courseId,
+    }
+  );
+}
+
+async function getUser() {
+  return await executeQuery(`SELECT * FROM CST_USER WHERE FLAG_DEL = 0`, {});
+}
+
+async function getClass(courseId, schId) {
+  return await executeQuery(
+    `SELECT CLASS.CLASSID, CLASS.ACADYEAR, CLASS.SEMESTER, CLASS.SECTION, CLASS.TOTALSEAT, CLASS.CLASSNOTE
+    FROM PBL_AVSREGCLASS_V CLASS 
+    INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = :schId
+      AND SCH.STATUS = 1
+      AND SCH.FLAG_DEL = 0
+      AND CLASS.ACADYEAR = SCH.ACADYEAR
+      AND CLASS.SEMESTER = SCH.SEMESTER
+    WHERE CLASS.COURSEID = :courseId
+    ORDER BY CLASS.SECTION ASC`,
+    {
+      courseId,
+      schId,
+    }
   );
 }
 
 export async function GET(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
-    const term = req.nextUrl.searchParams.get("term");
+    const courseId = req.nextUrl.searchParams.get("courseId");
+    const schId = req.nextUrl.searchParams.get("schId");
 
     if (id) {
       const users = await executeQuery(
@@ -30,12 +55,16 @@ export async function GET(req) {
         },
       });
     } else {
-      const termList = await getSemester();
-      let data = [];
-      if (term) {
-        data = await executeQuery(`SELECT * FROM CST_ROLE WHERE FLAG_DEL = 0`);
-      }
-      return NextResponse.json({ success: true, data: data, term: termList });
+      const course = await getCourse(courseId);
+      const classData = await getClass(courseId, schId);
+      const users = await getUser();
+      return NextResponse.json({
+        success: true,
+        data: [],
+        course: course?.[0],
+        class: classData,
+        users: users,
+      });
     }
   } catch (error) {
     return NextResponse.json(

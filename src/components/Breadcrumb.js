@@ -5,7 +5,7 @@ import { FiHome } from "react-icons/fi";
 export default function Breadcrumb({ paths }) {
   return (
     // <div className="flex text-sm text-gray-900 dark:text-gray-100 mb-2 bg-gray-100 dark:bg-gray-800 shadow-md rounded-lg px-4 py-2">
-    <div className="breadcrumbs text-sm text-white mb-2">
+    <div className="breadcrumbs text-sm text-gray-200 mb-2 mt-0 pt-1">
       <ul>
         <li>
           <Link href="/">

@@ -1,4 +1,5 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Sarabun } from "next/font/google";
+
 import ThemeProvider from "@/components/ThemeProvider";
 import CustomSessionProvider from "@/components/SessionProvider";
 import SessionChecker from "@/components/SessionChecker";
@@ -6,14 +7,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+const sarabun = Sarabun({
+  variable: "--font-sarabun",
+  subsets: ["thai", "latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata = {
@@ -30,7 +27,7 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 dark:bg-gray-900 transition-colors duration-300 ease-in-out min-h-screen`}
+        className={`${sarabun.variable} antialiased bg-gray-100 dark:bg-gray-900 transition-colors duration-300 ease-in-out min-h-screen`}
       >
         <ThemeProvider>
           <CustomSessionProvider session={session}>

@@ -58,6 +58,9 @@ export default function List() {
     {
       key: "fullname",
       content: "ชื่อ",
+      render: (item) => {
+        return <span>{item.fullname}</span>;
+      },
     },
     {
       key: "roleName",
@@ -112,7 +115,7 @@ export default function List() {
   ];
 
   return (
-    <Content breadcrumb={breadcrumb}>
+    <Content breadcrumb={breadcrumb} title="จัดการผู้ใช้งาน">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between items-center">
           <div>

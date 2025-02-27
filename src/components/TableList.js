@@ -76,7 +76,7 @@ const TableList = ({ data, meta, loading }) => {
           <tr className="border-y border-gray-200 dark:border-gray-700">
             <th
               width="5%"
-              className="p-2 font-medium text-gray-500 dark:text-gray-300 text-center"
+              className="p-2 text-center font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <p className="flex items-center justify-between opacity-70">#</p>
             </th>
@@ -84,15 +84,15 @@ const TableList = ({ data, meta, loading }) => {
               <th
                 key={`header-${index}`}
                 width={m.width || ""}
-                className="p-2 text-center font-medium text-gray-500 dark:text-gray-300 "
+                className="p-2 text-center font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 {m.sort === false ? (
-                  <p className="flex items-center justify-between opacity-70">
+                  <p className="flex items-center justify-between gap-1 opacity-70">
                     {m.content}
                   </p>
                 ) : (
                   <p
-                    className="flex items-center justify-between gap-1 opacity-70 cursor-pointer"
+                    className="flex items-center justify-between gap-1 opacity-70 cursor-pointer hover:opacity-100 dark:hover:text-white "
                     onClick={() => {
                       if (sort.key === m.key) {
                         setSort((prev) => ({
@@ -157,7 +157,10 @@ const TableList = ({ data, meta, loading }) => {
                   {meta.map((m, i) => (
                     <td
                       key={`row-${currentRow}-col-${i}`}
-                      className="p-1 text-gray-900 dark:text-gray-300"
+                      className={[
+                        "p-1 text-gray-900 dark:text-gray-300",
+                        m.className || "",
+                      ].join(" ")}
                     >
                       {m.render ? m.render(item) : item[m.key] || "-"}
                     </td>
