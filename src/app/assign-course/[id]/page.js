@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
@@ -77,6 +77,7 @@ export default function Detail() {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
+      values.labasset = labasset;
       try {
         if (isNew) {
           await axios.post(`/api/assign-course`, values);
@@ -199,6 +200,13 @@ export default function Detail() {
               userUpdated: 1,
             });
 
+            console.log("data.labasset", data.labasset);
+            setLabasset({
+              type1: data.labasset?.filter((item) => item.type === 1) || [],
+              type2: data.labasset?.filter((item) => item.type === 2) || [],
+              type3: data.labasset?.filter((item) => item.type === 3) || [],
+            });
+
             setLoading(false);
           }
         } catch (err) {
@@ -301,11 +309,14 @@ export default function Detail() {
     } else if (type === 3) {
       asset = labasset.type3.find((item) => item.labassetId === id);
     }
+
+    console.log("asset", asset);
+
     inventForm.setValues({
       labassetId: asset.labassetId,
       assetId: asset.assetId,
       amount: asset.amount,
-      assetRemark: asset.assetRemark,
+      assetRemark: asset.assetRemark ? asset.assetRemark : "",
       flagDel: 0,
       type: type,
     });
@@ -579,7 +590,7 @@ export default function Detail() {
                             meta={[
                               {
                                 content: "ชื่อวัสดุ",
-                                width: 300,
+                                width: 400,
                                 key: "assetNameTh",
                               },
                               {
@@ -673,7 +684,7 @@ export default function Detail() {
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <DialogPanel
               transition
-              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg data-closed:sm:translate-y-0 data-closed:sm:scale-95"
+              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-full sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
             >
               {loadingInvent ? (
                 <div className="p-6 text-center text-gray-500 dark:text-gray-400">
@@ -683,7 +694,7 @@ export default function Detail() {
                 <form onSubmit={inventForm.handleSubmit}>
                   <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                     <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                      <div className="sm:col-span-8">
+                      <div className="sm:col-span-12">
                         <label className={className.label}>
                           วัสดุที่เลือกใช้
                         </label>
@@ -714,7 +725,7 @@ export default function Detail() {
                             </p>
                           )}
                       </div>
-                      <div className="sm:col-span-4">
+                      <div className="sm:col-span-12">
                         <label className={className.label}>จำนวน (หน่วย)</label>
                         <input
                           type="number"

@@ -65,6 +65,58 @@ async function getClass(courseId, schId) {
   );
 }
 
+const saveLabasset = async (labasset, id) => {
+  console.log("labasset", id, labasset);
+
+  if (labasset) {
+    await executeQuery(`DELETE FROM CST_LABCOURSE_ASSET WHERE LAB_ID = :id`, {
+      id,
+    });
+
+    labasset.type1.map(async (asset) => {
+      await executeQuery(
+        `INSERT INTO CST_LABCOURSE_ASSET (LAB_ID, ASSET_ID, AMOUNT,ASSET_REMARK, DATE_CREATED, USER_CREATED)
+        VALUES (:id, :assetId, :amount,:assetRemark, SYSDATE, :userCreated)`,
+        {
+          id,
+          assetId: asset.assetId,
+          amount: asset.amount,
+          assetRemark: asset.assetRemark,
+          userCreated: 1,
+        }
+      );
+    });
+
+    labasset.type2.map(async (asset) => {
+      await executeQuery(
+        `INSERT INTO CST_LABCOURSE_ASSET (LAB_ID, ASSET_ID, AMOUNT,ASSET_REMARK, DATE_CREATED, USER_CREATED)
+        VALUES (:id, :assetId, :amount,:assetRemark, SYSDATE, :userCreated)`,
+        {
+          id,
+          assetId: asset.assetId,
+          amount: asset.amount,
+          assetRemark: asset.assetRemark,
+          userCreated: 1,
+        }
+      );
+    });
+
+    labasset.type3.map(async (asset) => {
+      await executeQuery(
+        `INSERT INTO CST_LABCOURSE_ASSET (LAB_ID, ASSET_ID, AMOUNT,ASSET_REMARK, DATE_CREATED, USER_CREATED)
+        VALUES (:id, :assetId, :amount,:assetRemark, SYSDATE, :userCreated)`,
+        {
+          id,
+          assetId: asset.assetId,
+          amount: asset.amount,
+          assetRemark: asset.assetRemark,
+          userCreated: 1,
+        }
+      );
+    });
+  }
+};
+
 export async function GET(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
@@ -80,6 +132,19 @@ export async function GET(req) {
         { id }
       );
 
+      const labasset = await executeQuery(
+        `SELECT ASSET.LABASSET_ID,ASSET.ASSET_ID, ASSET.AMOUNT, ASSET.ASSET_REMARK, 
+        INV.ASSET_NAME_TH || ' (' || BRAND.BRAND_NAME || ')' AS ASSET_NAME_TH,
+        INV.INVTYPE_ID AS TYPE
+        FROM CST_LABCOURSE_ASSET ASSET
+        INNER JOIN CST_INVASSET INV
+          ON ASSET.ASSET_ID = INV.ASSET_ID
+        INNER JOIN CST_INVBRAND BRAND
+          ON INV.BRAND_ID = BRAND.BRAND_ID
+        WHERE ASSET.LAB_ID = :id`,
+        { id }
+      );
+
       const course = await getCourse(data[0].courseid);
       const classData = await getClass(data[0].courseid, data[0].schId);
 
@@ -90,6 +155,7 @@ export async function GET(req) {
         class: classData,
         users: users,
         labgroup: labgroup,
+        labasset: labasset,
       });
     } else if (!courseId) {
       if (!schId) {
@@ -170,6 +236,7 @@ export async function POST(req) {
       section,
       semester,
       userCreated,
+      labasset,
     } = body;
 
     if (
@@ -210,6 +277,8 @@ export async function POST(req) {
         userCreated,
       }
     );
+
+    await saveLabasset(labasset, 1);
     return NextResponse.json(
       { success: true, message: "User added successfully" },
       { status: 201 }
@@ -238,6 +307,7 @@ export async function PUT(req) {
       section,
       semester,
       userUpdated,
+      labasset,
     } = body;
 
     if (
@@ -279,6 +349,8 @@ export async function PUT(req) {
         id,
       }
     );
+
+    await saveLabasset(labasset, id);
 
     return NextResponse.json({
       success: true,
