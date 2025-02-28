@@ -76,7 +76,7 @@ const TableList = ({ data, meta, loading }) => {
           <tr className="border-y border-gray-200 dark:border-gray-700">
             <th
               width="5%"
-              className="p-2 text-center font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <p className="flex items-center justify-between opacity-70">#</p>
             </th>
@@ -84,7 +84,7 @@ const TableList = ({ data, meta, loading }) => {
               <th
                 key={`header-${index}`}
                 width={m.width || ""}
-                className="p-2 text-center font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 {m.sort === false ? (
                   <p className="flex items-center justify-between gap-1 opacity-70">
@@ -149,16 +149,16 @@ const TableList = ({ data, meta, loading }) => {
               return (
                 <tr
                   key={item.id || currentRow}
-                  className="border-b border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
+                  className="border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
                 >
-                  <td className="p-1 text-center text-gray-900 dark:text-gray-300">
+                  <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-gray-900 dark:text-gray-300">
                     {currentRow}
                   </td>
                   {meta.map((m, i) => (
                     <td
                       key={`row-${currentRow}-col-${i}`}
                       className={[
-                        "p-1 text-gray-900 dark:text-gray-300",
+                        "border border-gray-200 dark:border-gray-700 p-2 text-gray-900 dark:text-gray-300",
                         m.className || "",
                       ].join(" ")}
                     >
@@ -169,7 +169,7 @@ const TableList = ({ data, meta, loading }) => {
               );
             })
           ) : (
-            <tr className="border-b border-gray-200 dark:border-gray-700">
+            <tr className="border border-gray-200 dark:border-gray-700">
               <td colSpan={meta.length + 1} className="p-8 text-center">
                 <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
                   <svg

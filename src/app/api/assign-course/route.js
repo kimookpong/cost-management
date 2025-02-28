@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { executeQuery } from "@/lib/oracle";
 
+async function getSemester() {
+  return await executeQuery(
+    `SELECT SCH_ID, ACADYEAR, SEMESTER 
+    FROM CST_SCHYEAR 
+    WHERE FLAG_DEL = 0 
+      AND STATUS = 1
+    ORDER BY ACADYEAR DESC, SEMESTER DESC`
+  );
+}
+
 async function getCourse(courseId) {
   return await executeQuery(
     `SELECT COURSE.COURSEID,COURSE.FACULTYID, FAC.FACULTYNAME, COURSE.COURSECODE, COURSE.COURSENAME, COURSE.DESCRIPTION1
@@ -66,25 +76,64 @@ export async function GET(req) {
 
     if (id) {
       const data = await executeQuery(
-        `SELECT * FROM CST_ROLE WHERE ROLE_ID = :id`,
+        `SELECT * FROM CST_LABCOURSE WHERE LAB_ID = :id`,
         { id }
       );
 
+      const course = await getCourse(data[0].courseid);
+      const classData = await getClass(data[0].courseid, data[0].schId);
+
       return NextResponse.json({
         success: true,
-        data: {
-          ...users[0],
-          roleAccess: JSON.parse(data[0].roleAccess),
-        },
+        data: data[0],
+        course: course?.[0],
+        class: classData,
+        users: users,
+        labgroup: labgroup,
       });
     } else if (!courseId) {
-      const data = await executeQuery(
-        `SELECT * FROM CST_LABCOURSE WHERE FLAG_DEL = 0`
-      );
-      return NextResponse.json({
-        success: true,
-        data: data,
-      });
+      if (!schId) {
+        const data = await executeQuery(
+          `SELECT LAB.LAB_ID, LAB.ACADYEAR, LAB.SEMESTER, COURSE.COURSECODE, COURSE.COURSENAME, LAB.PERSON_ID, PERSON.TITLE_NAME || PERSON.FIRST_NAME || ' ' || PERSON.LAST_NAME AS FULLNAME
+          FROM CST_LABCOURSE LAB 
+          INNER JOIN PBL_AVSREGCOURSE_V COURSE
+              ON COURSE.COURSEID = LAB.COURSEID
+          INNER JOIN PBL_VPER_PERSON PERSON 
+                ON LAB.PERSON_ID = PERSON.PERSON_ID
+          WHERE LAB.FLAG_DEL = 0
+          ORDER BY LAB.ACADYEAR DESC, LAB.SEMESTER DESC`
+        );
+        const semester = await getSemester();
+        return NextResponse.json({
+          success: true,
+          data: data,
+          semester: semester,
+        });
+      } else {
+        const data = await executeQuery(
+          `SELECT LAB.LAB_ID, LAB.ACADYEAR, LAB.SEMESTER, COURSE.COURSECODE, COURSE.COURSENAME, LAB.PERSON_ID, PERSON.TITLE_NAME || PERSON.FIRST_NAME || ' ' || PERSON.LAST_NAME AS FULLNAME
+          FROM CST_LABCOURSE LAB 
+          INNER JOIN PBL_AVSREGCOURSE_V COURSE
+              ON COURSE.COURSEID = LAB.COURSEID
+          INNER JOIN PBL_VPER_PERSON PERSON 
+              ON LAB.PERSON_ID = PERSON.PERSON_ID
+          INNER JOIN CST_SCHYEAR SCH 
+              ON SCH.SCH_ID = :schId
+              AND SCH.SEMESTER = LAB.SEMESTER
+              AND SCH.ACADYEAR = LAB.ACADYEAR
+          WHERE LAB.FLAG_DEL = 0
+          ORDER BY LAB.ACADYEAR DESC, LAB.SEMESTER DESC`,
+          {
+            schId,
+          }
+        );
+        const semester = await getSemester();
+        return NextResponse.json({
+          success: true,
+          data: data,
+          semester: semester,
+        });
+      }
     } else {
       const course = await getCourse(courseId);
       const classData = await getClass(courseId, schId);
@@ -177,9 +226,34 @@ export async function PUT(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
     const body = await req.json();
-    const { roleName, roleAccess, statusId } = body;
+    const {
+      acadyear,
+      courseid,
+      hour,
+      labgroupId,
+      labgroupNum,
+      labroom,
+      personId,
+      schId,
+      section,
+      semester,
+      userUpdated,
+    } = body;
 
-    if (!id || !roleName || !roleAccess || !statusId) {
+    if (
+      !id ||
+      !acadyear ||
+      !courseid ||
+      !hour ||
+      !labgroupId ||
+      !labgroupNum ||
+      !labroom ||
+      !personId ||
+      !schId ||
+      !section ||
+      !semester ||
+      !userUpdated
+    ) {
       return NextResponse.json(
         { success: false, message: "Missing fields" },
         { status: 400 }
@@ -187,10 +261,23 @@ export async function PUT(req) {
     }
 
     await executeQuery(
-      `UPDATE CST_ROLE 
-       SET ROLE_NAME = :roleName, ROLE_ACCESS = :roleAccess, STATUS_ID = :statusId 
-       WHERE ROLE_ID = :id`,
-      [roleName, JSON.stringify(roleAccess), statusId, id]
+      `UPDATE CST_LABCOURSE 
+       SET ACADYEAR = :acadyear, COURSEID = :courseid, HOUR = :hour, LABGROUP_ID = :labgroupId, LABGROUP_NUM = :labgroupNum, LABROOM = :labroom, SCH_ID = :schId, SECTION = :section, SEMESTER = :semester, PERSON_ID = :personId, DATE_UPDATED = SYSDATE, USER_UPDATED = :userUpdated
+       WHERE LAB_ID = :id`,
+      {
+        acadyear,
+        courseid,
+        hour,
+        labgroupId: parseInt(labgroupId),
+        labgroupNum,
+        labroom,
+        schId,
+        section,
+        semester,
+        personId,
+        userUpdated,
+        id,
+      }
     );
 
     return NextResponse.json({
@@ -210,7 +297,7 @@ export async function DELETE(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
     const users = await executeQuery(
-      `UPDATE CST_ROLE SET FLAG_DEL = 1 WHERE ROLE_ID = :id`,
+      `UPDATE CST_LABCOURSE SET FLAG_DEL = 1 WHERE LAB_ID = :id`,
       { id }
     );
     return NextResponse.json({ success: true, data: users });

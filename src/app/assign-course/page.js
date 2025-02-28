@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
@@ -10,17 +10,20 @@ import { navigation } from "@/lib/params";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 
 export default function List() {
+  const searchParams = useSearchParams();
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
     { name: "กำหนดรายวิชา", link: "/assign-course" },
   ];
   const router = useRouter();
-  const [employees, setEmployees] = useState([]);
+  const [data, setData] = useState({ data: [], semester: [] });
   const [reload, setReload] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [schId, setSchId] = useState(searchParams.get("schId") || "");
+
   const _onPressAdd = () => {
-    router.push("/assign-course/create");
+    router.push("/assign-course/create?schId=" + schId);
   };
   const _onPressEdit = (id) => {
     router.push(`/assign-course/${id}`);
@@ -41,10 +44,12 @@ export default function List() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axios.get(`/api/assign-course`);
+        const response = await axios.get(`/api/assign-course`, {
+          params: { schId },
+        });
         const data = response.data;
         if (data.success) {
-          setEmployees(data.data);
+          setData({ data: data.data, semester: data.semester });
         } else {
           setError("ไม่สามารถโหลดข้อมูลพนักงานได้");
         }
@@ -56,18 +61,37 @@ export default function List() {
     }
 
     fetchData();
-  }, [reload]);
+  }, [reload, schId]);
 
   const meta = [
     {
-      key: "labId",
-      content: "ชื่อสิทธิการใช้งาน",
+      key: "acadyear",
+      content: "ปีการศึกษา",
+      width: "120",
+      render: (item) => (
+        <div>
+          เทอม {item.semester}/{item.acadyear}
+        </div>
+      ),
     },
-
+    {
+      key: "coursename",
+      content: "รายวิชา",
+      render: (item) => (
+        <div>
+          {item.coursename} ({item.coursecode})
+        </div>
+      ),
+    },
+    {
+      key: "fullname",
+      content: "ผู้รับผิดชอบหลัก",
+    },
     {
       key: "labId",
       content: "Action",
       width: "100",
+      sort: false,
       render: (item) => (
         <div className="flex gap-1">
           <button
@@ -104,6 +128,22 @@ export default function List() {
             <h3 className="font-semibold ">กำหนดรายวิชา</h3>
           </div>
           <div className="flex gap-1">
+            <select
+              value={schId}
+              onChange={(e) => {
+                setSchId(e.target.value);
+                router.push(`/assign-course?schId=${e.target.value}`);
+              }}
+              className="block px-4 py-2 border rounded-md dark:bg-gray-800"
+            >
+              <option value="">แสดงทุกเทอมการศึกษา</option>
+              {data.semester.map((item) => (
+                <option key={item.schId} value={item.schId}>
+                  เทอม {item.semester}/{item.acadyear}
+                </option>
+              ))}
+            </select>
+
             <button
               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={_onPressAdd}
@@ -118,10 +158,18 @@ export default function List() {
           {error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (
-            <TableList meta={meta} data={employees} loading={loading} />
+            <TableList meta={meta} data={data.data} loading={loading} />
           )}
         </div>
       </div>
     </Content>
   );
 }
+
+const className = {
+  label:
+    "mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300",
+  input:
+    "block w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
+  select: "block px-4 py-2 border rounded-md dark:bg-gray-800",
+};
