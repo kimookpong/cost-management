@@ -9,9 +9,9 @@ const dbConfig = {
 
 export async function executeQuery(query, params = []) {
   let connection;
-
   try {
     connection = await oracledb.getConnection(dbConfig);
+    const isInsert = query.trim().toUpperCase().startsWith("INSERT");
     const result = await connection.execute(query, params, {
       autoCommit: true,
       outFormat: oracledb.OUT_FORMAT_OBJECT,
@@ -21,6 +21,10 @@ export async function executeQuery(query, params = []) {
           .replace(/_(\w)/g, (m, p1) => p1.toUpperCase());
       },
     });
+
+    if (isInsert) {
+      return result;
+    }
     return result.rows;
   } catch (error) {
     console.error("Database Error: ", error);

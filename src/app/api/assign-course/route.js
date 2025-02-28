@@ -66,8 +66,6 @@ async function getClass(courseId, schId) {
 }
 
 const saveLabasset = async (labasset, id) => {
-  console.log("labasset", id, labasset);
-
   if (labasset) {
     await executeQuery(`DELETE FROM CST_LABCOURSE_ASSET WHERE LAB_ID = :id`, {
       id,
@@ -82,7 +80,7 @@ const saveLabasset = async (labasset, id) => {
           assetId: asset.assetId,
           amount: asset.amount,
           assetRemark: asset.assetRemark,
-          userCreated: 1,
+          userCreated: asset.userId,
         }
       );
     });
@@ -96,7 +94,7 @@ const saveLabasset = async (labasset, id) => {
           assetId: asset.assetId,
           amount: asset.amount,
           assetRemark: asset.assetRemark,
-          userCreated: 1,
+          userCreated: asset.userId,
         }
       );
     });
@@ -110,7 +108,7 @@ const saveLabasset = async (labasset, id) => {
           assetId: asset.assetId,
           amount: asset.amount,
           assetRemark: asset.assetRemark,
-          userCreated: 1,
+          userCreated: asset.userId,
         }
       );
     });
@@ -235,7 +233,7 @@ export async function POST(req) {
       schId,
       section,
       semester,
-      userCreated,
+      userId,
       labasset,
     } = body;
 
@@ -250,7 +248,7 @@ export async function POST(req) {
       !schId ||
       !section ||
       !semester ||
-      !userCreated
+      !userId
     ) {
       return NextResponse.json(
         { success: false, message: "Missing fields" },
@@ -258,12 +256,17 @@ export async function POST(req) {
       );
     }
 
+    const labId = await executeQuery(
+      `SELECT CST_LABCOURSE_SEQ.NEXTVAL AS ID FROM DUAL`
+    );
+
     await executeQuery(
       `INSERT INTO CST_LABCOURSE
-        (ACADYEAR, COURSEID, HOUR, LABGROUP_ID, LABGROUP_NUM, LABROOM, SCH_ID, SECTION, SEMESTER, PERSON_ID, DATE_CREATED, USER_CREATED)
+        (LAB_ID, ACADYEAR, COURSEID, HOUR, LABGROUP_ID, LABGROUP_NUM, LABROOM, SCH_ID, SECTION, SEMESTER, PERSON_ID, DATE_CREATED, USER_CREATED, DATE_UPDATED, USER_UPDATED)
       VALUES
-        (:acadyear, :courseid, :hour, :labgroupId, :labgroupNum, :labroom, :schId, :section, :semester, :personId, SYSDATE, :userCreated)`,
+        (:labId, :acadyear, :courseid, :hour, :labgroupId, :labgroupNum, :labroom, :schId, :section, :semester, :personId, SYSDATE, :userCreated, SYSDATE, :userUpdated)`,
       {
+        labId: labId[0].id,
         acadyear,
         courseid,
         hour,
@@ -274,11 +277,12 @@ export async function POST(req) {
         section,
         semester,
         personId,
-        userCreated,
+        userCreated: userId,
+        userUpdated: userId,
       }
     );
 
-    await saveLabasset(labasset, 1);
+    await saveLabasset(labasset, labId[0].id);
     return NextResponse.json(
       { success: true, message: "User added successfully" },
       { status: 201 }
@@ -306,7 +310,7 @@ export async function PUT(req) {
       schId,
       section,
       semester,
-      userUpdated,
+      userId,
       labasset,
     } = body;
 
@@ -322,7 +326,7 @@ export async function PUT(req) {
       !schId ||
       !section ||
       !semester ||
-      !userUpdated
+      !userId
     ) {
       return NextResponse.json(
         { success: false, message: "Missing fields" },
@@ -345,7 +349,7 @@ export async function PUT(req) {
         section,
         semester,
         personId,
-        userUpdated,
+        userUpdated: userId,
         id,
       }
     );
@@ -368,11 +372,13 @@ export async function PUT(req) {
 export async function DELETE(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
-    const users = await executeQuery(
+    const body = await req.json();
+
+    const data = await executeQuery(
       `UPDATE CST_LABCOURSE SET FLAG_DEL = 1 WHERE LAB_ID = :id`,
       { id }
     );
-    return NextResponse.json({ success: true, data: users });
+    return NextResponse.json({ success: true, data: data });
   } catch (error) {
     return NextResponse.json(
       { success: false, message: "Database Error", error },

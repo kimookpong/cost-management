@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
+import { useSession } from "next-auth/react";
 import {
   Dialog,
   DialogBackdrop,
@@ -19,6 +20,7 @@ import { toastDialog } from "@/lib/stdLib";
 import TableList from "@/components/TableList";
 
 export default function Detail() {
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const { id } = useParams();
   const router = useRouter();
@@ -197,7 +199,7 @@ export default function Detail() {
               hour: form.hour,
               labgroupNum: form.labgroupNum,
               personId: form.personId,
-              userUpdated: 1,
+              userId: session?.user.person_id,
             });
 
             console.log("data.labasset", data.labasset);
@@ -245,7 +247,7 @@ export default function Detail() {
               hour: "",
               labgroupNum: "",
               personId: "",
-              userCreated: 1,
+              userId: session?.user.person_id,
             });
 
             setLoading(false);
@@ -295,6 +297,7 @@ export default function Detail() {
       assetRemark: "",
       flagDel: 0,
       type: type,
+      userId: session?.user.person_id,
     });
     await _callInvent(type);
   };
@@ -310,8 +313,6 @@ export default function Detail() {
       asset = labasset.type3.find((item) => item.labassetId === id);
     }
 
-    console.log("asset", asset);
-
     inventForm.setValues({
       labassetId: asset.labassetId,
       assetId: asset.assetId,
@@ -319,6 +320,7 @@ export default function Detail() {
       assetRemark: asset.assetRemark ? asset.assetRemark : "",
       flagDel: 0,
       type: type,
+      userId: session?.user.person_id,
     });
     await _callInvent(type);
   };
