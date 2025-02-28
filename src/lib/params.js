@@ -15,20 +15,38 @@ import {
 
 const navigation = [
   {
+    id: 4,
+    name: "ตั้งค่าการใช้งาน",
+    description: "จัดการผู้ใช้งาน",
+    icon: FiUsers,
+    child: [
+      {
+        name: "รายชื่อผู้ใช้งาน",
+        icon: FiUserCheck,
+        href: "/user",
+      },
+      {
+        name: "จัดการสิทธิการใช้งาน",
+        icon: FiLock,
+        href: "/user-role",
+      },
+    ],
+  },
+  {
     id: 3,
-    name: "ข้อมูลเริ่มต้น ",
-    description: "ข้อมูลเริ่มต้น ",
+    name: "จัดการข้อมูลพัสดุ ",
+    description: "จัดการข้อมูลพัสดุ ",
     icon: FiBox,
 
     child: [
       {
         name: "กำหนดค่าตั้งต้น",
-        icon: FiChevronsRight,
+        icon: FiSettings,
         href: "/matter",
       },
       {
-        name: "ครุภัณฑ์",
-        icon: FiChevronsRight,
+        name: "ข้อมูลพัสดุ",
+        icon: FiBox,
         href: "/matter2",
       },
     ],
@@ -76,25 +94,6 @@ const navigation = [
         name: "บันทึกการใช้ทรัพยากรตามใบงาน",
         icon: FiChevronsRight,
         href: "/userRole",
-      },
-    ],
-  },
-
-  {
-    id: 4,
-    name: "จัดการผู้ใช้งาน",
-    description: "จัดการผู้ใช้งาน",
-    icon: FiUsers,
-    child: [
-      {
-        name: "รายชื่อผู้ใช้งาน",
-        icon: FiUserCheck,
-        href: "/user",
-      },
-      {
-        name: "จัดการสิทธิการใช้งาน",
-        icon: FiLock,
-        href: "/user-role",
       },
     ],
   },

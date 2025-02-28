@@ -86,10 +86,11 @@ export default function List() {
 
     {
       key: "status",
-      content: "สถานะการใช้งาน",
+      content: "สถานะ",
+      width: "100",
       render: (item) => {
         return (
-          <div className="flex justify-center items-center">
+          <div className="flex  items-center">
             <span
               className={`px-2 py-1 text-sm font-medium rounded-full ${
                 item.status === "1"
@@ -130,7 +131,7 @@ export default function List() {
   ];
 
   return (
-    <Content breadcrumb={breadcrumb}>
+    <Content breadcrumb={breadcrumb} title="ยี่ห้อ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between items-center">
           <Link href="/matter">

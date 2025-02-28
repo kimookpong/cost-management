@@ -92,16 +92,19 @@ export default function Detail() {
   }, [id]);
 
   const breadcrumb = [
-    { name: "จัดการข้อมูลยี่ห้อ", link: "/brand" },
+    { name: "กำหนดค่าเริ่มต้น", link: "/matter" },
+    { name: "ยี่ห้อ", link: "/brand" },
     { name: isNew ? "เพิ่มใหม่ข้อมูลยี่ห้อ" : "แก้ไขข้อมูลยี่ห้อ" },
   ];
 
   return (
-    <Content breadcrumb={breadcrumb}>
+    <Content
+      breadcrumb={breadcrumb}
+      title={isNew ? "เพิ่มข้อมูลยี่ห้อ" : "แก้ไขข้อมูลยี่ห้อ"}>
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl p-5 ">
         <div className="isolate bg-white px-6 py-24 sm:py-10 lg:px-8">
-          <div className="flex items-center justify-center border-b border-gray-200 dark:border-gray-700 p-4">
-            <h3 className="text-3xl font-semibold tracking-tight text-gray-700 sm:text-3xl text-center">
+          <div className="flex  border-b border-gray-200 dark:border-gray-700 p-4">
+            <h3 className="text-3xl font-semibold tracking-tight text-gray-700 sm:text-3xl ">
               {isNew ? "ข้อมูลยี่ห้อ" : "แก้ไขข้อมูล"}
             </h3>
           </div>
@@ -155,7 +158,7 @@ export default function Detail() {
                 <button
                   type="submit"
                   className="cursor-pointer p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                  {isNew ? "เพิ่มยี่ห้อ" : "บันทึกข้อมูล"}
+                  {isNew ? "บันทึก" : "บันทึก"}
                 </button>
               </div>
             </form>
