@@ -102,6 +102,9 @@ export default function Detail() {
     amount: Yup.number()
       .required("กรุณากรอกข้อมูล")
       .min(1, "จำนวนต้องไม่น้อยกว่า 1"),
+    assetRemark: Yup.string()
+      .nullable()
+      .max(100, "ข้อความต้องไม่เกิน 100 ตัวอักษร"),
   });
 
   const inventForm = useFormik({
@@ -559,7 +562,7 @@ export default function Detail() {
                     {[
                       {
                         type: 1,
-                        name: "ครุภัณฑ์ที่ใช้ในการสอน",
+                        name: "ครุภัณฑ์",
                         asset: labasset.type1,
                       },
                       {
@@ -577,7 +580,10 @@ export default function Detail() {
                         <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
                           <div className="pb-4 border-gray-200 flex justify-between items-center">
                             <h3 className="font-xl font-semibold">
-                              {type.name}
+                              {type.name}{" "}
+                              <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
+                                {type.asset.length} รายการ
+                              </span>
                             </h3>
                             <button
                               type="button"
@@ -755,8 +761,19 @@ export default function Detail() {
                           name="assetRemark"
                           value={inventForm.values.assetRemark}
                           onChange={inventForm.handleChange}
-                          className={className.input}
+                          className={`${className.input} ${
+                            inventForm.touched.assetRemark &&
+                            inventForm.errors.assetRemark
+                              ? "border-red-500"
+                              : ""
+                          }`}
                         />
+                        {inventForm.touched.assetRemark &&
+                          inventForm.errors.assetRemark && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {inventForm.errors.assetRemark}
+                            </p>
+                          )}
                       </div>
                     </div>
                   </div>
