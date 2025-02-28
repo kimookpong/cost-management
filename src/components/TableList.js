@@ -76,7 +76,7 @@ const TableList = ({ data, meta, loading }) => {
           <tr className="border-y border-gray-200 dark:border-gray-700">
             <th
               width="40"
-              className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <p className="flex items-center justify-center opacity-70">#</p>
             </th>
@@ -84,15 +84,15 @@ const TableList = ({ data, meta, loading }) => {
               <th
                 key={`header-${index}`}
                 width={m.width || ""}
-                className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 {m.sort === false ? (
-                  <p className="flex items-center justify-center gap-1 opacity-70">
+                  <p className="flex items-center justify-center gap-1">
                     {m.content}
                   </p>
                 ) : (
                   <p
-                    className="flex items-center justify-center gap-1 opacity-70 cursor-pointer hover:opacity-100 dark:hover:text-white "
+                    className="flex items-center justify-center gap-1 hover:text-gray-900 cursor-pointer dark:hover:text-white"
                     onClick={() => {
                       if (sort.key === m.key) {
                         setSort((prev) => ({
@@ -162,7 +162,13 @@ const TableList = ({ data, meta, loading }) => {
                         m.className || "",
                       ].join(" ")}
                     >
-                      {m.render ? m.render(item) : item[m.key] || "-"}
+                      {m.render
+                        ? m.render(item)
+                        : item[m.key] || (
+                            <i className="text-xs text-gray-300 dark:text-gray-700">
+                              (ไม่มีข้อมูล)
+                            </i>
+                          )}
                     </td>
                   ))}
                 </tr>
@@ -187,9 +193,9 @@ const TableList = ({ data, meta, loading }) => {
                     />
                   </svg>
 
-                  <p className="text-lg font-medium text-gray-300 dark:text-gray-500">
+                  <i className="text-lg font-medium text-gray-300 dark:text-gray-500">
                     ไม่มีข้อมูล
-                  </p>
+                  </i>
                 </div>
               </td>
             </tr>

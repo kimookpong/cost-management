@@ -16,7 +16,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Content from "@/components/Content";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { toastDialog } from "@/lib/stdLib";
+import { confirmDialog, toastDialog } from "@/lib/stdLib";
 import TableList from "@/components/TableList";
 
 export default function Detail() {
@@ -328,23 +328,29 @@ export default function Detail() {
     await _callInvent(type);
   };
 
-  const _onPressDeleteInvent = (id, type) => {
-    let asset;
-    if (type === 1) {
-      setLabasset((prevLabasset) => ({
-        ...prevLabasset,
-        type1: prevLabasset.type1.filter((item) => item.labassetId !== id),
-      }));
-    } else if (type === 2) {
-      setLabasset((prevLabasset) => ({
-        ...prevLabasset,
-        type2: prevLabasset.type1.filter((item) => item.labassetId !== id),
-      }));
-    } else if (type === 3) {
-      setLabasset((prevLabasset) => ({
-        ...prevLabasset,
-        type3: prevLabasset.type1.filter((item) => item.labassetId !== id),
-      }));
+  const _onPressDeleteInvent = async (id, type) => {
+    const result = await confirmDialog(
+      "คุณแน่ใจหรือไม่?",
+      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
+    );
+
+    if (result.isConfirmed) {
+      if (type === 1) {
+        setLabasset((prevLabasset) => ({
+          ...prevLabasset,
+          type1: prevLabasset.type1.filter((item) => item.labassetId !== id),
+        }));
+      } else if (type === 2) {
+        setLabasset((prevLabasset) => ({
+          ...prevLabasset,
+          type2: prevLabasset.type1.filter((item) => item.labassetId !== id),
+        }));
+      } else if (type === 3) {
+        setLabasset((prevLabasset) => ({
+          ...prevLabasset,
+          type3: prevLabasset.type1.filter((item) => item.labassetId !== id),
+        }));
+      }
     }
   };
 
@@ -579,12 +585,12 @@ export default function Detail() {
                       <div className="sm:col-span-12" key={type.type}>
                         <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
                           <div className="pb-4 border-gray-200 flex justify-between items-center">
-                            <h3 className="font-xl font-semibold">
-                              {type.name}{" "}
+                            <div className="font-xl font-semibold inline">
+                              <span className="pe-2">{type.name}</span>
                               <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
                                 {type.asset.length} รายการ
                               </span>
-                            </h3>
+                            </div>
                             <button
                               type="button"
                               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -602,13 +608,28 @@ export default function Detail() {
                                 key: "assetNameTh",
                               },
                               {
-                                content: "จำนวน (หน่วย)",
-                                width: 150,
-                                className: "text-end",
+                                content: "ยี่ห้อ",
+                                width: 120,
+                                key: "brandName",
+                              },
+                              {
+                                content: "ขนาด",
+                                width: 120,
+                                key: "amountUnit",
+                              },
+                              {
+                                content: "จำนวน",
+                                width: 80,
+                                className: "text-center",
                                 key: "amount",
                                 render: (item) => (
                                   <div>{item.amount.toLocaleString()}</div>
                                 ),
+                              },
+                              {
+                                content: "หน่วย",
+                                width: 80,
+                                key: "unitName",
                               },
                               { content: "Remark", key: "assetRemark" },
                               {
@@ -807,7 +828,7 @@ const className = {
   label:
     "mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300",
   input:
-    "block text-gray-900 w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
+    "block text-gray-900 dark:text-white w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
   select:
-    "block text-gray-900 w-full px-4 py-2 border rounded-md dark:bg-gray-800",
+    "block text-gray-900 dark:text-white w-full px-4 py-2 border rounded-md dark:bg-gray-800",
 };
