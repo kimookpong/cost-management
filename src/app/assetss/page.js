@@ -17,7 +17,7 @@ export default function List() {
   const idType = searchParams.get("idType");
   console.log("idType01", idType);
   const breadcrumb = [
-    { name: "ข้อมูลครุภัณฑ์", link: "/matter2" },
+    { name: "ข้อมูลพัสดุ", link: "/matter2" },
     {
       name:
         idType === "1"
@@ -72,7 +72,7 @@ export default function List() {
       try {
         const response = await axios.get(`/api/assetss?idType=${idType}`); // ใช้ idType ที่ได้จากการใช้ useSearchParams axios คือ การเรียกใช้งาน API ที่เราสร้างไว้
         const data = response.data;
-        console.log("ข้อมูลที่ได้รับจาก API:", data); // Log the data to the console
+        //console.log("ข้อมูลที่ได้รับจาก API:", data); // Log the data to the console
         if (data.success) {
           setEmployees(data.data);
         } else {
@@ -92,14 +92,40 @@ export default function List() {
     {
       key: "assetNameTh",
       content: "ชื่อครุภัณฑ์",
+      render: (item) => {
+        return (
+          <div className="flex flex-col">
+            <span className="font-semibold">{item.assetNameTh}</span>
+            <span className="text-sm">{item.assetNameEng}</span>
+          </div>
+        );
+      },
     },
     {
       key: "unitName",
       content: "หน่วยนับ",
+      width: "100",
+    },
+    {
+      key: "unitPrice",
+      content: "ราคาต่อหน่วย (บาท)",
+      width: "170",
+      render: (item) => {
+        return <div className="text-right pr-6">{item.unitPrice}</div>;
+      },
+    },
+    {
+      key: "amountUnit",
+      content: "ขนาดบรรจุ",
+      width: "120",
+      render: (item) => {
+        return <div className="text-left">{item.amountUnit}</div>;
+      },
     },
     {
       key: "brandName",
       content: "ยี่ห้อ",
+      width: "100",
     },
     {
       key: "catNo",
@@ -110,11 +136,28 @@ export default function List() {
       content: "รุ่น",
     },
     {
+      key: "grade",
+      content: "คุณภาพ",
+    },
+    {
+      key: "packPrice",
+      content: "ราคาต่อแพ็ค (บาท)",
+      width: "170",
+      render: (item) => {
+        return <div className="text-right pr-6">{item.packPrice}</div>;
+      },
+    },
+    {
+      key: "invtype Name",
+      content: "ประเภทวัสดุ",
+    },
+    {
       key: "status",
       content: "สถานะ",
+      width: "100",
       render: (item) => {
         return (
-          <div className="flex justify-center items-center">
+          <div className="flex  items-center">
             <span
               className={`px-2 py-1 text-sm font-medium rounded-full ${
                 item.status === "1"
@@ -128,7 +171,7 @@ export default function List() {
       },
     },
     {
-      key: "unitId",
+      key: "assetId",
       content: "Action",
       width: "100",
       render: (item) => (
@@ -136,14 +179,14 @@ export default function List() {
           <button
             className="btn btn-xs cursor-pointer  text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
-              return _onPressEdit(item.unitId);
+              return _onPressEdit(item.assetId);
             }}>
             <FiEdit className="w-4 h-4" />
           </button>
           <button
             className="btn btn-xs cursor-pointer  text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
-              return _onPressDelete(item.unitId);
+              return _onPressDelete(item.assetId);
             }}>
             <FiTrash2 className="w-4 h-4" />
           </button>
@@ -153,7 +196,17 @@ export default function List() {
   ];
 
   return (
-    <Content breadcrumb={breadcrumb}>
+    <Content
+      breadcrumb={breadcrumb}
+      title={
+        idType === "1"
+          ? "ครุภัณฑ์"
+          : idType === "2"
+          ? "วัสดุสิ้นเปลือง"
+          : idType === "3"
+          ? "วัสดุไม่สิ้นเปลือง"
+          : "ข้อมูลไม่ถูกต้อง"
+      }>
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between items-center">
           <Link href="/matter2">
@@ -194,7 +247,7 @@ export default function List() {
           </div>
         </div>
 
-        <div className="p-4 overflow-auto">
+        <div className="p-4 overflow-auto responsive">
           {error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (

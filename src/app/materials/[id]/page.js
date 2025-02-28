@@ -92,16 +92,19 @@ export default function Detail() {
   }, [id]);
 
   const breadcrumb = [
-    { name: "จัดการข้อมูลครุภัฑณ์", link: "/materials" },
-    { name: isNew ? "เพิ่มใหม่ข้อมูลหน่วยนับ" : "แก้ไขข้อมูลหน่วยนับ" },
+    { name: "กำหนดค่าเริ่มต้น", link: "/matter" },
+    { name: "หน่วยนับ", link: "/materials" },
+    { name: isNew ? "เพิ่มข้อมูลหน่วยนับ" : "แก้ไขข้อมูลหน่วยนับ" },
   ];
 
   return (
-    <Content breadcrumb={breadcrumb}>
+    <Content
+      breadcrumb={breadcrumb}
+      title={isNew ? "เพิ่มข้อมูลหน่วยนับ" : "แก้ไขข้อมูลหน่วยนับ"}>
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold text-2xl">
-            {isNew ? "ข้อมูลหน่วยนับ" : "แก้ไขข้อมูลหน่วยนับ"}
+            {isNew ? "เพิ่มข้อมูลหน่วยนับ" : "แก้ไขข้อมูลหน่วยนับ"}
           </h3>
         </div>
 

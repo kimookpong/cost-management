@@ -1,34 +1,51 @@
 import { NextResponse } from "next/server";
 import { executeQuery } from "@/lib/oracle";
 
-export async function GET(req) {
+export async function GET(req, { params }) {
   try {
-    const { searchParams } = new URL(req.nextUrl); // ✅ ใช้ req.nextUrl ให้ถูกต้อง
+    // ✅ รับค่าแบบ Dynamic Route (เช่น /assetss/123)
+    // const { id } = params || {};
+
+    // ✅ รับค่าแบบ Query String (เช่น /assetss?idType=1)
+    const searchParams = new URL(req.nextUrl).searchParams;
     const idType = searchParams.get("idType");
     const id = searchParams.get("id");
 
-    console.log("idType:", idType, "id:", id);
+    console.log("Fetching asset data - ID:", id, "ID Type:", idType);
 
-    let sql = `SELECT s.*,u.unit_name,b.brand_name,g.INVGROUP_NAME,t."INVTYPE _NAME" FROM cst_invasset s 
-            inner join cst_invunit u on s.unit_id = u.unit_id
-            inner JOIN cst_invbrand b on s.brand_id = b.brand_id
-            INNER JOIN cst_invgroup g on s.invgroup_id = g.invgroup_id
-            INNER JOIN cst_invtype t on s.invtype_id = t.invtype_id
-            WHERE s.flag_del = 0`;
+    let sql = `SELECT 
+                 s.*,
+                 u.unit_name, 
+                 b.brand_name, 
+                 g.INVGROUP_NAME, 
+                t."INVTYPE _NAME"
+               FROM cst_invasset s
+               INNER JOIN cst_invunit u ON s.unit_id = u.unit_id
+               INNER JOIN cst_invbrand b ON s.brand_id = b.brand_id
+               INNER JOIN cst_invgroup g ON s.invgroup_id = g.invgroup_id
+               INNER JOIN cst_invtype t ON s.invtype_id = t.invtype_id
+               WHERE s.flag_del = 0`;
 
-    let params = [];
+    let paramsArray = [];
 
     if (id) {
-      sql += ` AND s.ASSET_ID = ?`; // ถ้าใช้ PostgreSQL ให้ใช้ `$1`
-      params.push(id);
-    } else if (idType === "1") {
-      sql += ` AND s.INVTYPE_ID = 1`; // ถ้าใช้ PostgreSQL ให้ใช้ `$1`
-    } else if (idType === "2") {
-      sql += ` AND s.INVTYPE_ID = 2`; // ถ้าใช้ PostgreSQL ให้ใช้ `$1`
-    } else if (idType === "3") {
-      sql += ` AND s.INVTYPE_ID = 3`; // ถ้าใช้ PostgreSQL ให้ใช้ `$1`
+      sql += ` AND s.ASSET_ID = :id`;
+      paramsArray.push(id);
+      console.log("SQL:", sql);
+    } else if (idType) {
+      sql += ` AND s.INVTYPE_ID = :idType`;
+      paramsArray.push(idType);
+      console.log("SQL:", sql);
     }
-    const assets = await executeQuery(sql, params);
+
+    const assets = await executeQuery(sql, paramsArray);
+    console.log("assets01", assets);
+    if (!assets || assets.length === 0) {
+      return NextResponse.json(
+        { success: true, data: assets[0] }, // สมมติว่า assets เป็นอาร์เรย์และต้องการค่าแรก
+        { status: 200 }
+      );
+    }
 
     return NextResponse.json({ success: true, data: assets });
   } catch (error) {
@@ -119,8 +136,12 @@ export async function POST(req) {
     );
   }
 }
+
 export async function PUT(req) {
   try {
+    const formData = await req.json();
+    console.log("Received formData:", formData);
+
     const {
       assetId, // ต้องมี assetId เพื่อระบุแถวที่ต้องการอัปเดต
       assetNameTh,
@@ -136,10 +157,11 @@ export async function PUT(req) {
       invgroupId,
       invtypeId,
       status,
-    } = await req.json();
+    } = formData;
 
     // ตรวจสอบว่า assetId มีค่าหรือไม่
     if (!assetId) {
+      console.error("Missing assetId:", formData);
       return NextResponse.json(
         { success: false, message: "Missing assetId" },
         { status: 400 }
@@ -160,12 +182,10 @@ export async function PUT(req) {
     if (
       isNaN(parsedAssetId) ||
       !assetNameTh ||
-      !assetNameEng ||
+      // !assetNameEng ||
       !amountUnit ||
-      !version ||
+      // !version ||
       isNaN(parsedBrandId) ||
-      !catNo ||
-      !grade ||
       isNaN(parsedUnitId) ||
       isNaN(parsedUnitPrice) ||
       isNaN(parsedPackPrice) ||
@@ -173,6 +193,7 @@ export async function PUT(req) {
       isNaN(parsedInvtypeId) ||
       !parsedStatus
     ) {
+      console.error("Missing or invalid fields:", formData);
       return NextResponse.json(
         { success: false, message: "Missing or invalid fields" },
         { status: 400 }
@@ -202,7 +223,7 @@ export async function PUT(req) {
         assetNameEng,
         amountUnit,
         version,
-        brandId: parsedBrandId,
+        brandId: parsedBrandId, // ต้องเป็นตัวเลข ถ้าไม่ใช่ให้ return 400 Bad Request กลับไป
         catNo,
         grade,
         unitId: parsedUnitId,
@@ -226,3 +247,23 @@ export async function PUT(req) {
     );
   }
 }
+export async function DELETE(req) {
+  try {
+    const id = req.nextUrl.searchParams.get("id");
+    await executeQuery(
+      `UPDATE cst_invasset SET FLAG_DEL = 1 WHERE ASSET_ID = :id`,
+      { id }
+    );
+    return NextResponse.json({
+      success: true,
+      message: "Asset deleted successfully",
+    });
+  } catch (error) {
+    console.error("Database Error:", error);
+    return NextResponse.json(
+      { success: false, message: "Database Error", error },
+      { status: 500 }
+    );
+  }
+}
+// Compare this snippet from src/app/api/brand/route.js:

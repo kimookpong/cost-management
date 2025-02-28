@@ -8,55 +8,43 @@ import axios from "axios";
 import Swal from "sweetalert2";
 
 export default function AssetForm() {
-  const breadcrumb = [{ name: "จัดการครุภัณฑ์", link: "/assetss" }];
+  const breadcrumb = [{ name: "ข้อมูลครุภัณฑ์", link: "/matter2" }];
   const router = useRouter();
-  const { id } = useParams(); // Get the id from the URL parameters
-  const isNew = id === "new"; // Determine if this is a new asset or an existing one
+  const { id } = useParams();
+  const isNew = id === "new";
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCategoryAndGrade, setShowCategoryAndGrade] = useState(false);
   const [options, setOptions] = useState([]);
   const [brands, setBrands] = useState([]);
-  const [type, setTypes] = useState([]);
-  const [group, setGroups] = useState([]);
+  const [types, setTypes] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [data, setData] = useState(null); // ใช้ state เก็บข้อมูล asset
+  const requiredMessage = "กรอกข้อมูลนี้";
+  const requiredSelect = "เลือกข้อมูลนี้";
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    watch,
     setValue,
+    watch,
+    formState: { errors },
   } = useForm({
     defaultValues: {
       assetNameTh: "",
       assetNameEng: "",
+      invtypeId: "",
+      unitId: "",
+      brandId: "",
       amountUnit: "",
       version: "",
-      brandId: "",
       catNo: "",
       grade: "",
-      unitId: "",
       unitPrice: "",
       packPrice: "",
       invgroupId: "",
-      invtypeId: "",
       status: "1",
     },
   });
-
-  const typeassetValue = watch("invtypeId");
-
-  useEffect(() => {
-    console.log("typeassetValue changed:", typeassetValue);
-    if (typeassetValue === "2" || typeassetValue === "3") {
-      setShowCategoryAndGrade(true);
-    } else {
-      setShowCategoryAndGrade(false);
-    }
-  }, [typeassetValue]);
-
-  useEffect(() => {
-    setShowCategoryAndGrade(typeassetValue === "2" || typeassetValue === "3");
-  }, [typeassetValue]);
 
   useEffect(() => {
     async function fetchData() {
@@ -68,7 +56,6 @@ export default function AssetForm() {
             axios.get("/api/invtype"),
             axios.get("/api/invgroup"),
           ]);
-
         setOptions(materialsRes.data.data || []);
         setBrands(brandsRes.data.data || []);
         setTypes(typesRes.data.data || []);
@@ -82,25 +69,59 @@ export default function AssetForm() {
     fetchData();
   }, []);
 
-  const onSubmit = async (values) => {
+  useEffect(() => {
+    async function fetchAsset() {
+      if (!isNew) {
+        setLoading(true);
+        try {
+          const response = await axios.get(`/api/assetss?id=${id}`);
+          // console.log("response", response);
+          if (response.data.success) {
+            const asset = response.data.data[0];
+            // console.log("assetP", asset);
+
+            // ใช้ setValue เพื่อเติมข้อมูลลงในฟอร์ม
+            Object.keys(asset).forEach((key) => {
+              setValue(key, asset[key]);
+            });
+          } else {
+            setError("ไม่พบข้อมูลครุภัณฑ์");
+          }
+        } catch (err) {
+          setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
+        } finally {
+          setLoading(false);
+        }
+      }
+    }
+    fetchAsset();
+  }, [id, isNew, setValue]);
+
+  const typeassetValue = watch("invtypeId");
+  useEffect(() => {
+    setShowCategoryAndGrade(typeassetValue === "2" || typeassetValue === "3");
+  }, [typeassetValue]);
+
+  const onSubmit = async (formData) => {
+    console.log("formData", formData);
     try {
       if (isNew) {
-        await axios.post(`/api/assetss`, values);
+        await axios.post(`/api/assetss`, formData);
         await Swal.fire({
           title: "เพิ่มข้อมูลใหม่เรียบร้อย!",
           icon: "success",
+          showCancelButton: false,
+          showConfirmButton: false,
           timer: 1000,
-        }).then(() => {
-          router.push("/assetss"); // ไปที่หน้า assetss หลังจาก Swal ปิด
         });
       } else {
-        await axios.put(`/api/assetss?id=${id}`, values);
+        await axios.put(`/api/assetss?id=${id}`, formData);
         await Swal.fire({
           title: "แก้ไขข้อมูลเรียบร้อย!",
           icon: "success",
+          showCancelButton: false,
+          showConfirmButton: false,
           timer: 1000,
-        }).then(() => {
-          router.push("/assetss"); // ไปที่หน้า assetss หลังจาก Swal ปิด
         });
       }
       router.back();
@@ -111,27 +132,26 @@ export default function AssetForm() {
   };
 
   return (
-    <Content breadcrumb={breadcrumb}>
+    <Content
+      breadcrumb={breadcrumb}
+      title={isNew ? "เพิ่มข้อมูลพัสดุ" : "แก้ไขข้อมูลพัสดุ"}>
       <div className="container mx-auto p-4">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h3 className="font-semibold text-gray-700 text-2xl">
-              {isNew ? "เพิ่มข้อมูลครุภัณฑ์" : "แก้ไขข้อมูลครุภัณฑ์"}
-            </h3>
-          </div>
+        <div className="bg-white p-6 rounded-lg shadow-md text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 ">
+          <h3 className="font-semibold text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 text-2xl pb-4">
+            {isNew ? "เพิ่มข้อมูลพัสดุ" : "แก้ไขข้อมูลพัสดุ"}
+          </h3>
+
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="form-control max-w-6xl mx-auto space-y-4 p-2">
+            className="form-control max-w-8xl mx-auto space-y-4 p-2">
             <div className="grid md:grid-cols-2 gap-4">
               {/* Asset Names */}
               <div className="form-control">
-                <label className={className.label}>
-                  ชื่อครุภัณฑ์ (ภาษาไทย) *
-                </label>
+                <label className={className.label}>ชื่อ (ภาษาไทย) *</label>
                 <input
                   type="text"
                   {...register("assetNameTh", {
-                    required: "ระบุข้อมูลนี้",
+                    required: requiredMessage,
                   })}
                   className={className.input}
                 />
@@ -145,13 +165,11 @@ export default function AssetForm() {
               </div>
 
               <div className="form-control">
-                <label className={className.label}>
-                  ชื่อครุภัณฑ์ (English)
-                </label>
+                <label className={className.label}>ชื่อ (English)</label>
                 <input
                   type="text"
                   {...register("assetNameEng", {
-                    required: "ระบุข้อมูลนี้",
+                    // required: requiredMessage,
                   })}
                   className={className.input}
                 />
@@ -168,16 +186,16 @@ export default function AssetForm() {
               <div className="grid grid-cols-3 gap-2">
                 {/* Type and Category */}
                 <div className="form-control">
-                  <label className={className.label}>ประเภทครุภัณฑ์ *</label>
+                  <label className={className.label}>ประเภท *</label>
                   <select
                     {...register("invtypeId", {
-                      required: "ระบุข้อมูลนี้",
+                      required: requiredSelect,
                     })}
                     className={className.select}>
                     <option value="">- เลือก -</option>
-                    {type.map((types) => (
-                      <option key={types.invtypeId} value={types.invtypeId}>
-                        {types["invtype Name"]}
+                    {types.map((type) => (
+                      <option key={type.invtypeId} value={type.invtypeId}>
+                        {type["invtype Name"]}
                       </option>
                     ))}
                   </select>
@@ -194,9 +212,9 @@ export default function AssetForm() {
                   <label className={className.label}>หน่วยนับ *</label>
                   <select
                     {...register("unitId", {
-                      required: "ระบุข้อมูลนี้",
+                      required: requiredSelect,
                     })}
-                    className="w-50 px-1 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white text-black focus:outline-indigo-600">
+                    className={className.select}>
                     <option value="">- เลือก -</option>
                     {options.map((option) => (
                       <option key={option.unitId} value={option.unitId}>
@@ -217,9 +235,9 @@ export default function AssetForm() {
                   <label className={className.label}>ยี่ห้อ *</label>
                   <select
                     {...register("brandId", {
-                      required: "ระบุข้อมูลนี้",
+                      required: requiredSelect,
                     })}
-                    className="w-50 px-1 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white text-black focus:outline-indigo-600">
+                    className={className.select}>
                     <option value="">- เลือก -</option>
                     {brands.map((brand) => (
                       <option key={brand.brandId} value={brand.brandId}>
@@ -243,7 +261,7 @@ export default function AssetForm() {
                   <input
                     type="text"
                     {...register("amountUnit", {
-                      required: "ระบุข้อมูลนี้",
+                      required: requiredMessage,
                     })}
                     className={className.input}
                     placeholder="ขนาด/ขนาดบรรจุ"
@@ -261,7 +279,9 @@ export default function AssetForm() {
                   <label className={className.label}>รุ่น *</label>
                   <input
                     type="text"
-                    {...register("version")}
+                    {...register("version", {
+                      // required: requiredMessage,
+                    })}
                     className={className.input}
                     placeholder="รุ่น"
                   />
@@ -282,7 +302,7 @@ export default function AssetForm() {
                     <input
                       type="text"
                       {...register("catNo", {
-                        required: "ระบุข้อมูลนี้",
+                        required: requiredMessage,
                       })}
                       className={className.input}
                       placeholder="Category Number"
@@ -300,7 +320,7 @@ export default function AssetForm() {
                     <input
                       type="text"
                       {...register("grade", {
-                        required: "ระบุข้อมูลนี้",
+                        required: requiredMessage,
                       })}
                       className={className.input}
                       placeholder="Grade"
@@ -324,10 +344,10 @@ export default function AssetForm() {
                   <input
                     type="text"
                     {...register("unitPrice", {
-                      required: "ระบุข้อมูลนี้",
+                      required: requiredMessage,
                       pattern: {
-                        value: /^\d*\.?\d*$/,
-                        message: "Please enter a valid number",
+                        value: /^\d+(\.\d{1,2})?$/, // ต้องเป็นตัวเลขเท่านั้น เทศนิยมได้ 2 ตำแหน่งเขียนไง 0.00
+                        message: "กรอกตัวเลขเทศนิยมได้ 2 ตำแหน่งเท่านั้น",
                       },
                     })}
                     className={className.input}
@@ -347,10 +367,11 @@ export default function AssetForm() {
                   <input
                     type="text"
                     {...register("packPrice", {
-                      required: "ระบุข้อมูลนี้",
+                      required: requiredMessage,
                       pattern: {
-                        value: /^\d*\.?\d*$/,
-                        message: "Please enter a valid number",
+                        value: /^\d+(\.\d{1,2})?$/,
+                        // ต้องเป็นตัวเลขเท่านั้น เทศนิยมได้ 2 ตำแหน่งเขียนไง 0.00
+                        message: "กรอกตัวเลขทศนิยม 2 ตำแหน่งเท่านั้น",
                       },
                     })}
                     className={className.input}
@@ -371,13 +392,13 @@ export default function AssetForm() {
                   <label className={className.label}>ผู้รับผิดชอบ *</label>
                   <select
                     {...register("invgroupId", {
-                      required: "ระบุข้อมูลนี้",
+                      required: requiredSelect,
                     })}
                     className={className.select}>
                     <option value="">- เลือก -</option>
-                    {group.map((groups) => (
-                      <option key={groups.invgroupId} value={groups.invgroupId}>
-                        {groups.invgroupName}
+                    {groups.map((group) => (
+                      <option key={group.invgroupId} value={group.invgroupId}>
+                        {group.invgroupName}
                       </option>
                     ))}
                   </select>
@@ -395,7 +416,7 @@ export default function AssetForm() {
                   <label className={className.label}>สถานะ *</label>
                   <select
                     {...register("status", {
-                      required: "ระบุข้อมูลนี้",
+                      required: requiredSelect,
                     })}
                     className={className.select}>
                     <option value="1">ใช้งาน</option>
@@ -422,7 +443,7 @@ export default function AssetForm() {
               <button
                 type="submit"
                 className="cursor-pointer p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                {isNew ? "บันทึก" : "บันทึกข้อมูล"}
+                {isNew ? "บันทึกข้อมูล" : "บันทึกข้อมูล"}
               </button>
             </div>
           </form>
@@ -437,5 +458,5 @@ const className = {
   input:
     "block w-full px-3 py-1.5 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white text-black focus:outline-indigo-600",
   select:
-    "block w-50 px-1 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white text-black focus:outline-indigo-600",
+    "block w-50 px-1 py-2 border-2 rounded-md shadow-sm text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800  text-black focus:outline-indigo-600",
 };

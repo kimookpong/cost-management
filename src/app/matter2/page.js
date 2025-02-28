@@ -5,17 +5,15 @@ import Link from "next/link";
 import { FiBox } from "react-icons/fi";
 
 export default function MatterPage() {
-  const breadcrumb = [{ name: "ข้อมูลครุภัณฑ์", link: "/matter" }];
+  const breadcrumb = [{ name: "ข้อมูลพัสดุ", link: "/matter" }];
   return (
-    <Content breadcrumb={breadcrumb}>
+    <Content breadcrumb={breadcrumb} title="ข้อมูลพัสดุ">
       <div className="relative flex flex-col h-screen text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="flex flex-col items-start h-screen p-9">
           <div className="p-4">
             <div className="flex items-center justify-end space-x-2">
               <FiBox className="text-xl" />
-              <h2 className="text-2xl font-semibold text-right">
-                ข้อมูลครุภัณฑ์
-              </h2>
+              <h2 className="text-2xl font-semibold text-right">ข้อมูลพัสดุ</h2>
             </div>
             <div className="divider divider-secondary absolute left-1 right-2 "></div>
           </div>
