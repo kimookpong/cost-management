@@ -75,7 +75,7 @@ const TableList = ({ data, meta, loading }) => {
         <thead className="bg-gray-50 dark:bg-gray-700/50">
           <tr className="border-y border-gray-200 dark:border-gray-700">
             <th
-              width="5%"
+              width="40"
               className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <p className="flex items-center justify-center opacity-70">#</p>
