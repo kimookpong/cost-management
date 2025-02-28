@@ -75,14 +75,25 @@ export default function List() {
       ),
     },
     {
-      key: "coursename",
-      content: "รายวิชา",
-      render: (item) => (
-        <div>
-          {item.coursename} ({item.coursecode})
-        </div>
-      ),
+      key: "coursecode",
+      content: "รหัสวิชา",
+      width: "100",
     },
+    {
+      key: "coursename",
+      content: "ชื่อวิชา",
+    },
+    {
+      key: "facultyname",
+      content: "สำนักวิชา",
+    },
+    {
+      key: "labroom",
+      content: "จำนวนห้อง",
+      width: "110",
+      className: "text-center",
+    },
+
     {
       key: "fullname",
       content: "ผู้รับผิดชอบหลัก",

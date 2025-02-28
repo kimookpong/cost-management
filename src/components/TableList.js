@@ -76,23 +76,23 @@ const TableList = ({ data, meta, loading }) => {
           <tr className="border-y border-gray-200 dark:border-gray-700">
             <th
               width="5%"
-              className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
-              <p className="flex items-center justify-between opacity-70">#</p>
+              <p className="flex items-center justify-center opacity-70">#</p>
             </th>
             {meta.map((m, index) => (
               <th
                 key={`header-${index}`}
                 width={m.width || ""}
-                className="border border-gray-200 dark:border-gray-700 p-2 text-center font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 {m.sort === false ? (
-                  <p className="flex items-center justify-between gap-1 opacity-70">
+                  <p className="flex items-center justify-center gap-1 opacity-70">
                     {m.content}
                   </p>
                 ) : (
                   <p
-                    className="flex items-center justify-between gap-1 opacity-70 cursor-pointer hover:opacity-100 dark:hover:text-white "
+                    className="flex items-center justify-center gap-1 opacity-70 cursor-pointer hover:opacity-100 dark:hover:text-white "
                     onClick={() => {
                       if (sort.key === m.key) {
                         setSort((prev) => ({
@@ -170,7 +170,7 @@ const TableList = ({ data, meta, loading }) => {
             })
           ) : (
             <tr className="border border-gray-200 dark:border-gray-700">
-              <td colSpan={meta.length + 1} className="p-8 text-center">
+              <td colSpan={meta.length + 1} className="p-4 text-center">
                 <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"

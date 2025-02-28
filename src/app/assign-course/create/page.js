@@ -64,13 +64,13 @@ export default function Detail() {
     },
     {
       key: "section",
-      content: "จำนวน Section",
+      content: "จำนวนกลุ่ม",
       className: "text-center",
       width: 150,
     },
     {
       key: "totalseat",
-      content: "จำนวน Seat",
+      content: "จำนวนนักศึกษา",
       className: "text-center",
       width: 150,
     },
