@@ -192,7 +192,7 @@ const TableList = ({ data, meta, loading }) => {
                     <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="w-12 h-12 mb-2 text-gray-300 dark:text-gray-500"
+                        className="w-16 h-16 mb-2 text-gray-300 dark:text-gray-500"
                         viewBox="0 0 32 32"
                       >
                         <path
