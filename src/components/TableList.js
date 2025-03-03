@@ -192,16 +192,16 @@ const TableList = ({ data, meta, loading }) => {
                     <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
                         className="w-12 h-12 mb-2 text-gray-300 dark:text-gray-500"
+                        viewBox="0 0 32 32"
                       >
                         <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M12 9v2m0 4h.01M12 2a10 10 0 11-10 10A10 10 0 0112 2z"
+                          fill="currentColor"
+                          d="M6 8h10v2H6zm0 4h8v2H6zm0 4h4v2H6z"
+                        />
+                        <path
+                          fill="currentColor"
+                          d="M28 26H7.414L30 3.414L28.586 2l-2 2H4a2 2 0 0 0-2 2v16h2V6h20.586L2 28.586L3.414 30l2-2H28a2 2 0 0 0 2-2V10h-2Z"
                         />
                       </svg>
 
