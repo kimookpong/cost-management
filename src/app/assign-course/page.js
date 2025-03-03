@@ -75,7 +75,7 @@ export default function List() {
     {
       key: "acadyear",
       content: "ปีการศึกษา",
-      width: "120",
+      width: "100",
       render: (item) => (
         <div>
           เทอม {item.semester}/{item.acadyear}
@@ -84,49 +84,45 @@ export default function List() {
     },
     {
       key: "coursecode",
-      content: "รหัสวิชา",
-      width: "100",
+      content: "รายวิชา",
+      render: (item) => (
+        <div className="flex flex-col">
+          <p className="block">{item.coursename}</p>
+          <p className="block opacity-70">รหัสวิชา : {item.coursecode}</p>
+        </div>
+      ),
     },
-    {
-      key: "coursename",
-      content: "ชื่อวิชา",
-    },
+
     {
       key: "facultyname",
       content: "สำนักวิชา",
+      render: (item) => (
+        <div className="flex flex-col">
+          <p className="block">{item.facultyname}</p>
+          <p className="block opacity-70">{item.facultycode}</p>
+        </div>
+      ),
     },
-    // {
-    //   key: "labroom",
-    //   content: "จำนวนห้อง",
-    //   width: "110",
-    //   className: "text-center",
-    // },
-
-    // {
-    //   key: "fullname",
-    //   content: "ผู้รับผิดชอบหลัก",
-    // },
 
     {
       key: "section",
-      content: "จำนวนกลุ่มเรียน",
-      className: "text-center",
-      width: "120",
+      content: "รายละเอียดวิชา",
+      width: "300",
+      render: (item) => (
+        <div className="flex flex-col">
+          <p className="block">จำนวนกลุ่มเรียน : {item.section} กลุ่ม</p>
+          <p className="block opacity-70">
+            จำนวนนักศึกษา : {item.totalseat} คน
+          </p>
+        </div>
+      ),
     },
 
     {
-      key: "totalseat",
-      content: "จำนวน นศ. ที่เปิด",
-      className: "text-center",
-      width: "120",
+      key: "fullname",
+      content: "ผู้รับผิดชอบหลัก",
+      width: "200",
     },
-    // {
-    //   key: "enrollseat",
-    //   content: "จำนวน นศ. ที่ลงทะเบียน",
-    //   className: "text-center",
-    //   width: "120",
-    // },
-
     {
       key: "labId",
       content: "Action",
@@ -163,26 +159,29 @@ export default function List() {
       title="แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
     >
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
-        <div className="p-4 border-b border-gray-200  flex justify-between items-center">
+        <div className="p-4 border-b border-gray-200  flex justify-between">
           <div>
             <h3 className="font-semibold ">กำหนดรายวิชา</h3>
           </div>
-          <div className="flex gap-1">
-            <select
-              value={schId}
-              onChange={(e) => {
-                setSchId(e.target.value);
-                router.push(`/assign-course?schId=${e.target.value}`);
-              }}
-              className="block px-4 py-2 border rounded-md dark:bg-gray-800"
-            >
-              <option value="">แสดงทุกเทอมการศึกษา</option>
-              {data.semester.map((item) => (
-                <option key={item.schId} value={item.schId}>
-                  เทอม {item.semester}/{item.acadyear}
-                </option>
-              ))}
-            </select>
+          <div className="flex gap-4">
+            <div className="flex gap-2 items-center">
+              <label className={className.label}>เทอมการศึกษา :</label>
+              <select
+                value={schId}
+                onChange={(e) => {
+                  setSchId(e.target.value);
+                  router.push(`/report/assign-course?schId=${e.target.value}`);
+                }}
+                className="block px-4 py-2 border rounded-md dark:bg-gray-800"
+              >
+                <option value="">แสดงทุกเทอมการศึกษา</option>
+                {data.semester.map((item) => (
+                  <option key={item.schId} value={item.schId}>
+                    เทอม {item.semester}/{item.acadyear}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <button
               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -208,7 +207,7 @@ export default function List() {
 
 const className = {
   label:
-    "mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300",
+    "block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300",
   input:
     "block w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
   select: "block px-4 py-2 border rounded-md dark:bg-gray-800",

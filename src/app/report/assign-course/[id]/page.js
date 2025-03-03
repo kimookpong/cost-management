@@ -617,14 +617,6 @@ export default function Detail() {
                                 {type.asset.length} รายการ
                               </span>
                             </div>
-                            <button
-                              type="button"
-                              className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                              onClick={() => _onPressAddInvent(type.type)}
-                            >
-                              <FiPlus className="w-4 h-4" />
-                              เพิ่มใหม่
-                            </button>
                           </div>
                           <TableList
                             meta={[
@@ -666,42 +658,6 @@ export default function Detail() {
                                 width: 100,
                                 key: "unitName",
                               },
-                              {
-                                key: "assetId",
-                                content: "Action",
-                                width: "100",
-                                sort: false,
-                                render: (item) => (
-                                  <div className="flex gap-1">
-                                    <button
-                                      type="button"
-                                      className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                      onClick={() => {
-                                        return _onPressEditInvent(
-                                          item.labassetId,
-                                          type.type
-                                        );
-                                      }}
-                                    >
-                                      <FiEdit className="w-4 h-4" />
-                                      แก้ไข
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                      onClick={() => {
-                                        return _onPressDeleteInvent(
-                                          item.labassetId,
-                                          type.type
-                                        );
-                                      }}
-                                    >
-                                      <FiTrash2 className="w-4 h-4" />
-                                      ลบ
-                                    </button>
-                                  </div>
-                                ),
-                              },
                             ]}
                             data={type.asset}
                             loading={loading}
@@ -714,181 +670,18 @@ export default function Detail() {
               </div>
             </div>
 
-            <div className="md:col-span-2 flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
                 className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
                 onClick={() => router.back()}
               >
-                ยกเลิก
-              </button>
-              <button
-                type="submit"
-                className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
-              >
-                บันทึกข้อมูล
+                ย้อนกลับ
               </button>
             </div>
           </form>
         )}
       </div>
-
-      <Dialog
-        open={inventFormModal}
-        onClose={_onCloseInventForm}
-        className="relative z-10"
-      >
-        <DialogBackdrop
-          transition
-          className="fixed inset-0 text-gray-900 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
-        />
-
-        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
-          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <DialogPanel
-              transition
-              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-full sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
-            >
-              {loadingInvent ? (
-                <div className="p-6 text-center text-gray-500 dark:text-gray-400">
-                  กำลังโหลดข้อมูล...
-                </div>
-              ) : (
-                <form onSubmit={inventForm.handleSubmit}>
-                  <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                      <div className="sm:col-span-12">
-                        <label className={className.label}>
-                          วัสดุที่เลือกใช้
-                        </label>
-                        <select
-                          name="assetId"
-                          value={inventForm.values.assetId}
-                          onChange={inventForm.handleChange}
-                          className={`${className.select} ${
-                            inventForm.touched.assetId &&
-                            inventForm.errors.assetId
-                              ? "border-red-500"
-                              : ""
-                          }`}
-                        >
-                          <option value="" disabled>
-                            เลือกวัสดุที่เลือกใช้
-                          </option>
-                          {invent.map((inv) => (
-                            <option key={inv.assetId} value={inv.assetId}>
-                              {inv.assetNameTh} [{inv.brandName}] (
-                              {inv.unitName})
-                            </option>
-                          ))}
-                        </select>
-                        {inventForm.touched.assetId &&
-                          inventForm.errors.assetId && (
-                            <p className="mt-1 text-sm text-red-500">
-                              {inventForm.errors.assetId}
-                            </p>
-                          )}
-                      </div>
-                      {assetInfo && (
-                        <div className="sm:col-span-12">
-                          <div className="border rounded-lg border-blue-600 dark:border-blue-300">
-                            <div className="p-4 border-b border-blue-600 dark:border-blue-300">
-                              <h3 className="font-semibold text-blue-900 dark:text-blue-300">
-                                {assetInfo?.assetNameTh}
-                              </h3>
-                            </div>
-                            <div className="p-4">
-                              <div className="text-gray-500 dark:text-gray-400">
-                                <div className="text-sm">
-                                  ยี่ห้อ : {assetInfo?.brandName || "-"}
-                                </div>
-                                <div className="text-sm">
-                                  ขนาด : {assetInfo?.amountUnit || "-"}
-                                </div>
-                                <div className="text-sm">
-                                  ห้องปฎิบัติการ :{" "}
-                                  {assetInfo?.invgroupName || "-"}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="sm:col-span-9">
-                        <label className={className.label}>จำนวนที่ใช้</label>
-                        <input
-                          type="number"
-                          name="amount"
-                          value={inventForm.values.amount}
-                          onChange={inventForm.handleChange}
-                          className={`${className.input} ${
-                            inventForm.touched.amount &&
-                            inventForm.errors.amount
-                              ? "border-red-500"
-                              : ""
-                          }`}
-                        />
-                        {inventForm.touched.amount &&
-                          inventForm.errors.amount && (
-                            <p className="mt-1 text-sm text-red-500">
-                              {inventForm.errors.amount}
-                            </p>
-                          )}
-                      </div>
-                      <div className="sm:col-span-3">
-                        <label className={className.label}>หน่วย</label>
-                        <input
-                          value={assetInfo?.unitName || "-"}
-                          disabled
-                          className={className.input}
-                        />
-                      </div>
-                      <div className="sm:col-span-12">
-                        <label className={className.label}>Remark</label>
-                        <input
-                          type="text"
-                          name="assetRemark"
-                          value={inventForm.values.assetRemark}
-                          onChange={inventForm.handleChange}
-                          className={`${className.input} ${
-                            inventForm.touched.assetRemark &&
-                            inventForm.errors.assetRemark
-                              ? "border-red-500"
-                              : ""
-                          }`}
-                        />
-                        {inventForm.touched.assetRemark &&
-                          inventForm.errors.assetRemark && (
-                            <p className="mt-1 text-sm text-red-500">
-                              {inventForm.errors.assetRemark}
-                            </p>
-                          )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
-                    <button
-                      type="submit"
-                      className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto"
-                    >
-                      ยืนยัน
-                    </button>
-                    <button
-                      type="button"
-                      data-autofocus
-                      onClick={() => _onCloseInventForm(false)}
-                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                    >
-                      ยกเลิก
-                    </button>
-                  </div>
-                </form>
-              )}
-            </DialogPanel>
-          </div>
-        </div>
-      </Dialog>
     </Content>
   );
 }

@@ -66,7 +66,7 @@ export default function List() {
       render: (item) => {
         return (
           <div className="flex flex-col gap-1">
-            {JSON.parse(item.roleAccess).map((access, index) => {
+            {JSON.parse(item.roleAccess)?.map((access, index) => {
               const navi = navigation.find(
                 (nav) => nav.id === parseInt(access)
               );

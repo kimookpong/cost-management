@@ -78,14 +78,14 @@ const TableList = ({ data, meta, loading }) => {
           )}
         </div>
       </div>
-      <div className="border rounded-lg overflow-hidden">
-        <div className="table-wrp block max-h-96">
-          <table className="w-full overflow-x-auto">
-            <thead className="bg-gray-50 dark:bg-gray-700/50 sticky top-0">
-              <tr className="border-y border-gray-200 dark:border-gray-700">
+      <div className="flex flex-col overflow-x-auto">
+        <div className="overflow-x-auto">
+          <table className="min-w-full text-left text-sm">
+            <thead>
+              <tr className="border-y border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-gray-700">
                 <th
                   width="40"
-                  className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-600"
                 >
                   <p className="flex items-center justify-center opacity-70">
                     #
@@ -95,7 +95,7 @@ const TableList = ({ data, meta, loading }) => {
                   <th
                     key={`header-${index}`}
                     width={m.width || ""}
-                    className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-600"
                   >
                     {m.sort === false ? (
                       <p className="flex items-center justify-center gap-1">
