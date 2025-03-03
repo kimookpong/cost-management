@@ -158,6 +158,15 @@ export default function Detail() {
             <TableList meta={meta} data={data.course} loading={loading} />
           </div>
         </div>
+        <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
+            onClick={() => router.back()}
+          >
+            ย้อนกลับ
+          </button>
+        </div>
       </div>
     </Content>
   );
