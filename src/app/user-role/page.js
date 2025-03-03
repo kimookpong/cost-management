@@ -86,6 +86,7 @@ export default function List() {
       key: "statusId",
       content: "สถานะ",
       width: "100",
+      sort: false,
       render: (item) => {
         return (
           <span
