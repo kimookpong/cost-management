@@ -118,6 +118,7 @@ export async function GET(req) {
     const id = req.nextUrl.searchParams.get("id");
     const courseId = req.nextUrl.searchParams.get("courseId");
     const schId = req.nextUrl.searchParams.get("schId");
+    const labgroupId = req.nextUrl.searchParams.get("labgroupId");
 
     const users = await getUser();
     const labgroup = await getLabgroup();
@@ -201,8 +202,48 @@ export async function GET(req) {
           labgroup: labgroup,
         });
       } else {
-        const data = await executeQuery(
-          `SELECT LAB.LAB_ID, 
+        let data;
+        if (labgroupId) {
+          data = await executeQuery(
+            `SELECT LAB.LAB_ID, 
+          MAX(FAC.FACULTYNAME) AS FACULTYNAME, 
+          MAX(LAB.ACADYEAR) AS ACADYEAR,
+          MAX(LABGROUP.LABGROUP_NAME) AS LABGROUP_NAME,
+          MAX(LAB.SEMESTER) AS SEMESTER, 
+          MAX(COURSE.COURSECODE) AS COURSECODE, 
+          MAX(COURSE.COURSENAME) AS COURSENAME, 
+          MAX(LAB.PERSON_ID) AS PERSON_ID, 
+          MAX(PERSON.TITLE_NAME || PERSON.FIRST_NAME || ' ' || PERSON.LAST_NAME) AS FULLNAME, 
+          MAX(LAB.LABROOM) AS LABROOM,
+          COUNT(REG.CLASSID) AS SECTION,
+          SUM(REG.TOTALSEAT) AS TOTALSEAT,
+          SUM(REG.ENROLLSEAT) AS ENROLLSEAT
+        FROM CST_LABCOURSE LAB 
+        INNER JOIN PBL_AVSREGCOURSE_V COURSE
+            ON COURSE.COURSEID = LAB.COURSEID
+        INNER JOIN PBL_AVSREGCLASS_V REG
+            ON REG.COURSEID = LAB.COURSEID
+        INNER JOIN CST_LABGROUP LABGROUP
+            ON LAB.LABGROUP_ID = LABGROUP.LABGROUP_ID
+        INNER JOIN PBL_VPER_PERSON PERSON 
+            ON LAB.PERSON_ID = PERSON.PERSON_ID
+        INNER JOIN PBL_FACULTY_V FAC 
+            ON COURSE.FACULTYID = FAC.FACULTYID
+        INNER JOIN CST_SCHYEAR SCH 
+            ON SCH.SCH_ID = :schId
+            AND SCH.SEMESTER = LAB.SEMESTER
+            AND SCH.ACADYEAR = LAB.ACADYEAR
+        WHERE LAB.FLAG_DEL = 0 AND LAB.LABGROUP_ID = :labgroupId
+        GROUP BY LAB.LAB_ID
+        ORDER BY MAX(LAB.ACADYEAR) DESC, MAX(LAB.SEMESTER) DESC`,
+            {
+              schId,
+              labgroupId,
+            }
+          );
+        } else {
+          data = await executeQuery(
+            `SELECT LAB.LAB_ID, 
           MAX(FAC.FACULTYNAME) AS FACULTYNAME, 
           MAX(LAB.ACADYEAR) AS ACADYEAR,
           MAX(LABGROUP.LABGROUP_NAME) AS LABGROUP_NAME,
@@ -233,10 +274,11 @@ export async function GET(req) {
         WHERE LAB.FLAG_DEL = 0
         GROUP BY LAB.LAB_ID
         ORDER BY MAX(LAB.ACADYEAR) DESC, MAX(LAB.SEMESTER) DESC`,
-          {
-            schId,
-          }
-        );
+            {
+              schId,
+            }
+          );
+        }
 
         const semester = await getSemester();
         const labgroup = await getLabgroup();

@@ -33,16 +33,19 @@ export default function List() {
   useEffect(() => {
     async function fetchData() {
       try {
+        setLoading(true);
+        let schselect = schId;
         if (schId === "") {
           const schyearRes = await axios.get(`/api/schyear`);
           const schyear = schyearRes.data;
           if (schyear.success) {
             setSchId(schyear.data);
+            schselect = schyear.data;
           }
         }
 
         const response = await axios.get(`/api/assign-course`, {
-          params: { schId },
+          params: { schId: schselect, labgroupId },
         });
         const data = response.data;
         if (data.success) {
@@ -62,7 +65,7 @@ export default function List() {
     }
 
     fetchData();
-  }, [reload, schId]);
+  }, [reload, schId, labgroupId]);
 
   const meta = [
     {
@@ -100,7 +103,7 @@ export default function List() {
     {
       key: "section",
       content: "รายละเอียดวิชา",
-      width: "300",
+      width: "200",
       render: (item) => (
         <div className="flex flex-col">
           <p className="block">จำนวนกลุ่มเรียน : {item.section} กลุ่ม</p>
@@ -113,8 +116,14 @@ export default function List() {
 
     {
       key: "fullname",
-      content: "ผู้รับผิดชอบหลัก",
-      width: "200",
+      content: "รายละเอียดห้องปฎิบัติการ",
+      width: "300",
+      render: (item) => (
+        <div className="flex flex-col">
+          <p className="block">{item.labgroupName}</p>
+          <p className="block opacity-70">ผู้รับผิดชอบหลัก : {item.fullname}</p>
+        </div>
+      ),
     },
 
     {
