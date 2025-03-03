@@ -9,7 +9,7 @@ import axios from "axios";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 
 export default function List() {
-  const breadcrumb = [{ name: "จัดการผู้ใช้งาน", link: "/user" }];
+  const breadcrumb = [{ name: "กำหนดผู้รับผิดชอบ", link: "/user" }];
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -115,11 +115,11 @@ export default function List() {
   ];
 
   return (
-    <Content breadcrumb={breadcrumb} title="จัดการผู้ใช้งาน">
+    <Content breadcrumb={breadcrumb} title="กำหนดผู้รับผิดชอบ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between items-center">
           <div>
-            <h3 className="font-semibold ">จัดการผู้ใช้งาน</h3>
+            <h3 className="font-semibold ">กำหนดผู้รับผิดชอบ</h3>
           </div>
           <div className="flex gap-1">
             <button

@@ -21,12 +21,12 @@ const navigation = [
     icon: FiUsers,
     child: [
       {
-        name: "รายชื่อผู้ใช้งาน",
+        name: "กำหนดผู้รับผิดชอบ",
         icon: FiUserCheck,
         href: "/user",
       },
       {
-        name: "จัดการสิทธิการใช้งาน",
+        name: "กำหนดสิทธิการใช้งาน",
         icon: FiLock,
         href: "/user-role",
       },
@@ -62,11 +62,11 @@ const navigation = [
         icon: FiChevronsRight,
         href: "/assign-course",
       },
-      {
-        name: "กำหนดผู้รับผิดชอบ",
-        icon: FiChevronsRight,
-        href: "/assign-user",
-      },
+      // {
+      //   name: "กำหนดผู้รับผิดชอบ",
+      //   icon: FiChevronsRight,
+      //   href: "/assign-user",
+      // },
       {
         name: "กำหนดแผนการใช้ห้องปฎิบัติการ",
         icon: FiChevronsRight,
@@ -94,6 +94,19 @@ const navigation = [
         name: "บันทึกการใช้ทรัพยากรตามใบงาน",
         icon: FiChevronsRight,
         href: "/userRole",
+      },
+    ],
+  },
+  {
+    id: 5,
+    name: "รายงาน",
+    description: "รายงาน",
+    icon: FiArchive,
+    child: [
+      {
+        name: "รายงานแผนการใช้บริการห้องปฎิบัติการ",
+        icon: FiChevronsRight,
+        href: "/report/assign-course",
       },
     ],
   },

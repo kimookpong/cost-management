@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -7,7 +7,6 @@ import {
 } from "react-icons/fi";
 
 const TableList = ({ data, meta, loading }) => {
-  const [dataDisplay, setDataDisplay] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "", order: "" });
@@ -15,38 +14,47 @@ const TableList = ({ data, meta, loading }) => {
   const totalPages =
     data.length > 0 ? Math.ceil(data.length / itemsPerPage) : 1;
 
-  useEffect(() => {
-    let filteredData = data;
+  const filteredSortedData = useMemo(() => {
+    let result = [...data];
 
+    // 🔎 ค้นหาข้อมูล
     if (search.trim() !== "") {
-      filteredData = data.filter((item) =>
-        meta.some((m) => item[m.key] && item[m.key].toString().includes(search))
+      result = result.filter((item) =>
+        meta.some((m) =>
+          item[m.key]?.toString().toLowerCase().includes(search.toLowerCase())
+        )
       );
     }
 
+    // 🔀 เรียงลำดับข้อมูล
     if (sort.key !== "") {
-      filteredData = filteredData.sort((a, b) => {
-        if (sort.order === "asc") {
-          return a[sort.key] > b[sort.key] ? 1 : -1;
-        } else {
-          return a[sort.key] < b[sort.key] ? 1 : -1;
-        }
-      });
-    }
-    if (filteredData.length === 0) {
-      setCurrentPage(1);
+      result.sort((a, b) =>
+        sort.order === "asc"
+          ? a[sort.key] > b[sort.key]
+            ? 1
+            : -1
+          : a[sort.key] < b[sort.key]
+          ? 1
+          : -1
+      );
     }
 
-    setDataDisplay(
-      filteredData.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-      )
+    return result;
+  }, [data, search, sort, meta]);
+
+  const dataDisplay = useMemo(() => {
+    return filteredSortedData.slice(
+      (currentPage - 1) * itemsPerPage,
+      currentPage * itemsPerPage
     );
-  }, [data, currentPage, search, meta, sort]);
+  }, [filteredSortedData, currentPage]);
+
+  useEffect(() => {
+    if (dataDisplay.length === 0 && currentPage !== 1) setCurrentPage(1);
+  }, [dataDisplay.length, currentPage]);
 
   return (
-    <div>
+    <div className="w-full">
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm text-gray-500 dark:text-gray-300">
           รายการทั้งหมด {data.length} รายการ
@@ -70,139 +78,144 @@ const TableList = ({ data, meta, loading }) => {
           )}
         </div>
       </div>
-
-      <table className="w-full">
-        <thead className="bg-gray-50 dark:bg-gray-700/50">
-          <tr className="border-y border-gray-200 dark:border-gray-700">
-            <th
-              width="40"
-              className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              <p className="flex items-center justify-center opacity-70">#</p>
-            </th>
-            {meta.map((m, index) => (
-              <th
-                key={`header-${index}`}
-                width={m.width || ""}
-                className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                {m.sort === false ? (
-                  <p className="flex items-center justify-center gap-1">
-                    {m.content}
+      <div className="border rounded-lg overflow-hidden">
+        <div className="table-wrp block max-h-96">
+          <table className="w-full overflow-x-auto">
+            <thead className="bg-gray-50 dark:bg-gray-700/50 sticky top-0">
+              <tr className="border-y border-gray-200 dark:border-gray-700">
+                <th
+                  width="40"
+                  className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                >
+                  <p className="flex items-center justify-center opacity-70">
+                    #
                   </p>
-                ) : (
-                  <p
-                    className="flex items-center justify-center gap-1 hover:text-gray-900 cursor-pointer dark:hover:text-white"
-                    onClick={() => {
-                      if (sort.key === m.key) {
-                        setSort((prev) => ({
-                          key: prev.key,
-                          order: prev.order === "asc" ? "desc" : "asc",
-                        }));
-                      } else {
-                        setSort({ key: m.key, order: "asc" });
-                      }
-                    }}
+                </th>
+                {meta.map((m, index) => (
+                  <th
+                    key={`header-${index}`}
+                    width={m.width || ""}
+                    className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   >
-                    {m.content}
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth="2"
-                      stroke="currentColor"
-                      className="w-4 h-4"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
-                      ></path>
-                    </svg>
-                  </p>
-                )}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {loading ? (
-            [...Array(5)].map((_, index) => (
-              <tr
-                key={`loading-${index}`}
-                className="border-b border-gray-200 dark:border-gray-700"
-              >
-                <td className="p-3 text-center">
-                  <div className="animate-pulse bg-gray-300 dark:bg-gray-700 h-4 w-8 mx-auto rounded-md"></div>
-                </td>
-
-                {meta.map((_, i) => (
-                  <td key={`loading-cell-${index}-${i}`} className="p-3">
-                    <div className="animate-pulse bg-gray-300 dark:bg-gray-700 h-4 w-full rounded-md"></div>
-                  </td>
+                    {m.sort === false ? (
+                      <p className="flex items-center justify-center gap-1">
+                        {m.content}
+                      </p>
+                    ) : (
+                      <p
+                        className="flex items-center justify-center gap-1 hover:text-gray-900 cursor-pointer dark:hover:text-white"
+                        onClick={() => {
+                          if (sort.key === m.key) {
+                            setSort((prev) => ({
+                              key: prev.key,
+                              order: prev.order === "asc" ? "desc" : "asc",
+                            }));
+                          } else {
+                            setSort({ key: m.key, order: "asc" });
+                          }
+                        }}
+                      >
+                        {m.content}
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth="2"
+                          stroke="currentColor"
+                          className="w-4 h-4"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
+                          ></path>
+                        </svg>
+                      </p>
+                    )}
+                  </th>
                 ))}
               </tr>
-            ))
-          ) : dataDisplay.length > 0 ? (
-            dataDisplay.map((item, index) => {
-              const currentRow = (currentPage - 1) * itemsPerPage + index + 1;
-              return (
-                <tr
-                  key={item.id || currentRow}
-                  className="border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
-                >
-                  <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-gray-900 dark:text-gray-300">
-                    {currentRow}
-                  </td>
-                  {meta.map((m, i) => (
-                    <td
-                      key={`row-${currentRow}-col-${i}`}
-                      className={[
-                        "border border-gray-200 dark:border-gray-700 p-2 text-gray-900 dark:text-gray-300",
-                        m.className || "",
-                      ].join(" ")}
-                    >
-                      {m.render
-                        ? m.render(item)
-                        : item[m.key] || (
-                            <i className="text-xs text-gray-300 dark:text-gray-700">
-                              (ไม่มีข้อมูล)
-                            </i>
-                          )}
-                    </td>
-                  ))}
-                </tr>
-              );
-            })
-          ) : (
-            <tr className="border border-gray-200 dark:border-gray-700">
-              <td colSpan={meta.length + 1} className="p-4 text-center">
-                <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2}
-                    stroke="currentColor"
-                    className="w-12 h-12 mb-2 text-gray-300 dark:text-gray-500"
+            </thead>
+            <tbody>
+              {loading ? (
+                [...Array(5)].map((_, index) => (
+                  <tr
+                    key={`loading-${index}`}
+                    className="border-b border-gray-200 dark:border-gray-700"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 9v2m0 4h.01M12 2a10 10 0 11-10 10A10 10 0 0112 2z"
-                    />
-                  </svg>
+                    <td className="p-3 text-center">
+                      <div className="animate-pulse bg-gray-300 dark:bg-gray-700 h-4 w-8 mx-auto rounded-md"></div>
+                    </td>
 
-                  <i className="text-lg font-medium text-gray-300 dark:text-gray-500">
-                    ไม่มีข้อมูล
-                  </i>
-                </div>
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+                    {meta.map((_, i) => (
+                      <td key={`loading-cell-${index}-${i}`} className="p-3">
+                        <div className="animate-pulse bg-gray-300 dark:bg-gray-700 h-4 w-full rounded-md"></div>
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              ) : dataDisplay.length > 0 ? (
+                dataDisplay.map((item, index) => {
+                  const currentRow =
+                    (currentPage - 1) * itemsPerPage + index + 1;
+                  return (
+                    <tr
+                      key={item.id || currentRow}
+                      className="border-gray-200 hover:bg-gray-100 dark:border-gray-700 dark:hover:bg-gray-800"
+                    >
+                      <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-gray-900 dark:text-gray-300">
+                        {currentRow}
+                      </td>
+                      {meta.map((m, i) => (
+                        <td
+                          key={`row-${currentRow}-col-${i}`}
+                          className={[
+                            "border border-gray-200 dark:border-gray-700 p-2 text-gray-900 dark:text-gray-300",
+                            m.className || "",
+                          ].join(" ")}
+                        >
+                          {m.render
+                            ? m.render(item)
+                            : item[m.key] || (
+                                <i className="text-xs text-gray-300 dark:text-gray-700">
+                                  (ไม่มีข้อมูล)
+                                </i>
+                              )}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr className="border border-gray-200 dark:border-gray-700">
+                  <td colSpan={meta.length + 1} className="p-4 text-center">
+                    <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className="w-12 h-12 mb-2 text-gray-300 dark:text-gray-500"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M12 9v2m0 4h.01M12 2a10 10 0 11-10 10A10 10 0 0112 2z"
+                        />
+                      </svg>
 
+                      <i className="text-lg font-medium text-gray-300 dark:text-gray-500">
+                        ไม่มีข้อมูล
+                      </i>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
       {data.length > itemsPerPage && (
         <div className="flex items-center justify-between py-3">
           <p className="text-sm text-gray-500 dark:text-gray-300">

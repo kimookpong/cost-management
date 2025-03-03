@@ -44,6 +44,14 @@ export default function List() {
   useEffect(() => {
     async function fetchData() {
       try {
+        if (schId === "") {
+          const schyearRes = await axios.get(`/api/schyear`);
+          const schyear = schyearRes.data;
+          if (schyear.success) {
+            setSchId(schyear.data);
+          }
+        }
+
         const response = await axios.get(`/api/assign-course`, {
           params: { schId },
         });
@@ -87,17 +95,38 @@ export default function List() {
       key: "facultyname",
       content: "สำนักวิชา",
     },
+    // {
+    //   key: "labroom",
+    //   content: "จำนวนห้อง",
+    //   width: "110",
+    //   className: "text-center",
+    // },
+
+    // {
+    //   key: "fullname",
+    //   content: "ผู้รับผิดชอบหลัก",
+    // },
+
     {
-      key: "labroom",
-      content: "จำนวนห้อง",
-      width: "110",
+      key: "section",
+      content: "จำนวนกลุ่มเรียน",
       className: "text-center",
+      width: "120",
     },
 
     {
-      key: "fullname",
-      content: "ผู้รับผิดชอบหลัก",
+      key: "totalseat",
+      content: "จำนวน นศ. ที่เปิด",
+      className: "text-center",
+      width: "120",
     },
+    // {
+    //   key: "enrollseat",
+    //   content: "จำนวน นศ. ที่ลงทะเบียน",
+    //   className: "text-center",
+    //   width: "120",
+    // },
+
     {
       key: "labId",
       content: "Action",

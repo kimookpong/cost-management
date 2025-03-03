@@ -6,9 +6,19 @@ async function getSemester() {
     `SELECT SCH_ID, ACADYEAR, SEMESTER 
     FROM CST_SCHYEAR 
     WHERE FLAG_DEL = 0 
-      AND STATUS = 1
     ORDER BY ACADYEAR DESC, SEMESTER DESC`
   );
+}
+
+async function getCurrentSemester() {
+  const currentSemester = await executeQuery(
+    `SELECT SCH_ID 
+    FROM CST_SCHYEAR 
+    WHERE FLAG_DEL = 0 
+    AND STATUS = 1
+    ORDER BY ACADYEAR DESC, SEMESTER DESC`
+  );
+  return currentSemester[0].schId;
 }
 
 async function getCourse(courseId) {
@@ -52,7 +62,6 @@ async function getClass(courseId, schId) {
     `SELECT CLASS.CLASSID, CLASS.ACADYEAR, CLASS.SEMESTER, CLASS.SECTION, CLASS.TOTALSEAT, CLASS.CLASSNOTE
     FROM PBL_AVSREGCLASS_V CLASS 
     INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = :schId
-      AND SCH.STATUS = 1
       AND SCH.FLAG_DEL = 0
       AND CLASS.ACADYEAR = SCH.ACADYEAR
       AND CLASS.SEMESTER = SCH.SEMESTER
@@ -132,14 +141,17 @@ export async function GET(req) {
 
       const labasset = await executeQuery(
         `SELECT ASSET.LABASSET_ID,ASSET.ASSET_ID, ASSET.AMOUNT, ASSET.ASSET_REMARK, 
-        INV.ASSET_NAME_TH || ' (' || BRAND.BRAND_NAME || ')' AS ASSET_NAME_TH,
+        INV.ASSET_NAME_TH,
         BRAND.BRAND_NAME,
         INV.AMOUNT_UNIT,
         UNIT.UNIT_NAME,
+        GRP.INVGROUP_NAME,
         INV.INVTYPE_ID AS TYPE
         FROM CST_LABCOURSE_ASSET ASSET
         INNER JOIN CST_INVASSET INV
           ON ASSET.ASSET_ID = INV.ASSET_ID
+        INNER JOIN CST_INVGROUP GRP 
+          ON INV.INVGROUP_ID = GRP.INVGROUP_ID
         INNER JOIN CST_INVUNIT UNIT 
           ON INV.UNIT_ID = UNIT.UNIT_ID
         INNER JOIN CST_INVBRAND BRAND
@@ -163,15 +175,33 @@ export async function GET(req) {
     } else if (!courseId) {
       if (!schId) {
         const data = await executeQuery(
-          `SELECT LAB.LAB_ID, FAC.FACULTYNAME, LAB.ACADYEAR, LAB.SEMESTER, COURSE.COURSECODE, COURSE.COURSENAME, LAB.PERSON_ID, PERSON.TITLE_NAME || PERSON.FIRST_NAME || ' ' || PERSON.LAST_NAME AS FULLNAME, LAB.LABROOM
-          FROM CST_LABCOURSE LAB 
-          INNER JOIN PBL_AVSREGCOURSE_V COURSE
-              ON COURSE.COURSEID = LAB.COURSEID
-          INNER JOIN PBL_VPER_PERSON PERSON 
-              ON LAB.PERSON_ID = PERSON.PERSON_ID
-          INNER JOIN PBL_FACULTY_V FAC ON COURSE.FACULTYID = FAC.FACULTYID
-          WHERE LAB.FLAG_DEL = 0
-          ORDER BY LAB.ACADYEAR DESC, LAB.SEMESTER DESC`
+          `SELECT LAB.LAB_ID, 
+          MAX(FAC.FACULTYNAME) AS FACULTYNAME, 
+          MAX(LAB.ACADYEAR) AS ACADYEAR,
+          MAX(LABGROUP.LABGROUP_NAME) AS LABGROUP_NAME,
+          MAX(LAB.SEMESTER) AS SEMESTER, 
+          MAX(COURSE.COURSECODE) AS COURSECODE, 
+          MAX(COURSE.COURSENAME) AS COURSENAME, 
+          MAX(LAB.PERSON_ID) AS PERSON_ID, 
+          MAX(PERSON.TITLE_NAME || PERSON.FIRST_NAME || ' ' || PERSON.LAST_NAME) AS FULLNAME, 
+          MAX(LAB.LABROOM) AS LABROOM,
+          COUNT(REG.CLASSID) AS SECTION,
+          SUM(REG.TOTALSEAT) AS TOTALSEAT,
+          SUM(REG.ENROLLSEAT) AS ENROLLSEAT
+        FROM CST_LABCOURSE LAB 
+        INNER JOIN PBL_AVSREGCOURSE_V COURSE
+            ON COURSE.COURSEID = LAB.COURSEID
+        INNER JOIN PBL_AVSREGCLASS_V REG
+            ON REG.COURSEID = LAB.COURSEID
+        INNER JOIN CST_LABGROUP LABGROUP
+            ON LAB.LABGROUP_ID = LABGROUP.LABGROUP_ID
+        INNER JOIN PBL_VPER_PERSON PERSON 
+            ON LAB.PERSON_ID = PERSON.PERSON_ID
+        INNER JOIN PBL_FACULTY_V FAC 
+            ON COURSE.FACULTYID = FAC.FACULTYID
+        WHERE LAB.FLAG_DEL = 0
+        GROUP BY LAB.LAB_ID
+        ORDER BY MAX(LAB.ACADYEAR) DESC, MAX(LAB.SEMESTER) DESC`
         );
         const semester = await getSemester();
         return NextResponse.json({
@@ -198,7 +228,9 @@ export async function GET(req) {
             schId,
           }
         );
+
         const semester = await getSemester();
+
         return NextResponse.json({
           success: true,
           data: data,

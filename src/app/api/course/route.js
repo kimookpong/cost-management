@@ -5,8 +5,7 @@ async function getSemester() {
   return await executeQuery(
     `SELECT SCH_ID, ACADYEAR, SEMESTER 
     FROM CST_SCHYEAR 
-    WHERE FLAG_DEL = 0 
-      AND STATUS = 1
+    WHERE FLAG_DEL = 0
     ORDER BY ACADYEAR DESC, SEMESTER DESC`
   );
 }
@@ -30,7 +29,6 @@ export async function GET(req) {
           ON COURSE.COURSEID = REG.COURSEID
           AND COURSE.FACULTYID = :facultyId
       INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = :schId
-          AND SCH.STATUS = 1
           AND SCH.FLAG_DEL = 0
       WHERE REG.ACADYEAR = SCH.ACADYEAR 
           AND REG.SEMESTER = SCH.SEMESTER

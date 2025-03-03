@@ -12,8 +12,11 @@ import { confirmDialog, toastDialog } from "@/lib/stdLib";
 export default function List() {
   const searchParams = useSearchParams();
   const breadcrumb = [
-    { name: "แผนการให้บริการห้องปฎิบัติการ" },
-    { name: "กำหนดรายวิชา", link: "/assign-course" },
+    { name: "รายงาน" },
+    {
+      name: "รายงานแผนการให้บริการห้องปฎิบัติการ",
+      link: "/report/assign-course",
+    },
   ];
   const router = useRouter();
   const [data, setData] = useState({ data: [], semester: [] });
@@ -22,28 +25,21 @@ export default function List() {
   const [error, setError] = useState(null);
   const [schId, setSchId] = useState(searchParams.get("schId") || "");
 
-  const _onPressAdd = () => {
-    router.push("/assign-course/create?schId=" + schId);
-  };
-  const _onPressEdit = (id) => {
-    router.push(`/assign-course/${id}`);
-  };
-  const _onPressDelete = async (id) => {
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
-
-    if (result.isConfirmed) {
-      await axios.delete(`/api/assign-course?id=${id}`);
-      await toastDialog("ลบข้อมูลเรียบร้อย!", "success");
-      setReload(reload + 1);
-    }
+  const _onPressDetail = (id) => {
+    router.push(`/report/assign-course/${id}`);
   };
 
   useEffect(() => {
     async function fetchData() {
       try {
+        if (schId === "") {
+          const schyearRes = await axios.get(`/api/schyear`);
+          const schyear = schyearRes.data;
+          if (schyear.success) {
+            setSchId(schyear.data);
+          }
+        }
+
         const response = await axios.get(`/api/assign-course`, {
           params: { schId },
         });
@@ -77,15 +73,31 @@ export default function List() {
     {
       key: "coursecode",
       content: "รหัสวิชา",
+      width: "700",
+    },
+    {
+      key: "coursename",
+      content: "ชื่อวิชา",
+      width: "100",
+    },
+    {
+      key: "facultyname",
+      content: "สำนักวิชา",
+    },
+    {
+      key: "coursecode",
+      content: "รหัสวิชา",
       width: "100",
     },
     {
       key: "coursename",
       content: "ชื่อวิชา",
+      width: "100",
     },
     {
       key: "facultyname",
       content: "สำนักวิชา",
+      width: "100",
     },
     {
       key: "labroom",
@@ -97,31 +109,45 @@ export default function List() {
     {
       key: "fullname",
       content: "ผู้รับผิดชอบหลัก",
+      width: "100",
     },
+
+    {
+      key: "section",
+      content: "จำนวนกลุ่มเรียน",
+      className: "text-center",
+      width: "100",
+    },
+
+    {
+      key: "totalseat",
+      content: "จำนวน นศ. ที่เปิด",
+      className: "text-center",
+      width: "100",
+    },
+    {
+      key: "enrollseat",
+      content: "จำนวน นศ. ที่ลงทะเบียน",
+      className: "text-center",
+      width: "100",
+    },
+
     {
       key: "labId",
       content: "Action",
       width: "100",
+      nowrap: true,
       sort: false,
       render: (item) => (
         <div className="flex gap-1">
           <button
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
-              return _onPressEdit(item.labId);
+              return _onPressDetail(item.labId);
             }}
           >
             <FiEdit className="w-4 h-4" />
-            แก้ไข
-          </button>
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => {
-              return _onPressDelete(item.labId);
-            }}
-          >
-            <FiTrash2 className="w-4 h-4" />
-            ลบ
+            รายละเอียด
           </button>
         </div>
       ),
@@ -131,7 +157,7 @@ export default function List() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title="แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
+      title="รายงานแผนการให้บริการห้องปฎิบัติการ"
     >
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between items-center">
@@ -143,7 +169,7 @@ export default function List() {
               value={schId}
               onChange={(e) => {
                 setSchId(e.target.value);
-                router.push(`/assign-course?schId=${e.target.value}`);
+                router.push(`/report/assign-course?schId=${e.target.value}`);
               }}
               className="block px-4 py-2 border rounded-md dark:bg-gray-800"
             >
@@ -154,14 +180,6 @@ export default function List() {
                 </option>
               ))}
             </select>
-
-            <button
-              className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={_onPressAdd}
-            >
-              <FiPlus className="w-4 h-4" />
-              เพิ่มใหม่
-            </button>
           </div>
         </div>
 

@@ -91,12 +91,12 @@ export default function Detail() {
   }, [id]);
 
   const breadcrumb = [
-    { name: "จัดการผู้ใช้งาน", link: "/user" },
+    { name: "กำหนดผู้รับผิดชอบ", link: "/user" },
     { name: isNew ? "เพิ่มใหม่" : "แก้ไข" },
   ];
 
   return (
-    <Content breadcrumb={breadcrumb} title="จัดการผู้ใช้งาน">
+    <Content breadcrumb={breadcrumb} title="กำหนดผู้รับผิดชอบ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
