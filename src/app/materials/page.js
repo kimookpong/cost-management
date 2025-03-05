@@ -113,9 +113,8 @@ export default function List() {
           </button>
           <button
             className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => {
-              return _onPressDelete(item.unitId);
-            }}>
+            onClick={() => _onPressDelete(item.unitId)}
+            disabled={item.used === 1}>
             <FiTrash2 className="w-4 h-4" />
             ลบ
           </button>

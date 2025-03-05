@@ -12,7 +12,13 @@ export async function GET(req) {
       return NextResponse.json({ success: true, data: brand });
     } else {
       const brand = await executeQuery(
-        `SELECT * FROM DBACST.cst_invbrand WHERE flag_del = 0`
+        // `SELECT * FROM DBACST.cst_invbrand WHERE flag_del = 0`
+        `SELECT b.*,
+       CASE 
+           WHEN EXISTS (SELECT 1 FROM CST_INVASSET i WHERE i.BRAND_ID = b.BRAND_ID)              
+       THEN 1 ELSE 0 END AS used
+      FROM cst_invbrand b
+      WHERE b.flag_del = 0 ORDER BY b.BRAND_ID DESC`
       );
       return NextResponse.json({ success: true, data: brand });
     }
