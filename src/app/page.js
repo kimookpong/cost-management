@@ -12,7 +12,7 @@ export default function Dashboard() {
   return (
     <Content>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-semibold text-gray-800 dark:text-gray-300">
+        <h1 className="text-3xl font-semibold text-white dark:text-gray-300">
           Dashboard
         </h1>
 
@@ -22,10 +22,10 @@ export default function Dashboard() {
           </label>
 
           <select className="p-4 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-lg focus:outline-none w-28 text-right text-gray-800 dark:text-gray-300 items-center">
-            <option className="text-left">2/2568</option>
-            <option className="text-left">1/2568</option>
-            <option className="text-left">2/2567</option>
-            <option className="text-left">1/2567</option>
+            <option className="text-left">2 / 2568</option>
+            <option className="text-left">1 / 2568</option>
+            <option className="text-left">2 / 2567</option>
+            <option className="text-left">1 / 2567</option>
           </select>
         </div>
       </div>
