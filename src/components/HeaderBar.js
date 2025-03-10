@@ -1,6 +1,7 @@
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 import { navigation, userNavigation } from "@/lib/params";
 
 import {
@@ -61,7 +62,8 @@ export default function Example() {
                               <MenuItem key={sub.name}>
                                 <a
                                   href={sub.href}
-                                  className="flex items-center p-4 text-sm  text-gray-800 hover:bg-gray-100 dark:text-gray-300 hover:dark:bg-gray-700 hover:dark:text-white space-x-2 rounded-md">
+                                  className="flex items-center p-4 text-sm  text-gray-800 hover:bg-gray-100 dark:text-gray-300 hover:dark:bg-gray-700 hover:dark:text-white space-x-2 rounded-md"
+                                >
                                   {sub.icon && (
                                     <sub.icon className="w-4 h-4 text-gray-600 dark:text-gray-400" />
                                   )}
@@ -75,7 +77,8 @@ export default function Example() {
                         <a
                           key={item.name}
                           href={item.href}
-                          className="flex items-center space-x-2 text-gray-800 hover:bg-gray-100 dark:text-gray-300 hover:dark:bg-gray-700 hover:dark:text-white rounded-lg p-2 text-sm font-medium transition duration-300">
+                          className="flex items-center space-x-2 text-gray-800 hover:bg-gray-100 dark:text-gray-300 hover:dark:bg-gray-700 hover:dark:text-white rounded-lg p-2 text-sm font-medium transition duration-300"
+                        >
                           <item.icon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                           <span>{item.name}</span>
                         </a>
@@ -92,7 +95,8 @@ export default function Example() {
                   className="relative rounded-full bg-white dark:bg-gray-800 p-1 text-gray-400 hover:text-white focus:outline-hidden"
                   onClick={() =>
                     setTheme(mounted === "dark" ? "light" : "dark")
-                  }>
+                  }
+                >
                   {mounted === "light" ? (
                     <FiSun
                       aria-hidden="true"
@@ -119,7 +123,8 @@ export default function Example() {
                   </div>
                   <MenuItems
                     transition
-                    className="absolute right-0 z-10 mt-2 w-64 p-2 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+                    className="absolute right-0 z-10 mt-2 w-64 p-2 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+                  >
                     <MenuItem key="profile">
                       <div className="flex items-center space-x-3 p-3 rounded-md  ">
                         <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-lg font-bold text-white">
@@ -144,7 +149,8 @@ export default function Example() {
                       <MenuItem key={item.name}>
                         <a
                           href={item.href}
-                          className="block p-4 text-sm text-gray-700 dark:text-gray-100 data-focus:bg-gray-100 data-focus:outline-hidden hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-300">
+                          className="block p-4 text-sm text-gray-700 dark:text-gray-100 data-focus:bg-gray-100 data-focus:outline-hidden hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-300"
+                        >
                           {item.name}
                         </a>
                       </MenuItem>
@@ -153,9 +159,23 @@ export default function Example() {
                     <MenuItem key="logout">
                       <button
                         onClick={() => signOut()}
-                        className="w-full text-center p-4 text-sm font-medium text-red-500 border border-red-500 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-300">
+                        className="w-full text-center p-4 text-sm font-medium text-red-500 border border-red-500 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-300"
+                      >
                         ออกจากระบบ
                       </button>
+                    </MenuItem>
+                    <MenuItem key="poweredBy">
+                      <div className="flex text-sm text-gray-400 pt-4 gap-2 text-center justify-center">
+                        <i>Powered by</i>
+                        <Image
+                          src="https://hrms.wu.ac.th/img/cdtwu.png"
+                          alt="ระบบบริหารจัดการต้นทุน"
+                          width={53}
+                          height={20}
+                          loading="lazy"
+                          className="mb-4 transition-transform transform hover:scale-105"
+                        />
+                      </div>
                     </MenuItem>
                   </MenuItems>
                 </Menu>
@@ -190,7 +210,8 @@ export default function Example() {
                         key={sub.name}
                         as="a"
                         href={sub.href}
-                        className="flex items-center space-x-2 block rounded-md px-3 py-2 text-base font-medium text-gray-800 dark:text-gray-400 hover:bg-gray-100 hover:dark:bg-gray-700 hover:dark:text-white">
+                        className="flex items-center space-x-2 block rounded-md px-3 py-2 text-base font-medium text-gray-800 dark:text-gray-400 hover:bg-gray-100 hover:dark:bg-gray-700 hover:dark:text-white"
+                      >
                         {sub.icon && (
                           <sub.icon className="w-4 h-4 text-gray-800 dark:text-gray-300" />
                         )}
@@ -204,7 +225,8 @@ export default function Example() {
                   key={item.name}
                   as="a"
                   href={item.href}
-                  className="flex items-center space-x-2 text-gray-800 dark:text-gray-300 hover:bg-gray-100 hover:dark:bg-gray-700 hover:dark:text-white rounded-md px-3 py-2 text-base font-medium">
+                  className="flex items-center space-x-2 text-gray-800 dark:text-gray-300 hover:bg-gray-100 hover:dark:bg-gray-700 hover:dark:text-white rounded-md px-3 py-2 text-base font-medium"
+                >
                   <item.icon className="w-5 h-5 text-gray-800 dark:text-gray-300" />
                   <span>{item.name}</span>
                 </DisclosureButton>
@@ -234,7 +256,8 @@ export default function Example() {
               <button
                 type="button"
                 className="relative ml-auto shrink-0 rounded-full bg-white dark:bg-gray-800 p-1 text-gray-400 hover:text-white  focus:outline-hidden"
-                onClick={() => setTheme(mounted === "dark" ? "light" : "dark")}>
+                onClick={() => setTheme(mounted === "dark" ? "light" : "dark")}
+              >
                 {mounted === "light" ? (
                   <FiSun
                     aria-hidden="true"
@@ -251,7 +274,8 @@ export default function Example() {
                   key={item.name}
                   as="a"
                   href={item.href}
-                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-800 dark:text-gray-400 hover:bg-gray-100 hover:dark:bg-gray-700 hover:dark:text-white">
+                  className="block rounded-md px-3 py-2 text-base font-medium text-gray-800 dark:text-gray-400 hover:bg-gray-100 hover:dark:bg-gray-700 hover:dark:text-white"
+                >
                   {item.name}
                 </DisclosureButton>
               ))}
@@ -260,7 +284,8 @@ export default function Example() {
                 key="logout"
                 as="a"
                 className="block w-100 rounded-md px-3 py-2 text-base font-medium  text-gray-800 dark:text-gray-400 hover:bg-gray-100 hover:dark:bg-gray-700 hover:dark:text-white"
-                onClick={() => signOut()}>
+                onClick={() => signOut()}
+              >
                 ออกจากระบบ
               </DisclosureButton>
             </div>
