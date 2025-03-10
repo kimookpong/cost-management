@@ -143,9 +143,19 @@ export default function LoginPage() {
           )}
         </form>
 
-        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-6">
-          <i>Powered by</i> The Center for Digital Technology
-        </p>
+        <div className="text-sm text-gray-500 dark:text-gray-400 text-center mt-6">
+          <div className="flex gap-2 text-center justify-center">
+            <i>Powered by</i>
+            <Image
+              src="https://hrms.wu.ac.th/img/cdtwu.png"
+              alt="ระบบบริหารจัดการต้นทุน"
+              width={53}
+              height={20}
+              loading="lazy"
+              className="mb-4 transition-transform transform hover:scale-105"
+            />
+          </div>
+        </div>
       </div>
     </main>
   );
