@@ -6,19 +6,13 @@ export async function GET(req) {
     const id = req.nextUrl.searchParams.get("id");
     if (id) {
       const brand = await executeQuery(
-        `SELECT * FROM cst_invbrand WHERE flag_del = 0 AND BRAND_ID = :id`,
+        `SELECT * FROM cst_schyear WHERE flag_del = 0 AND SCH_ID = :id`,
         { id }
       );
       return NextResponse.json({ success: true, data: brand });
     } else {
       const brand = await executeQuery(
-        // `SELECT * FROM DBACST.cst_invbrand WHERE flag_del = 0`
-        `SELECT b.*,
-       CASE 
-           WHEN EXISTS (SELECT 1 FROM CST_INVASSET i WHERE i.BRAND_ID = b.BRAND_ID)              
-       THEN 1 ELSE 0 END AS used
-      FROM cst_invbrand b
-      WHERE b.flag_del = 0 ORDER BY b.BRAND_ID DESC`
+        `SELECT * FROM cst_schyear WHERE flag_del = 0`
       );
       return NextResponse.json({ success: true, data: brand });
     }
@@ -33,9 +27,9 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
-    const { brandName, status } = await req.json();
+    const { acadyear, semester, status } = await req.json();
 
-    if (!brandName || !status) {
+    if (!acadyear || !status || !semester) {
       return NextResponse.json(
         { success: false, message: "Missing fields" },
         { status: 400 }
@@ -43,12 +37,12 @@ export async function POST(req) {
     }
 
     await executeQuery(
-      "INSERT INTO cst_invbrand (BRAND_NAME, STATUS, FLAG_DEL) VALUES ( :brandName, :status, 0)",
-      { brandName, status }
+      "INSERT INTO cst_schyear (ACADYEAR,SEMESTER, STATUS, FLAG_DEL) VALUES (:acadyear,:semester, :status, '0')",
+      { acadyear, semester, status }
     );
 
     return NextResponse.json(
-      { success: true, message: "Brand added successfully" },
+      { success: true, message: "schyear added successfully" },
       { status: 201 }
     );
   } catch (error) {
@@ -64,9 +58,9 @@ export async function PUT(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
     const body = await req.json();
-    const { brandName, status } = body;
+    const { acadyear, semester, status } = body;
 
-    if (!id || !brandName || !status) {
+    if (!id || !acadyear || !semester || !status) {
       return NextResponse.json(
         { success: false, message: "Missing fields" },
         { status: 400 }
@@ -74,15 +68,15 @@ export async function PUT(req) {
     }
 
     await executeQuery(
-      `UPDATE cst_invbrand 
-       SET BRAND_NAME = :brandName, STATUS = :status 
-       WHERE BRAND_ID = :id`,
-      { brandName, status, id }
+      `UPDATE cst_schyear 
+       SET ACADYEAR = :acadyear,SEMESTER = :semester ,STATUS = :status 
+       WHERE SCH_ID = :id`,
+      { acadyear, semester, status, id }
     );
 
     return NextResponse.json({
       success: true,
-      message: "Brand updated successfully",
+      message: "schyear successfully",
     });
   } catch (error) {
     console.error("Database Error:", error);
@@ -97,12 +91,12 @@ export async function DELETE(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
     await executeQuery(
-      `UPDATE cst_invbrand SET FLAG_DEL = 1 WHERE BRAND_ID = :id`,
+      `UPDATE cst_schyear SET FLAG_DEL = 1 WHERE SCH_ID = :id`,
       { id }
     );
     return NextResponse.json({
       success: true,
-      message: "Brand deleted successfully",
+      message: "schyear deleted successfully",
     });
   } catch (error) {
     console.error("Database Error:", error);

@@ -1,11 +1,12 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Content from "@/components/Content";
 import axios from "axios";
 import Swal from "sweetalert2";
+import Select from "react-select";
 
 export default function AssetForm() {
   const breadcrumb = [{ name: "ข้อมูลครุภัณฑ์", link: "/matter2" }];
@@ -27,6 +28,7 @@ export default function AssetForm() {
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -99,35 +101,43 @@ export default function AssetForm() {
 
   const typeassetValue = watch("invtypeId");
   useEffect(() => {
-    setShowCategoryAndGrade(typeassetValue === "2" || typeassetValue === "3");
+    setShowCategoryAndGrade(typeassetValue === "1" || typeassetValue === "2");
   }, [typeassetValue]);
 
   const onSubmit = async (formData) => {
-    console.log("formData", formData);
+    // console.log("formData", formData);
+    ["brandId", "unitId"].forEach((field) => {
+      formData[field] =
+        formData[field] && formData[field].value
+          ? String(formData[field].value)
+          : "";
+    });
     try {
       if (isNew) {
         await axios.post(`/api/assetss`, formData);
-        await Swal.fire({
-          title: "เพิ่มข้อมูลใหม่เรียบร้อย!",
-          icon: "success",
-          showCancelButton: false,
-          showConfirmButton: false,
-          timer: 1000,
-        });
       } else {
         await axios.put(`/api/assetss?id=${id}`, formData);
-        await Swal.fire({
-          title: "แก้ไขข้อมูลเรียบร้อย!",
-          icon: "success",
-          showCancelButton: false,
-          showConfirmButton: false,
-          timer: 1000,
-        });
       }
+      await Swal.fire({
+        title: isNew ? "เพิ่มข้อมูลใหม่เรียบร้อย!" : "แก้ไขข้อมูลเรียบร้อย!",
+        icon: "success",
+        showCancelButton: false,
+        showConfirmButton: false,
+        timer: 1000,
+      });
       router.back();
     } catch (error) {
       console.error("Error saving asset:", error);
-      Swal.fire({ title: "เกิดข้อผิดพลาด", icon: "error" });
+      if (error.response) {
+        // Error response from the server
+        Swal.fire({
+          title: `Error: ${error.response.status}`,
+          text: error.response.data.message || "เกิดข้อผิดพลาด",
+          icon: "error",
+        });
+      } else {
+        Swal.fire({ title: "เกิดข้อผิดพลาด", icon: "error" });
+      }
     }
   };
 
@@ -210,18 +220,24 @@ export default function AssetForm() {
 
                 <div className="form-control">
                   <label className={className.label}>หน่วยนับ *</label>
-                  <select
-                    {...register("unitId", {
-                      required: requiredSelect,
-                    })}
-                    className={className.select}>
-                    <option value="">- เลือก -</option>
-                    {options.map((option) => (
-                      <option key={option.unitId} value={option.unitId}>
-                        {option.unitName}
-                      </option>
-                    ))}
-                  </select>
+                  <Controller
+                    name="unitId"
+                    control={control}
+                    rules={{ required: requiredSelect }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        options={options.map((option) => ({
+                          value: option.unitId,
+                          label: option.unitName,
+                        }))}
+                        placeholder="- เลือก -"
+                        isClearable
+                        className="react-select-container"
+                        classNamePrefix="react-select"
+                      />
+                    )}
+                  />
                   {errors.unitId && (
                     <label className={className.label}>
                       <span className="label-text-alt text-error">
@@ -233,18 +249,24 @@ export default function AssetForm() {
 
                 <div className="form-control">
                   <label className={className.label}>ยี่ห้อ *</label>
-                  <select
-                    {...register("brandId", {
-                      required: requiredSelect,
-                    })}
-                    className={className.select}>
-                    <option value="">- เลือก -</option>
-                    {brands.map((brand) => (
-                      <option key={brand.brandId} value={brand.brandId}>
-                        {brand.brandName}
-                      </option>
-                    ))}
-                  </select>
+                  <Controller
+                    name="brandId"
+                    control={control}
+                    rules={{ required: requiredSelect }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        options={brands.map((brand) => ({
+                          value: brand.brandId, // Only value is passed
+                          label: brand.brandName, // Display label
+                        }))}
+                        placeholder="- เลือก -"
+                        isClearable
+                        className="react-select-container"
+                        classNamePrefix="react-select"
+                      />
+                    )}
+                  />
                   {errors.brandId && (
                     <label className={className.label}>
                       <span className="label-text-alt text-error">
@@ -298,12 +320,10 @@ export default function AssetForm() {
               {showCategoryAndGrade && (
                 <>
                   <div className="form-control">
-                    <label className={className.label}>Category No. *</label>
+                    <label className={className.label}>Category No. </label>
                     <input
                       type="text"
-                      {...register("catNo", {
-                        required: requiredMessage,
-                      })}
+                      {...register("catNo")}
                       className={className.input}
                       placeholder="Category Number"
                     />
@@ -316,12 +336,10 @@ export default function AssetForm() {
                     )}
                   </div>
                   <div className="form-control">
-                    <label className={className.label}>Grade *</label>
+                    <label className={className.label}>Grade </label>
                     <input
                       type="text"
-                      {...register("grade", {
-                        required: requiredMessage,
-                      })}
+                      {...register("grade")}
                       className={className.input}
                       placeholder="Grade"
                     />

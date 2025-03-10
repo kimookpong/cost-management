@@ -9,13 +9,15 @@ import TableList from "@/components/TableList";
 import axios from "axios";
 import Swal from "sweetalert2";
 import Link from "next/link";
+import { FcCheckmark } from "react-icons/fc";
+import { FcCancel } from "react-icons/fc";
 // import { c } from "framer-motion/dist/types.d-6pKw1mTI";
 
 export default function List() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const idType = searchParams.get("idType");
-  console.log("idType01", idType);
+  // console.log("idType01", idType);
   const breadcrumb = [
     { name: "ข้อมูลพัสดุ", link: "/matter2" },
     {
@@ -23,9 +25,9 @@ export default function List() {
         idType === "1"
           ? "ครุภัณฑ์"
           : idType === "2"
-          ? "วัสดุสิ้นเปลือง"
-          : idType === "3"
           ? "วัสดุไม่สิ้นเปลือง"
+          : idType === "3"
+          ? "วัสดุสิ้นเปลือง"
           : "ข้อมูลไม่ถูกต้อง",
       link: "/assetss",
     },
@@ -102,10 +104,19 @@ export default function List() {
       },
     },
     {
+      key: "amountUnit",
+      content: "ขนาดบรรจุ",
+      width: "120",
+      render: (item) => {
+        return <div className="text-left">{item.amountUnit}</div>;
+      },
+    },
+    {
       key: "unitName",
       content: "หน่วยนับ",
       width: "100",
     },
+
     {
       key: "unitPrice",
       content: "ราคาต่อหน่วย (บาท)",
@@ -115,13 +126,14 @@ export default function List() {
       },
     },
     {
-      key: "amountUnit",
-      content: "ขนาดบรรจุ",
-      width: "120",
+      key: "packPrice",
+      content: "ราคาต่อแพ็ค (บาท)",
+      width: "170",
       render: (item) => {
-        return <div className="text-left">{item.amountUnit}</div>;
+        return <div className="text-right pr-6">{item.packPrice}</div>;
       },
     },
+
     {
       key: "brandName",
       content: "ยี่ห้อ",
@@ -139,14 +151,7 @@ export default function List() {
       key: "grade",
       content: "คุณภาพ",
     },
-    {
-      key: "packPrice",
-      content: "ราคาต่อแพ็ค (บาท)",
-      width: "170",
-      render: (item) => {
-        return <div className="text-right pr-6">{item.packPrice}</div>;
-      },
-    },
+
     {
       key: "invtype Name",
       content: "ประเภทวัสดุ",
@@ -154,17 +159,22 @@ export default function List() {
     {
       key: "status",
       content: "สถานะ",
-      width: "100",
+      width: "80",
       render: (item) => {
         return (
-          <div className="flex  items-center">
-            <span
-              className={`px-2 py-1 text-sm font-medium rounded-full ${
-                item.status === "1"
-                  ? "bg-green-500 text-white "
-                  : "bg-red-500 text-white "
-              }`}>
-              {item.status === "1" ? "ใช้งาน" : "ไม่ใช้งาน"}
+          <div className="flex items-center justify-center">
+            <span className={`px-2 py-1 text-sm font-medium rounded-full `}>
+              {item.status === "1" ? (
+                <>
+                  <FcCheckmark className="inline-block mr-1" />
+                </>
+              ) : (
+                <>
+                  <FcCancel className="inline-block mr-1" />
+                </>
+                // <FcCancel />
+                // "ไม่ใช้งาน"
+              )}
             </span>
           </div>
         );
@@ -202,9 +212,9 @@ export default function List() {
         idType === "1"
           ? "ครุภัณฑ์"
           : idType === "2"
-          ? "วัสดุสิ้นเปลือง"
-          : idType === "3"
           ? "วัสดุไม่สิ้นเปลือง"
+          : idType === "3"
+          ? "วัสดุสิ้นเปลือง"
           : "ข้อมูลไม่ถูกต้อง"
       }>
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
@@ -227,13 +237,12 @@ export default function List() {
           </Link>
           <div className="flex gap-2 items-center p-4">
             <h3 className="text-2xl items-left font-semibold ">
-              {" "}
               {idType === "1"
                 ? "ครุภัณฑ์"
                 : idType === "2"
-                ? "วัสดุสิ้นเปลือง"
-                : idType === "3"
                 ? "วัสดุไม่สิ้นเปลือง"
+                : idType === "3"
+                ? "วัสดุสิ้นเปลือง"
                 : "ข้อมูลไม่ถูกต้อง"}
             </h3>
           </div>

@@ -20,9 +20,9 @@ export default function MatterPage() {
           </div>
           <div className="flex flex-row justify-center gap-4 p-4 items-start">
             {[
-              // { src: "/material.png", title: "ครุภัณฑ์", href: "/assetss" },
               { src: "/brand.png", title: "ยี่ห้อ", href: "/brand" },
               { src: "/unit.png", title: "หน่วยนับ", href: "/materials" },
+              { src: "/m4.png", title: "ปีการศึกษา", href: "/academic" },
             ].map((item, index) => (
               <Link key={index} href={item.href} passHref>
                 <div className="card-body p-4 bg-white flex flex-col items-center rounded-lg shadow-lg cursor-pointer">

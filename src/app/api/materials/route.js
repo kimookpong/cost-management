@@ -12,7 +12,12 @@ export async function GET(req) {
       return NextResponse.json({ success: true, data: units });
     } else {
       const units = await executeQuery(
-        `SELECT * FROM cst_invunit WHERE flag_del = 0`
+        `SELECT u.*,
+       CASE 
+           WHEN EXISTS (SELECT 1 FROM CST_INVASSET i WHERE i.UNIT_ID = u.UNIT_ID)              
+       THEN 1 ELSE 0 END AS used
+        FROM cst_invunit u
+        WHERE u.flag_del = 0 ORDER BY u.UNIT_ID DESC`
       );
       return NextResponse.json({ success: true, data: units });
     }

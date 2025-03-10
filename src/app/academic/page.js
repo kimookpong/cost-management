@@ -12,17 +12,17 @@ import Link from "next/link";
 export default function List() {
   const breadcrumb = [
     { name: "กำหนดค่าเริ่มต้น", link: "/matter" },
-    { name: "ยี่ห้อ", link: "/brand" },
+    { name: "ปีการศึกษา", link: "/academic" },
   ];
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const _onPressAdd = () => {
-    router.push("/brand/new");
+    router.push("/academic/new");
   };
   const _onPressEdit = (id) => {
-    router.push(`/brand/${id}`);
+    router.push(`/academic/${id}`);
   };
 
   const _onPressDelete = async (id) => {
@@ -41,7 +41,7 @@ export default function List() {
 
     if (result.isConfirmed) {
       try {
-        await axios.delete(`/api/brand?id=${id}`);
+        await axios.delete(`/api/academic?id=${id}`);
 
         await Swal.fire({
           title: "ลบข้อมูลเรียบร้อย!",
@@ -61,7 +61,7 @@ export default function List() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axios.get(`/api/brand`);
+        const response = await axios.get(`/api/academic`);
         const data = response.data;
         if (data.success) {
           setEmployees(data.data);
@@ -80,31 +80,56 @@ export default function List() {
 
   const meta = [
     {
-      key: "brandName",
-      content: "ชื่อยี่ห้อ",
-    },
+      key: "acadyear",
+      content: "ปีการศึกษา",
+      width: "300",
 
-    {
-      key: "status",
-      content: "สถานะ",
-      width: "100",
       render: (item) => {
         return (
-          <div className="flex  items-center">
-            <span
-              className={`px-2 py-1 text-sm font-medium rounded-full ${
-                item.status === "1"
-                  ? "bg-green-500 text-white "
-                  : "bg-red-500 text-white "
-              }`}>
-              {item.status === "1" ? "ใช้งาน" : "ไม่ใช้งาน"}
+          <div className="flex justify-center items-center">
+            <span className="px-2 py-1 text-sm font-medium rounded-full">
+              {item.acadyear}
             </span>
           </div>
         );
       },
     },
     {
-      key: "brandId",
+      key: "semester",
+      content: "ภาคเรียน",
+      width: "300",
+      render: (item) => {
+        return (
+          <div className="flex items-center">
+            <span className="px-2 py-1 text-sm font-medium rounded-full">
+              ภาคเรียนที่ {item.semester}
+            </span>
+          </div>
+        );
+      },
+    },
+
+    {
+      key: "status",
+      content: "สถานะ",
+      width: 170, // แก้จาก "170" (string) เป็น 170 (number)
+      align: "center", // ถ้าใช้ Ant Design Table
+      render: (item) => {
+        return (
+          <div className="flex justify-center items-center">
+            <span
+              className={`px-3 py-1 text-sm font-medium rounded-full text-white ${
+                item.status === 1 ? "bg-green-500" : "bg-red-500"
+              }`}>
+              {item.status === 1 ? "ใช้งาน" : "ไม่ใช้งาน"}
+            </span>
+          </div>
+        );
+      },
+    },
+
+    {
+      key: "schId",
       content: "Action",
       width: "100",
       render: (item) => (
@@ -112,15 +137,16 @@ export default function List() {
           <button
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
-              return _onPressEdit(item.brandId);
+              return _onPressEdit(item.schId);
             }}>
             <FiEdit className="w-4 h-4" />
             แก้ไข
           </button>
           <button
             className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => _onPressDelete(item.brandId)}
-            disabled={item.used === 1}>
+            onClick={() => {
+              return _onPressDelete(item.schId);
+            }}>
             <FiTrash2 className="w-4 h-4" />
             ลบ
           </button>
@@ -130,7 +156,7 @@ export default function List() {
   ];
 
   return (
-    <Content breadcrumb={breadcrumb} title="ยี่ห้อ">
+    <Content breadcrumb={breadcrumb} title="ปีการศึกษา">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between items-center">
           <Link href="/matter">
@@ -150,7 +176,7 @@ export default function List() {
             </label>
           </Link>
           <div>
-            <h3 className="text-2xl items-center font-semibold ">ยี่ห้อ</h3>
+            <h3 className="text-2xl items-center font-semibold ">ปีการศึกษา</h3>
           </div>
           <div className="flex gap-1 ml-auto">
             <button
@@ -162,7 +188,7 @@ export default function List() {
           </div>
         </div>
 
-        <div className="p-4 overflow-auto">
+        <div className="p-4 overflow-auto pr-60 pl-60">
           {error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (
