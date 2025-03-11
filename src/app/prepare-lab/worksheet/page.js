@@ -5,7 +5,7 @@ import axios from "axios";
 import Content from "@/components/Content";
 import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
 import TableList from "@/components/TableList";
-import Tabs from "@/components/Tabs";
+import Tabs from "@/components/Tabslab";
 // import AddItemForm from "@/components/AddItemForm";
 // import { , FiEdit ,} from "react-feather";
 // import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
@@ -199,7 +199,9 @@ export default function Page() {
             </h3>
           </div>
           <div className="flex gap-1 justify-end items-center p-4 border-gray-200">
-            <button className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105">
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+              onClick={() => document.getElementById("my_modal_4").showModal()}>
               <FiPlus className="w-4 h-4" />
               เพิ่มวัสดุครุภัณฑ์
             </button>
@@ -209,6 +211,104 @@ export default function Page() {
               <Tabs />
             </div>
           </div>
+          <dialog id="my_modal_4" className="modal">
+            <div className="modal-box w-11/12 max-w-5xl text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 ">
+              <h3 className="font-bold text-lg">เพิ่มวัสดุครุภัณฑ์</h3>
+              <p className="py-4">Click the button below to close</p>
+              <div className="modal-action w-full flex justify-center items-center">
+                <form method="dialog">
+                  {/* if there is a button, it will close the modal */}
+                  <div class="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-12 w-full">
+                    <div class="sm:col-span-4">
+                      <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300">
+                        ประเภทวัสดุ
+                      </label>
+                      <select
+                        name="assetId"
+                        class="block text-gray-900 dark:text-white w-full px-4 py-2 border rounded-md dark:bg-gray-800 ">
+                        <option value="" disabled="">
+                          เลือกวัสดุที่เลือกใช้
+                        </option>
+                        <option value="11">ครุภัณฑ์</option>
+                        <option value="5">วัสดุไม่สิ้นเปลือง</option>
+                        <option value="4">วัสดุสิ้นเปลือง</option>
+                      </select>
+                    </div>
+                    <div class="sm:col-span-8">
+                      <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300">
+                        วัสดุที่เลือกใช้
+                      </label>
+                      <select
+                        name="assetId"
+                        class="block text-gray-900 dark:text-white w-full px-4 py-2 border rounded-md dark:bg-gray-800 ">
+                        <option value="" disabled="">
+                          เลือกวัสดุที่เลือกใช้
+                        </option>
+                        <option value="11">A4 2(กิโลกรัม)</option>
+                        <option value="5">A4 2(เครื่อง)</option>
+                        <option value="4">Algo xx(เครื่อง)</option>
+                        <option value="8">กระดาษกรอง NO.S 125 mm(ขวด)</option>
+                        <option value="211">
+                          เครื่องชั่ง 4 ตำแหน่ง 2(เครื่อง)
+                        </option>
+                        <option value="1">
+                          เครื่องลดความดันแบบใช้น้ำ (เครื่อง)
+                        </option>
+                        <option value="9">
+                          เครื่องลดความดันแบบใช้น้ำ 125 mm(กิโลกรัม)
+                        </option>
+                        <option value="10">
+                          เครื่องลดความดันแบบใช้น้ำ01 2(ชุด)
+                        </option>
+                      </select>
+                    </div>
+                    <div class="sm:col-span-9">
+                      <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300">
+                        จำนวนที่ใช้
+                      </label>
+                      <input
+                        class="block text-gray-900 dark:text-white w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800 "
+                        type="number"
+                        value=""
+                        name="assetQuantity"
+                      />
+                    </div>
+                    <div class="sm:col-span-3">
+                      <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300">
+                        หน่วย
+                      </label>
+                      <input
+                        disabled=""
+                        class="block text-gray-900 dark:text-white w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800"
+                        value="-"
+                      />
+                    </div>
+                    <div class="sm:col-span-12">
+                      <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300">
+                        หมายเหตุ
+                      </label>
+                      <input
+                        class="block text-gray-900 dark:text-white w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800 "
+                        type="text"
+                        value=""
+                        name="assetRemark"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 justify-center items-center p-4 border-gray-200">
+                    <button className="cursor-pointer p-2 text-white text-sm bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                      ยกเลิก
+                    </button>
+                    <button className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105">
+                      บันทึกข้อมูล
+                    </button>
+                  </div>
+                  {/* <button className="btn">Close</button> */}
+                </form>
+              </div>
+            </div>
+          </dialog>
         </div>
       </div>
     </Content>
