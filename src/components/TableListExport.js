@@ -7,8 +7,8 @@ import ReactDOMServer from "react-dom/server";
 
 const stripHtmlTags = (htmlString) => {
   return htmlString
-    .replace(/<\/?[^>]+(>|$)/g, "") // ลบ <tag>...</tag>
-    .replace(/\n/g, ", ") // แปลง new line เป็นคอมม่า (Excel รองรับ CSV)
+    .replace(/<\/?[^>]+(>|$)/g, "")
+    .replace(/\n/g, ", ")
     .trim();
 };
 
