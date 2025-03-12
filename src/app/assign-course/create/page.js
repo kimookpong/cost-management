@@ -155,7 +155,12 @@ export default function Detail() {
             </select>
           </div>
           <div className="sm:col-span-12">
-            <TableList meta={meta} data={data.course} loading={loading} />
+            <TableList
+              meta={meta}
+              data={data.course}
+              loading={loading}
+              exports={false}
+            />
           </div>
         </div>
         <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">

@@ -129,16 +129,9 @@ export default function TableListExport({ fileName, data, meta }) {
 
   return (
     <div className="flex gap-2">
-      {/* <button
-        onClick={exportToExcel}
-        className="p-1 border border-green-700 text-green-700 rounded shadow-sm hover:text-green-800 transition-all duration-200 flex items-center gap-1"
-      >
-        <FiMoreVertical size={18} />
-      </button> */}
-
       <button
         onClick={exportToExcel}
-        className="p-1 border border-green-700 text-green-700 rounded shadow-sm hover:text-green-800 transition-all duration-200 flex items-center gap-1"
+        className="p-1 border border-green-700 text-green-700 dark:border-green-500 dark:text-green-500 rounded shadow-sm hover:text-green-800 transition-all duration-200 flex items-center gap-1"
       >
         <FiFileText size={18} />
         Excel

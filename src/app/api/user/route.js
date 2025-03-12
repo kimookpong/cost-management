@@ -23,7 +23,8 @@ export async function GET(req) {
           U.STATUS_ID,
           P.PERSON_ID,
           P.TITLE_NAME || P.FIRST_NAME || ' ' || P.LAST_NAME AS FULLNAME,
-          P.DIVISION_TH_NAME
+          P.DIVISION_TH_NAME,
+          P.POSITION_TH_NAME
         FROM CST_USER U
         INNER JOIN PBL_VPER_PERSON P 
           ON U.PERSON_ID = P.PERSON_ID
