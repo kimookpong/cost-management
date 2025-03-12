@@ -7,11 +7,17 @@ import {
 } from "react-icons/fi";
 import TableListExport from "./TableListExport";
 
-const TableList = ({ data, meta, loading }) => {
+const TableList = ({ data, meta, loading, exports }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "", order: "" });
-  const itemsPerPage = 20;
+
+  const [itemsPerPage, setItemsPerPage] = useState(() => {
+    return localStorage.getItem("@itemsPerPage")
+      ? Number(localStorage.getItem("@itemsPerPage"))
+      : 20;
+  });
+
   const totalPages =
     data.length > 0 ? Math.ceil(data.length / itemsPerPage) : 1;
 
@@ -39,7 +45,7 @@ const TableList = ({ data, meta, loading }) => {
     }
 
     return result;
-  }, [data, search, sort, meta]);
+  }, [data, search, sort, meta, itemsPerPage]);
 
   const dataDisplay = useMemo(() => {
     return filteredSortedData.slice(
@@ -55,23 +61,40 @@ const TableList = ({ data, meta, loading }) => {
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm text-gray-500 dark:text-gray-300">
-          ทั้งหมด {data.length} รายการ
-        </p>
         <div className="flex gap-2">
-          <TableListExport
-            tableId="myTable"
-            fileName="excel-export.xlsx"
-            data={data}
-            meta={meta}
-          />
+          {exports !== false && (
+            <TableListExport
+              tableId="myTable"
+              fileName="excel-export.xlsx"
+              data={data}
+              meta={meta}
+            />
+          )}
+        </div>
+        <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            <label className="block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300"></label>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(e.target.value);
+                localStorage.setItem("@itemsPerPage", Number(e.target.value));
+              }}
+              className="block px-4 py-2 border rounded-md bg-white dark:bg-gray-800"
+            >
+              <option value="10">10 รายการ/หน้า</option>
+              <option value="20">20 รายการ/หน้า</option>
+              <option value="50">50 รายการ/หน้า</option>
+              <option value="100">100 รายการ/หน้า</option>
+            </select>
+          </div>
           <div className="relative w-full max-w-xs">
             <input
               type="text"
               placeholder="ค้นหา..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pr-10 h-10 pl-3 py-2 text-sm border border-gray-300 rounded shadow-sm focus:outline-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+              className="w-full pr-10 h-10 pl-3 py-1  border border-gray-300 rounded shadow-sm focus:outline-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-white"
             />
             {search ? (
               <FiXCircle
@@ -225,12 +248,16 @@ const TableList = ({ data, meta, loading }) => {
           </table>
         </div>
       </div>
-      {data.length > itemsPerPage && (
-        <div className="flex items-center justify-between py-3">
-          <p className="text-sm text-gray-500 dark:text-gray-300">
-            หน้า {currentPage} / {totalPages}
-          </p>
-          <div className="flex gap-1">
+
+      <div className="flex items-center justify-between py-3">
+        <p className="text-sm text-gray-500 dark:text-gray-300">
+          ทั้งหมด {data.length} รายการ
+        </p>
+        {data.length > itemsPerPage && (
+          <div className="flex items-center justify-between gap-1">
+            <p className="text-sm text-gray-500 dark:text-gray-300 pr-2">
+              หน้า {currentPage} / {totalPages}
+            </p>
             <button
               className="border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-600 rounded-md disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -248,8 +275,8 @@ const TableList = ({ data, meta, loading }) => {
               <FiChevronRight className="w-4 h-4" />
             </button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

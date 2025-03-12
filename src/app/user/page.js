@@ -69,9 +69,9 @@ export default function List() {
               className="size-12 flex-none rounded-full bg-gray-50"
             />
             <div className="min-w-0 flex-auto">
-              <p className="font-semibold text-gray-900">{item.fullname}</p>
+              <p className="font-semibold">{item.fullname}</p>
               <p className="mt-1 truncate text-xs/5 text-gray-500">
-                {item.divisionThName}
+                {item.positionThName}
               </p>
             </div>
           </div>
