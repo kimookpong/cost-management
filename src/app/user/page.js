@@ -40,7 +40,6 @@ export default function List() {
         const response = await axios.get(`/api/user`);
         const data = response.data;
         if (data.success) {
-          console.log(data.data);
           setEmployees(data.data);
         } else {
           setError("ไม่สามารถโหลดข้อมูลพนักงานได้");
@@ -72,7 +71,7 @@ export default function List() {
             <div className="min-w-0 flex-auto">
               <p className="font-semibold text-gray-900">{item.fullname}</p>
               <p className="mt-1 truncate text-xs/5 text-gray-500">
-                {item.fullname}
+                {item.divisionThName}
               </p>
             </div>
           </div>
