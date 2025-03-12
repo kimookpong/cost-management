@@ -5,6 +5,7 @@ import {
   FiSearch,
   FiXCircle,
 } from "react-icons/fi";
+import TableListExport from "./TableListExport";
 
 const TableList = ({ data, meta, loading }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -17,7 +18,6 @@ const TableList = ({ data, meta, loading }) => {
   const filteredSortedData = useMemo(() => {
     let result = [...data];
 
-    // 🔎 ค้นหาข้อมูล
     if (search.trim() !== "") {
       result = result.filter((item) =>
         meta.some((m) =>
@@ -26,7 +26,6 @@ const TableList = ({ data, meta, loading }) => {
       );
     }
 
-    // 🔀 เรียงลำดับข้อมูล
     if (sort.key !== "") {
       result.sort((a, b) =>
         sort.order === "asc"
@@ -57,30 +56,37 @@ const TableList = ({ data, meta, loading }) => {
     <div className="w-full">
       <div className="flex items-center justify-between mb-3">
         <p className="text-sm text-gray-500 dark:text-gray-300">
-          รายการทั้งหมด {data.length} รายการ
+          ทั้งหมด {data.length} รายการ
         </p>
-
-        <div className="relative w-full max-w-xs">
-          <input
-            type="text"
-            placeholder="ค้นหา..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pr-10 h-10 pl-3 py-2 text-sm border border-gray-300 rounded shadow-sm focus:outline-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+        <div className="flex gap-2">
+          <TableListExport
+            tableId="myTable"
+            fileName="my-data.xlsx"
+            data={data}
+            meta={meta}
           />
-          {search ? (
-            <FiXCircle
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-5 h-5 cursor-pointer"
-              onClick={() => setSearch("")}
+          <div className="relative w-full max-w-xs">
+            <input
+              type="text"
+              placeholder="ค้นหา..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pr-10 h-10 pl-3 py-2 text-sm border border-gray-300 rounded shadow-sm focus:outline-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
             />
-          ) : (
-            <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-5 h-5 " />
-          )}
+            {search ? (
+              <FiXCircle
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-5 h-5 cursor-pointer"
+                onClick={() => setSearch("")}
+              />
+            ) : (
+              <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-5 h-5 " />
+            )}
+          </div>
         </div>
       </div>
       <div className="flex flex-col overflow-x-auto">
         <div className="overflow-x-auto">
-          <table className="min-w-full text-left text-sm">
+          <table id="myTable" className="min-w-full text-left text-sm">
             <thead>
               <tr className="border-y border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-gray-700">
                 <th

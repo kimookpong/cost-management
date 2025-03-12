@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import NotificationBox from "@/components/NotificationBox";
+
 import {
   FiUser,
   FiLock,
@@ -63,8 +64,7 @@ export default function LoginPage() {
       <div className="absolute top-4 right-4">
         <button
           onClick={() => setTheme(mounted === "dark" ? "light" : "dark")}
-          className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full transition"
-        >
+          className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full transition">
           {mounted === "dark" ? (
             <FiSun size={20} className="text-yellow-500" />
           ) : (
@@ -89,7 +89,7 @@ export default function LoginPage() {
           ระบบบริหารจัดการต้นทุน
         </h2>
         <p className="text-gray-500 dark:text-gray-300 mb-6">
-          สำหรับศูนย์เครื่องมือวิทยาศาสตร์
+          สำหรับศูนย์เครื่องมือวิทยาศาสตร์และเทคโนโลยี
         </p>
 
         <form onSubmit={handleLogin} className="space-y-5">
@@ -118,8 +118,7 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 text-gray-500 dark:text-gray-400 text-lg transition"
-            >
+              className="absolute right-4 text-gray-500 dark:text-gray-400 text-lg transition">
               {showPassword ? <FiEyeOff /> : <FiEye />}
             </button>
           </div>
@@ -136,26 +135,26 @@ export default function LoginPage() {
           ) : (
             <button
               type="submit"
-              className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-all font-semibold shadow-md hover:shadow-xl"
-            >
+              className="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-all font-semibold shadow-md hover:shadow-xl">
               <FiLogIn className="mr-2" /> เข้าสู่ระบบ
             </button>
           )}
         </form>
 
-        <div className="text-sm text-gray-500 dark:text-gray-400 text-center mt-6">
-          <div className="flex gap-2 text-center justify-center">
-            <i>Powered by</i>
-            <Image
-              src="https://hrms.wu.ac.th/img/cdtwu.png"
-              alt="ระบบบริหารจัดการต้นทุน"
-              width={53}
-              height={20}
-              loading="lazy"
-              className="mb-4 transition-transform transform hover:scale-105"
-            />
-          </div>
-        </div>
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center mt-6 flex items-center justify-center">
+          <i className="p-4">Powered by</i>{" "}
+          {/* <img
+            src="https://hrms.wu.ac.th/img/cdtwu.png"
+            width={100}
+            height={20}
+            className="item-center"></img> */}
+          <Image
+            src="https://hrms.wu.ac.th/img/cdtwu.png"
+            alt="CDTWU"
+            width={70}
+            height={20}
+          />
+        </p>
       </div>
     </main>
   );

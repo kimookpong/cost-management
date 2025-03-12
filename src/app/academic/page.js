@@ -82,8 +82,6 @@ export default function List() {
     {
       key: "acadyear",
       content: "ปีการศึกษา",
-      width: "300",
-
       render: (item) => {
         return (
           <div className="flex justify-center items-center">
@@ -97,7 +95,7 @@ export default function List() {
     {
       key: "semester",
       content: "ภาคเรียน",
-      width: "300",
+
       render: (item) => {
         return (
           <div className="flex items-center">
@@ -112,7 +110,7 @@ export default function List() {
     {
       key: "status",
       content: "สถานะ",
-      width: 170, // แก้จาก "170" (string) เป็น 170 (number)
+      width: "170", // แก้จาก "170" (string) เป็น 170 (number)
       align: "center", // ถ้าใช้ Ant Design Table
       render: (item) => {
         return (
@@ -120,7 +118,8 @@ export default function List() {
             <span
               className={`px-3 py-1 text-sm font-medium rounded-full text-white ${
                 item.status === 1 ? "bg-green-500" : "bg-red-500"
-              }`}>
+              }`}
+            >
               {item.status === 1 ? "ใช้งาน" : "ไม่ใช้งาน"}
             </span>
           </div>
@@ -132,13 +131,16 @@ export default function List() {
       key: "schId",
       content: "Action",
       width: "100",
+      sort: false,
+      export: false,
       render: (item) => (
         <div className="flex gap-1">
           <button
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressEdit(item.schId);
-            }}>
+            }}
+          >
             <FiEdit className="w-4 h-4" />
             แก้ไข
           </button>
@@ -146,7 +148,8 @@ export default function List() {
             className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressDelete(item.schId);
-            }}>
+            }}
+          >
             <FiTrash2 className="w-4 h-4" />
             ลบ
           </button>
@@ -166,7 +169,8 @@ export default function List() {
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 16 16"
                 fill="currentColor"
-                className="size-8">
+                className="size-8"
+              >
                 <path
                   fillRule="evenodd"
                   d="M12.5 9.75A2.75 2.75 0 0 0 9.75 7H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 1.06L4.56 5.5h5.19a4.25 4.25 0 0 1 0 8.5h-1a.75.75 0 0 1 0-1.5h1a2.75 2.75 0 0 0 2.75-2.75Z"
@@ -181,14 +185,15 @@ export default function List() {
           <div className="flex gap-1 ml-auto">
             <button
               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
-              onClick={_onPressAdd}>
+              onClick={_onPressAdd}
+            >
               <FiPlus className="w-4 h-4" />
               เพิ่มใหม่
             </button>
           </div>
         </div>
 
-        <div className="p-4 overflow-auto pr-60 pl-60">
+        <div className="p-4 overflow-auto">
           {error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (

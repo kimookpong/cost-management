@@ -30,6 +30,12 @@ const navigation = [
         icon: FiLock,
         href: "/user-role",
       },
+      {
+        name: "ปีการศึกษา",
+        icon: FiCalendar,
+        // icon: FiLock,
+        href: "/academic",
+      },
     ],
   },
   {
@@ -76,31 +82,31 @@ const navigation = [
   },
   {
     id: 2,
-    name: "การบริการห้องปฎิบัติการตามปีการศึกษา",
-    description: "การบริการห้องปฎิบัติการตามปีการศึกษา",
+    name: "การบริการห้องปฏิบัติการตามรายวิชา",
+    description: "การบริการห้องปฏิบัติการตามรายวิชา",
     icon: FiArchive,
     child: [
       {
-        name: "กำหนดรายวิชา",
+        name: "บันทึกใบงานเตรียมปฏิบัติการ",
         icon: FiChevronsRight,
         href: "/user",
       },
-      {
-        name: "แผนการใช้ทรัพยากร",
-        icon: FiChevronsRight,
-        href: "/userRole",
-      },
-      {
-        name: "บันทึกการใช้ทรัพยากรตามใบงาน",
-        icon: FiChevronsRight,
-        href: "/userRole",
-      },
+      // {
+      //   name: "แผนการใช้ทรัพยากร",
+      //   icon: FiChevronsRight,
+      //   href: "/userRole",
+      // },
+      // {
+      //   name: "บันทึกการใช้ทรัพยากรตามใบงาน",
+      //   icon: FiChevronsRight,
+      //   href: "/userRole",
+      // },
     ],
   },
   {
     id: 5,
-    name: "รายงาน",
-    description: "รายงาน",
+    name: "รายงานต้นทุน",
+    description: "รายงานต้นทุน",
     icon: FiArchive,
     child: [
       {

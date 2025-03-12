@@ -89,6 +89,7 @@ export default function List() {
       content: "Action",
       width: "100",
       sort: false,
+      export: false,
       render: (item) => (
         <div className="flex gap-1">
           <button

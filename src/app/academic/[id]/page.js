@@ -104,8 +104,9 @@ export default function Detail() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title={isNew ? "เพิ่มข้อมูลปีการศึกษา" : "แก้ไขข้อมูลปีการศึกษา"}>
-      <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl p-5 pr-60 pl-60">
+      title={isNew ? "เพิ่มข้อมูลปีการศึกษา" : "แก้ไขข้อมูลปีการศึกษา"}
+    >
+      <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl p-5">
         <div className="isolate bg-white px-6 py-24 sm:py-10 lg:px-8">
           <div className="flex  border-b border-gray-200 dark:border-gray-700 p-4">
             <h3 className="text-3xl font-semibold tracking-tight text-gray-700 sm:text-3xl ">
@@ -144,7 +145,8 @@ export default function Detail() {
                       name="semester"
                       value={formik.values.semester}
                       onChange={formik.handleChange}
-                      className="block w-64 px-4 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600 input-info">
+                      className="block w-64 px-4 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600 input-info"
+                    >
                       <option value="1">ภาคเรียนที่ 1</option>
                       <option value="2">ภาคเรียนที่ 2</option>
                       <option value="3">ภาคเรียนที่ 3</option>
@@ -164,7 +166,8 @@ export default function Detail() {
                       name="status"
                       value={formik.values.status}
                       onChange={formik.handleChange}
-                      className={className.select}>
+                      className={className.select}
+                    >
                       <option value="1">ใช้งาน</option>
                       <option value="0">ไม่ใช้งาน</option>
                     </select>
@@ -176,12 +179,14 @@ export default function Detail() {
                 <button
                   type="button"
                   className="cursor-pointer p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={() => router.back()}>
+                  onClick={() => router.back()}
+                >
                   ยกเลิก
                 </button>
                 <button
                   type="submit"
-                  className="cursor-pointer p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                  className="cursor-pointer p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   {isNew ? "บันทึก" : "บันทึก"}
                 </button>
               </div>
