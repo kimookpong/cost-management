@@ -11,14 +11,13 @@ const TableList = ({ data, meta, loading }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "", order: "" });
-  const itemsPerPage = 2;
+  const itemsPerPage = 20;
   const totalPages =
     data.length > 0 ? Math.ceil(data.length / itemsPerPage) : 1;
 
   const filteredSortedData = useMemo(() => {
     let result = [...data];
 
-    // 🔎 ค้นหาข้อมูล
     if (search.trim() !== "") {
       result = result.filter((item) =>
         meta.some((m) =>
@@ -27,7 +26,6 @@ const TableList = ({ data, meta, loading }) => {
       );
     }
 
-    // 🔀 เรียงลำดับข้อมูล
     if (sort.key !== "") {
       result.sort((a, b) =>
         sort.order === "asc"

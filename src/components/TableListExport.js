@@ -1,7 +1,16 @@
 "use client";
 import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
+import React from "react";
 import { FiFileText, FiPrinter } from "react-icons/fi";
+import ReactDOMServer from "react-dom/server";
+
+const stripHtmlTags = (htmlString) => {
+  return htmlString
+    .replace(/<\/?[^>]+(>|$)/g, "") // ลบ <tag>...</tag>
+    .replace(/\n/g, ", ") // แปลง new line เป็นคอมม่า (Excel รองรับ CSV)
+    .trim();
+};
 
 export default function TableListExport({ fileName, data, meta }) {
   const exportToExcel = () => {
@@ -10,14 +19,18 @@ export default function TableListExport({ fileName, data, meta }) {
       ...data.map((row, index) => [
         index + 1,
         ...meta.map((col) => {
+          if (col.export === false) {
+            return "";
+          }
+
           if (col.render) {
-            if (col.export === false) {
-              return "";
-            }
             const rendered = col.render(row);
-            return typeof rendered === "string"
-              ? rendered
-              : rendered?.props?.children || "";
+            if (typeof rendered === "string") return rendered;
+            if (React.isValidElement(rendered)) {
+              return stripHtmlTags(
+                ReactDOMServer.renderToStaticMarkup(rendered)
+              );
+            } else return rendered?.props?.children || "-";
           }
           return row[col.key] || "";
         }),
@@ -65,7 +78,9 @@ export default function TableListExport({ fileName, data, meta }) {
                     if (col.render) {
                       const rendered = col.render(row);
                       if (typeof rendered === "string") value = rendered;
-                      else value = rendered?.props?.children || "-";
+                      if (React.isValidElement(rendered)) {
+                        value = ReactDOMServer.renderToStaticMarkup(rendered);
+                      } else value = rendered?.props?.children || "-";
                     }
                     return `<td>${value}</td>`;
                   })
@@ -81,10 +96,19 @@ export default function TableListExport({ fileName, data, meta }) {
       <html>
         <head>
           <title>Print Table</title>
-          <style>
+           <style>
+            @import url('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');
+            * { color: #000 !important;}
             body { font-family: Arial, sans-serif; padding: 20px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid black; padding: 8px; text-align: left; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            th, td { border: 1px solid black; padding: 10px; text-align: left; }
+            th { background-color: #f4f4f4; font-weight: bold; }
+            tr:nth-child(even) { background-color: #f9f9f9; }
+            tr:hover { background-color: #ddd; }
+            @media print {
+              body { margin: 0; padding: 0; }
+              table { page-break-inside: avoid; }
+            }
           </style>
         </head>
         <body>
