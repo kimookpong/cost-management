@@ -61,7 +61,7 @@ const TableList = ({ data, meta, loading }) => {
         <div className="flex gap-2">
           <TableListExport
             tableId="myTable"
-            fileName="my-data.xlsx"
+            fileName="excel-export.xlsx"
             data={data}
             meta={meta}
           />
