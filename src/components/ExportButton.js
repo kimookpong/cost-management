@@ -17,8 +17,9 @@ export default function ExportButton({ tableId, fileName }) {
   return (
     <button
       onClick={exportToExcel}
-      className="p-2 bg-green-300 text-white rounded-lg hover:bg-green-700 transition-all duration-200">
-      Export to Excel
+      className="p-2 bg-green-500 dark:bg-green-300 text-white rounded-lg hover:bg-green-700 transition-all duration-200"
+    >
+      Excel
     </button>
   );
 }
