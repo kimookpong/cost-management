@@ -26,6 +26,12 @@ export default function Example() {
     setMounted(theme);
   }, [theme]);
 
+  useEffect(() => {
+    if (session) {
+      setAvatar(session.user.avatar || "/avatar.png");
+    }
+  }, [session]);
+
   return (
     <>
       <Disclosure as="nav" className="bg-white dark:bg-gray-800">
@@ -116,7 +122,7 @@ export default function Example() {
                       <img
                         alt=""
                         src={avatar}
-                        className="size-8 rounded-full"
+                        className="size-10 rounded-full"
                         loading="lazy"
                       />
                     </MenuButton>
@@ -127,11 +133,12 @@ export default function Example() {
                   >
                     <MenuItem key="profile">
                       <div className="flex items-center space-x-3 p-3 rounded-md  ">
-                        <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center text-lg font-bold text-white">
-                          {session
-                            ? session.user.name.charAt(0).toUpperCase()
-                            : "U"}
-                        </div>
+                        <img
+                          alt=""
+                          src={avatar}
+                          className="size-10 rounded-full"
+                          loading="lazy"
+                        />
 
                         <div className="flex flex-col py-4">
                           <span className="font-medium text-gray-900 dark:text-white">
