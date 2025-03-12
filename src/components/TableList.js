@@ -86,7 +86,10 @@ const TableList = ({ data, meta, loading }) => {
       </div>
       <div className="flex flex-col overflow-x-auto">
         <div className="overflow-x-auto">
-          <table id="myTable" className="min-w-full text-left text-sm">
+          <table
+            id="myTable"
+            className="min-w-full rounded-lg text-left text-sm"
+          >
             <thead>
               <tr className="border-y border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-gray-700">
                 <th
