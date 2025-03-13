@@ -66,6 +66,8 @@ export default function List() {
             <img
               alt=""
               src={avatar}
+              width={48}
+              height={48}
               className="size-12 flex-none rounded-full bg-gray-50"
             />
             <div className="min-w-0 flex-auto">

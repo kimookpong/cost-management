@@ -109,7 +109,6 @@ export default function TableListExport({ fileName, data, meta }) {
             tr:hover { background-color: #ddd; }
             @media print {
               body { margin: 0; padding: 0; }
-              table { page-break-inside: avoid; }
             }
           </style>
         </head>

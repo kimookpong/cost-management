@@ -180,6 +180,6 @@ export default function Detail() {
 const className = {
   label: "mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300",
   input:
-    "block w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
-  select: "block w-full px-4 py-2 border rounded-md dark:bg-gray-800",
+    "block bg-white w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
+  select: "block bg-white w-full px-4 py-2 border rounded-md dark:bg-gray-800",
 };

@@ -51,11 +51,13 @@ export default function Example() {
               </div>
               <div className="hidden md:block">
                 <div className="ml-10 flex items-center">
-                  {navigation.map((item) => {
-                    if (
-                      session &&
-                      session.user?.userAccess?.includes(String(item.id))
-                    ) {
+                  {session &&
+                    session.user?.userAccess &&
+                    navigation.map((item) => {
+                      const role = session.user.userAccess.find(
+                        (nav) => parseInt(nav) === parseInt(item.id)
+                      );
+                      if (!role) return null;
                       return item.child ? (
                         <Menu as="div" key={item.name} className="relative">
                           <MenuButton className="flex items-center space-x-2 text-gray-800 hover:bg-gray-100 dark:text-gray-300 hover:dark:bg-gray-700 hover:dark:text-white rounded-lg p-2 text-sm font-medium transition duration-300">
@@ -64,19 +66,26 @@ export default function Example() {
                             <FiChevronDown className="w-4 h-4" />
                           </MenuButton>
                           <MenuItems className="absolute left-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black/5 z-50 p-2">
-                            {item.child.map((sub) => (
-                              <MenuItem key={sub.name}>
-                                <a
-                                  href={sub.href}
-                                  className="flex items-center p-4 text-sm  text-gray-800 hover:bg-gray-100 dark:text-gray-300 hover:dark:bg-gray-700 hover:dark:text-white space-x-2 rounded-md"
-                                >
-                                  {sub.icon && (
-                                    <sub.icon className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                                  )}
-                                  <span>{sub.name}</span>
-                                </a>
-                              </MenuItem>
-                            ))}
+                            {item.child.map((sub) => {
+                              const role = session.user.userAccess.find(
+                                (nav) => parseInt(nav) === parseInt(sub.id)
+                              );
+                              if (!role) return null;
+
+                              return (
+                                <MenuItem key={sub.name}>
+                                  <a
+                                    href={sub.href}
+                                    className="flex items-center p-4 text-sm  text-gray-800 hover:bg-gray-100 dark:text-gray-300 hover:dark:bg-gray-700 hover:dark:text-white space-x-2 rounded-md"
+                                  >
+                                    {sub.icon && (
+                                      <sub.icon className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                                    )}
+                                    <span>{sub.name}</span>
+                                  </a>
+                                </MenuItem>
+                              );
+                            })}
                           </MenuItems>
                         </Menu>
                       ) : (
@@ -89,8 +98,7 @@ export default function Example() {
                           <span>{item.name}</span>
                         </a>
                       );
-                    }
-                  })}
+                    })}
                 </div>
               </div>
             </div>

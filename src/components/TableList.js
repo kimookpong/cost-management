@@ -12,11 +12,21 @@ const TableList = ({ data, meta, loading, exports }) => {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "", order: "" });
 
-  const [itemsPerPage, setItemsPerPage] = useState(() => {
-    return localStorage.getItem("@itemsPerPage")
-      ? Number(localStorage.getItem("@itemsPerPage"))
-      : 20;
-  });
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedItems = localStorage.getItem("@itemsPerPage");
+      if (storedItems) {
+        setItemsPerPage(Number(storedItems));
+      }
+    }
+  }, []);
+
+  const updateItemsPerPage = (value) => {
+    setItemsPerPage(value);
+    localStorage.setItem("@itemsPerPage", value);
+  };
 
   const totalPages =
     data.length > 0 ? Math.ceil(data.length / itemsPerPage) : 1;
@@ -77,8 +87,7 @@ const TableList = ({ data, meta, loading, exports }) => {
             <select
               value={itemsPerPage}
               onChange={(e) => {
-                setItemsPerPage(e.target.value);
-                localStorage.setItem("@itemsPerPage", Number(e.target.value));
+                updateItemsPerPage(e.target.value);
               }}
               className="block px-4 py-2 border rounded-md bg-white dark:bg-gray-800"
             >

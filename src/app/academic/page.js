@@ -8,15 +8,14 @@ import TableList from "@/components/TableList";
 import axios from "axios";
 import Swal from "sweetalert2";
 import Link from "next/link";
+import { confirmDialog, toastDialog } from "@/lib/stdLib";
 
 export default function List() {
-  const breadcrumb = [
-    { name: "กำหนดค่าเริ่มต้น", link: "/matter" },
-    { name: "ปีการศึกษา", link: "/academic" },
-  ];
+  const breadcrumb = [{ name: "กำหนดปีการศึกษา", link: "/academic" }];
   const router = useRouter();
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reload, setReload] = useState(0);
   const [error, setError] = useState(null);
   const _onPressAdd = () => {
     router.push("/academic/new");
@@ -25,32 +24,28 @@ export default function List() {
     router.push(`/academic/${id}`);
   };
 
+  const _onChangeStatus = async (id, status) => {
+    try {
+      await axios.put(`/api/academic/select-academic?id=${id}`, { status });
+      await toastDialog("เลือกภาคเรียนตั้งต้นเรียบร้อย!", "success");
+      setReload(reload + 1);
+    } catch (error) {
+      console.error("Error saving data:", error);
+      alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+    }
+  };
+
   const _onPressDelete = async (id) => {
-    const result = await Swal.fire({
-      title: "ยืนยันการลบข้อมูล ?",
-      //   text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      cancelButtonText: "ยกเลิก",
-      confirmButtonText: "ยืนยัน",
-      background: "#1f2937",
-      color: "#fff",
-    });
+    const result = await confirmDialog(
+      "คุณแน่ใจหรือไม่?",
+      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
+    );
 
     if (result.isConfirmed) {
       try {
         await axios.delete(`/api/academic?id=${id}`);
-
-        await Swal.fire({
-          title: "ลบข้อมูลเรียบร้อย!",
-          icon: "success",
-          showCancelButton: false,
-          showConfirmButton: false,
-          timer: 1000,
-        });
-        window.location.reload();
+        await toastDialog("ลบข้อมูลเรียบร้อย!", "success");
+        setReload(reload + 1);
       } catch (error) {
         console.error("Error deleting brand:", error);
         alert("เกิดข้อผิดพลาดในการลบข้อมูล");
@@ -76,7 +71,7 @@ export default function List() {
     }
 
     fetchData();
-  }, []);
+  }, [reload]);
 
   const meta = [
     {
@@ -84,7 +79,11 @@ export default function List() {
       content: "ปีการศึกษา",
       render: (item) => {
         return (
-          <div className="flex justify-center items-center">
+          <div
+            className={`flex justify-center items-center ${
+              item.status === 1 ? "text-green-500" : ""
+            }`}
+          >
             <span className="px-2 py-1 text-sm font-medium rounded-full">
               {item.acadyear}
             </span>
@@ -98,7 +97,11 @@ export default function List() {
 
       render: (item) => {
         return (
-          <div className="flex items-center">
+          <div
+            className={`flex justify-center items-center ${
+              item.status === 1 ? "text-green-500" : ""
+            }`}
+          >
             <span className="px-2 py-1 text-sm font-medium rounded-full">
               ภาคเรียนที่ {item.semester}
             </span>
@@ -109,19 +112,25 @@ export default function List() {
 
     {
       key: "status",
-      content: "สถานะ",
+      content: "ภาคเรียนตั้งต้น",
       width: "170", // แก้จาก "170" (string) เป็น 170 (number)
       align: "center", // ถ้าใช้ Ant Design Table
       render: (item) => {
+        const enabled = item.status === 1;
         return (
           <div className="flex justify-center items-center">
-            <span
-              className={`px-3 py-1 text-sm font-medium rounded-full text-white ${
-                item.status === 1 ? "bg-green-500" : "bg-red-500"
+            <button
+              onClick={() => _onChangeStatus(item.schId, enabled ? "0" : "1")}
+              className={`relative w-12 h-6 flex items-center rounded-full transition ${
+                enabled ? "bg-green-500" : "bg-gray-300"
               }`}
             >
-              {item.status === 1 ? "ใช้งาน" : "ไม่ใช้งาน"}
-            </span>
+              <div
+                className={`absolute left-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${
+                  enabled ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
           </div>
         );
       },
@@ -162,25 +171,8 @@ export default function List() {
     <Content breadcrumb={breadcrumb} title="ปีการศึกษา">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between items-center">
-          <Link href="/matter">
-            <label className="swap text-6xl">
-              {/* <div className="swap-off">🥶</div> */}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 16 16"
-                fill="currentColor"
-                className="size-8"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M12.5 9.75A2.75 2.75 0 0 0 9.75 7H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 1.06L4.56 5.5h5.19a4.25 4.25 0 0 1 0 8.5h-1a.75.75 0 0 1 0-1.5h1a2.75 2.75 0 0 0 2.75-2.75Z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </label>
-          </Link>
           <div>
-            <h3 className="text-2xl items-center font-semibold ">ปีการศึกษา</h3>
+            <h3 className="font-semibold ">กำหนดปีการศึกษา</h3>
           </div>
           <div className="flex gap-1 ml-auto">
             <button
