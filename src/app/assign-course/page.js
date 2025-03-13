@@ -182,7 +182,7 @@ export default function List() {
                   setSchId(e.target.value);
                   router.push(`/assign-course?schId=${e.target.value}`);
                 }}
-                className="block px-4 py-2 border rounded-md dark:bg-gray-800"
+                className="block bg-white px-4 py-2 border rounded-md dark:bg-gray-800"
               >
                 <option value="">แสดงทุกเทอมการศึกษา</option>
                 {data.semester.map((item) => (
@@ -219,6 +219,6 @@ const className = {
   label:
     "block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300",
   input:
-    "block w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
-  select: "block px-4 py-2 border rounded-md dark:bg-gray-800",
+    "block bg-white w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
+  select: "block bg-white px-4 py-2 border rounded-md dark:bg-gray-800",
 };

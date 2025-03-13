@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
+import {
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiChevronsRight,
+  FiCornerDownRight,
+} from "react-icons/fi";
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 import axios from "axios";
@@ -64,22 +70,60 @@ export default function List() {
       key: "roleAccess",
       content: "การอนุญาติเข้าถึง",
       render: (item) => {
+        const roleAccess = JSON.parse(item.roleAccess);
+        if (!roleAccess) return null;
+
         return (
           <div className="flex flex-col gap-1">
-            {JSON.parse(item.roleAccess)?.map((access, index) => {
-              const navi = navigation.find(
-                (nav) => nav.id === parseInt(access)
+            {navigation.map((navi, index) => {
+              const role = roleAccess.find(
+                (nav) => parseInt(nav) === parseInt(navi.id)
               );
-              if (!navi) return null;
+              if (!role) return null;
               return (
-                <span key={index} className="text-sm flex gap-2">
-                  <FiCheckCircle className="w-4 h-4 text-green-900" />
-                  {navi.name}
-                </span>
+                <div key={navi.id}>
+                  <span className="text-sm flex gap-2">
+                    <FiChevronsRight className="w-4 h-4 text-green-900" />
+                    {navi.name}
+                  </span>
+                  {navi.child &&
+                    navi.child.map((child, index2) => {
+                      const roleChild = roleAccess.find(
+                        (nav) => parseInt(nav) === parseInt(child.id)
+                      );
+                      if (!roleChild) return null;
+                      return (
+                        <span
+                          className="text-xs flex gap-2 ms-4"
+                          key={child.id}
+                        >
+                          <FiCornerDownRight className="w-3 h-3 text-green-900" />
+                          {child.name}
+                        </span>
+                      );
+                    })}
+                </div>
               );
             })}
           </div>
         );
+        // return (
+        //   <div className="flex flex-col gap-1">
+        //     {JSON.parse(item.roleAccess)?.map((access, index) => {
+        //       const navi = navigation.find(
+        //         (nav) => nav.id === parseInt(access)
+        //       );
+
+        //       if (!navi) return null;
+        //       return (
+        //         <span key={index} className="text-sm flex gap-2">
+        //           <FiCheckCircle className="w-4 h-4 text-green-900" />
+        //           {navi.name}
+        //         </span>
+        //       );
+        //     })}
+        //   </div>
+        // );
       },
     },
     {

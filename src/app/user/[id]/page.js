@@ -178,7 +178,7 @@ export default function Detail() {
 const className = {
   label: "mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300",
   input:
-    "block w-full px-3 py-1.5 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600",
+    "block w-full bg-white px-3 py-1.5 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600",
   select:
-    "block w-full px-4 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600",
+    "block w-full bg-white px-4 py-2 border-2 rounded-md shadow-sm dark:bg-gray-800 dark:border-white dark:text-white focus:outline-indigo-600",
 };

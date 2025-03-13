@@ -140,45 +140,72 @@ export default function Detail() {
               <div className="sm:col-span-12">
                 <label className={className.label}>การอนุญาติเข้าถึง</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {navigation.map((item, index) => (
-                    <label key={index} className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        name="roleAccess"
-                        value={item.id}
-                        checked={formik.values.roleAccess.includes(
-                          item.id.toString()
-                        )}
-                        onChange={handleCheckboxChange}
-                        className={`checkbox ${
-                          formik.touched.roleAccess && formik.errors.roleAccess
-                            ? "checkbox-error"
-                            : "checkbox-success"
-                        }`}
-                      />
-                      <div className="flex flex-col">
-                        <span
-                          className={`font-semibold ${
+                  {navigation.map((navi, index) => (
+                    <div key={navi.id}>
+                      <label className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          name="roleAccess"
+                          value={navi.id}
+                          checked={formik.values.roleAccess.includes(
+                            navi.id.toString()
+                          )}
+                          onChange={handleCheckboxChange}
+                          className={`checkbox ${
                             formik.touched.roleAccess &&
                             formik.errors.roleAccess
-                              ? "text-red-500"
-                              : "text-gray-900 dark:text-gray-300"
+                              ? "checkbox-error"
+                              : "checkbox-success"
                           }`}
-                        >
-                          {item.name}
-                        </span>
-                        <p
-                          className={`text-sm ${
-                            formik.touched.roleAccess &&
-                            formik.errors.roleAccess
-                              ? "text-red-300"
-                              : "text-gray-500"
-                          }`}
-                        >
-                          {item.description}
-                        </p>
-                      </div>
-                    </label>
+                        />
+                        <div className="flex flex-col">
+                          <span
+                            className={`font-semibold ${
+                              formik.touched.roleAccess &&
+                              formik.errors.roleAccess
+                                ? "text-red-500"
+                                : "text-gray-900 dark:text-gray-300"
+                            }`}
+                          >
+                            {navi.name}
+                          </span>
+                        </div>
+                      </label>
+                      {navi.child &&
+                        navi.child.map((child, index2) => (
+                          <div key={child.id} className="ms-4 mt-1">
+                            <label className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                name="roleAccess"
+                                value={child.id}
+                                checked={formik.values.roleAccess.includes(
+                                  child.id.toString()
+                                )}
+                                onChange={handleCheckboxChange}
+                                className={`checkbox checkbox-sm ${
+                                  formik.touched.roleAccess &&
+                                  formik.errors.roleAccess
+                                    ? "checkbox-error"
+                                    : "checkbox-success"
+                                }`}
+                              />
+                              <div className="flex flex-col">
+                                <span
+                                  className={`font-semibold ${
+                                    formik.touched.roleAccess &&
+                                    formik.errors.roleAccess
+                                      ? "text-red-500"
+                                      : "text-gray-900 dark:text-gray-300"
+                                  }`}
+                                >
+                                  {child.name}
+                                </span>
+                              </div>
+                            </label>
+                          </div>
+                        ))}
+                    </div>
                   ))}
                 </div>
                 {formik.touched.roleAccess && formik.errors.roleAccess && (
@@ -214,6 +241,6 @@ export default function Detail() {
 const className = {
   label: "mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300",
   input:
-    "block w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
-  select: "block w-full px-4 py-2 border rounded-md dark:bg-gray-800",
+    "block bg-white w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
+  select: "block bg-white w-full px-4 py-2 border rounded-md dark:bg-gray-800",
 };

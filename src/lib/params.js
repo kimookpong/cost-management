@@ -21,19 +21,21 @@ const navigation = [
     icon: FiUsers,
     child: [
       {
+        id: 41,
         name: "กำหนดผู้รับผิดชอบ",
         icon: FiUserCheck,
         href: "/user",
       },
       {
+        id: 42,
         name: "กำหนดสิทธิการใช้งาน",
         icon: FiLock,
         href: "/user-role",
       },
       {
-        name: "ปีการศึกษา",
+        id: 43,
+        name: "กำหนดปีการศึกษา",
         icon: FiCalendar,
-        // icon: FiLock,
         href: "/academic",
       },
     ],
@@ -46,11 +48,13 @@ const navigation = [
 
     child: [
       {
+        id: 31,
         name: "กำหนดค่าตั้งต้น",
         icon: FiSettings,
         href: "/matter",
       },
       {
+        id: 32,
         name: "ข้อมูลพัสดุ",
         icon: FiBox,
         href: "/matter2",
@@ -64,6 +68,7 @@ const navigation = [
     icon: FiSettings,
     child: [
       {
+        id: 11,
         name: "กำหนดรายวิชา",
         icon: FiChevronsRight,
         href: "/assign-course",
@@ -74,6 +79,7 @@ const navigation = [
       //   href: "/assign-user",
       // },
       {
+        id: 12,
         name: "กำหนดแผนการใช้ห้องปฎิบัติการ",
         icon: FiChevronsRight,
         href: "/assign-plan",
@@ -87,6 +93,7 @@ const navigation = [
     icon: FiArchive,
     child: [
       {
+        id: 21,
         name: "บันทึกใบงานเตรียมปฏิบัติการ",
         icon: FiChevronsRight,
         href: "/user",
@@ -110,6 +117,7 @@ const navigation = [
     icon: FiArchive,
     child: [
       {
+        id: 51,
         name: "รายงานแผนการใช้บริการห้องปฎิบัติการ",
         icon: FiChevronsRight,
         href: "/report/assign-course",

@@ -6,13 +6,13 @@ export async function GET(req) {
     const id = req.nextUrl.searchParams.get("id");
     if (id) {
       const brand = await executeQuery(
-        `SELECT * FROM cst_schyear WHERE flag_del = 0 AND SCH_ID = :id`,
+        `SELECT SCH_ID,SEMESTER,ACADYEAR,STATUS FROM cst_schyear WHERE flag_del = 0 AND SCH_ID = :id`,
         { id }
       );
       return NextResponse.json({ success: true, data: brand });
     } else {
       const brand = await executeQuery(
-        `SELECT * FROM cst_schyear WHERE flag_del = 0`
+        `SELECT SCH_ID,SEMESTER,ACADYEAR,STATUS FROM cst_schyear WHERE flag_del = 0 ORDER BY ACADYEAR DESC, SEMESTER DESC`
       );
       return NextResponse.json({ success: true, data: brand });
     }
@@ -27,9 +27,9 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
-    const { acadyear, semester, status } = await req.json();
+    const { acadyear, semester } = await req.json();
 
-    if (!acadyear || !status || !semester) {
+    if (!acadyear || !semester) {
       return NextResponse.json(
         { success: false, message: "Missing fields" },
         { status: 400 }
@@ -37,8 +37,8 @@ export async function POST(req) {
     }
 
     await executeQuery(
-      "INSERT INTO cst_schyear (ACADYEAR,SEMESTER, STATUS, FLAG_DEL) VALUES (:acadyear,:semester, :status, '0')",
-      { acadyear, semester, status }
+      "INSERT INTO cst_schyear (ACADYEAR,SEMESTER, STATUS, FLAG_DEL) VALUES (:acadyear,:semester, 0, '0')",
+      { acadyear, semester }
     );
 
     return NextResponse.json(
@@ -58,9 +58,9 @@ export async function PUT(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
     const body = await req.json();
-    const { acadyear, semester, status } = body;
+    const { acadyear, semester } = body;
 
-    if (!id || !acadyear || !semester || !status) {
+    if (!id || !acadyear || !semester) {
       return NextResponse.json(
         { success: false, message: "Missing fields" },
         { status: 400 }
@@ -69,9 +69,9 @@ export async function PUT(req) {
 
     await executeQuery(
       `UPDATE cst_schyear 
-       SET ACADYEAR = :acadyear,SEMESTER = :semester ,STATUS = :status 
+       SET ACADYEAR = :acadyear,SEMESTER = :semester 
        WHERE SCH_ID = :id`,
-      { acadyear, semester, status, id }
+      { acadyear, semester, id }
     );
 
     return NextResponse.json({
