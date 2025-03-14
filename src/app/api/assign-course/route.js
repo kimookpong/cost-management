@@ -31,6 +31,20 @@ async function getLabgroup() {
   );
 }
 
+async function courseUser(id) {
+  return await executeQuery(
+    `SELECT USR.PERSON_ID,ROLE_ID,
+    PERSON.TITLE_NAME || PERSON.FIRST_NAME || ' ' || PERSON.LAST_NAME AS FULLNAME
+    FROM CST_LABCOURSE_USER USR
+    INNER JOIN PBL_VPER_PERSON PERSON
+      ON USR.PERSON_ID = PERSON.PERSON_ID
+    WHERE USR.FLAG_DEL = 0
+    AND USR.LAB_ID = :id
+    ORDER BY USR.ROLE_ID ASC`,
+    { id }
+  );
+}
+
 async function getUser() {
   return await executeQuery(
     `SELECT ADMIN.PERSON_ID, 
@@ -62,6 +76,27 @@ async function getClass(courseId, schId) {
     }
   );
 }
+
+const saveCourseUser = async (courseUser, id) => {
+  if (courseUser) {
+    await executeQuery(`DELETE FROM CST_LABCOURSE_USER WHERE LAB_ID = :id`, {
+      id,
+    });
+
+    courseUser.map(async (user) => {
+      await executeQuery(
+        `INSERT INTO CST_LABCOURSE_USER (LAB_ID, PERSON_ID, ROLE_ID, DATE_CREATED, USER_CREATED)
+        VALUES (:id, :personId, :roleId, SYSDATE, :userCreated)`,
+        {
+          id,
+          personId: user.personId,
+          roleId: user.roleId,
+          userCreated: user.userId,
+        }
+      );
+    });
+  }
+};
 
 const saveLabasset = async (labasset, id) => {
   if (labasset) {
@@ -161,6 +196,7 @@ export async function GET(req) {
         users: users,
         labgroup: labgroup,
         labasset: labasset,
+        courseUser: await courseUser(id),
       });
     } else if (!courseId) {
       if (!schId) {
@@ -326,6 +362,7 @@ export async function POST(req) {
       semester,
       userId,
       labasset,
+      courseUser,
     } = body;
 
     if (
@@ -374,6 +411,7 @@ export async function POST(req) {
     );
 
     await saveLabasset(labasset, labId[0].id);
+    await saveCourseUser(courseUser, labId[0].id);
     return NextResponse.json(
       { success: true, message: "User added successfully" },
       { status: 201 }
@@ -403,6 +441,7 @@ export async function PUT(req) {
       semester,
       userId,
       labasset,
+      courseUser,
     } = body;
 
     if (
@@ -446,6 +485,7 @@ export async function PUT(req) {
     );
 
     await saveLabasset(labasset, id);
+    await saveCourseUser(courseUser, id);
 
     return NextResponse.json({
       success: true,

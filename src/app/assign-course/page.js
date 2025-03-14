@@ -184,7 +184,9 @@ export default function List() {
                 }}
                 className="block bg-white px-4 py-2 border rounded-md dark:bg-gray-800"
               >
-                <option value="">แสดงทุกเทอมการศึกษา</option>
+                <option value="" disabled>
+                  เลือกเทอมการศึกษา
+                </option>
                 {data.semester.map((item) => (
                   <option key={item.schId} value={item.schId}>
                     เทอม {item.semester}/{item.acadyear}

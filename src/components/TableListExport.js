@@ -129,6 +129,7 @@ export default function TableListExport({ fileName, data, meta }) {
   return (
     <div className="flex gap-2">
       <button
+        type="button"
         onClick={exportToExcel}
         className="p-1 border border-green-700 text-green-700 dark:border-green-500 dark:text-green-500 rounded shadow-sm hover:text-green-800 transition-all duration-200 flex items-center gap-1"
       >
@@ -137,6 +138,7 @@ export default function TableListExport({ fileName, data, meta }) {
       </button>
 
       <button
+        type="button"
         onClick={print}
         className="p-1 border border-blue-600 text-blue-600 rounded shadow-sm hover:text-blue-700 transition-all duration-200 flex items-center gap-1"
       >

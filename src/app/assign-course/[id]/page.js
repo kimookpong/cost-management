@@ -19,6 +19,12 @@ import * as Yup from "yup";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 import TableList from "@/components/TableList";
 
+const roleList = [
+  { roleId: "1", roleName: "นักวิทยาศาสตร์" },
+  { roleId: "2", roleName: "พนักงานวิทยาศาสตร์" },
+  { roleId: "3", roleName: "พนักงานห้องทดลอง" },
+];
+
 export default function Detail() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
@@ -29,13 +35,18 @@ export default function Detail() {
   const [activeTab, setActiveTab] = useState("tab1");
 
   const [invent, setInvent] = useState([]);
+  const [user, setUser] = useState([]);
   const [labasset, setLabasset] = useState({
     type1: [],
     type2: [],
     type3: [],
   });
+
+  const [courseUser, setCourseUser] = useState([]);
   const [loadingInvent, setLoadingInvent] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(false);
   const [inventFormModal, setInventFormModal] = useState(false);
+  const [userFormModal, setUserFormModal] = useState(false);
 
   const [data, setData] = useState({
     course: null,
@@ -82,13 +93,16 @@ export default function Detail() {
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       values.labasset = labasset;
+      values.courseUser = courseUser;
       try {
+        console.log("values", values);
         if (isNew) {
           await axios.post(`/api/assign-course`, values);
           toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
           router.push("/assign-course?schId=" + searchParams.get("schId"));
         } else {
-          await axios.put(`/api/assign-course?id=${id}`, values);
+          const res = await axios.put(`/api/assign-course?id=${id}`, values);
+          console.log("res", res);
           toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
           router.back();
         }
@@ -107,6 +121,42 @@ export default function Detail() {
     assetRemark: Yup.string()
       .nullable()
       .max(100, "ข้อความต้องไม่เกิน 100 ตัวอักษร"),
+  });
+
+  const validationUserForm = Yup.object({
+    personId: Yup.string().required("กรุณาเลือกข้อมูล"),
+    roleId: Yup.string().required("กรุณาเลือกข้อมูล"),
+  });
+
+  const userForm = useFormik({
+    initialValues: {
+      courseUserId: "",
+      labId: "",
+      personId: "",
+      fullname: "",
+      roleId: "",
+    },
+    validationSchema: validationUserForm,
+    onSubmit: async (values) => {
+      values.userId = session?.user.person_id;
+      values.fullname = data.users.find(
+        (item) => parseInt(item.personId) === parseInt(values.personId)
+      )?.fullname;
+
+      if (values.courseUserId) {
+        setCourseUser((prevItem) =>
+          prevItem.map((item) =>
+            item.courseUserId === values.courseUserId ? values : item
+          )
+        );
+      } else {
+        values.courseUserId = uuidv4();
+        setCourseUser((prevItem) => [...prevItem, values]);
+      }
+      console.log("values", values);
+      setUserFormModal(false);
+      userForm.resetForm();
+    },
   });
 
   const inventForm = useFormik({
@@ -231,12 +281,13 @@ export default function Detail() {
               userId: session?.user.person_id,
             });
 
-            console.log("data.labasset", data.labasset);
             setLabasset({
               type1: data.labasset?.filter((item) => item.type === 1) || [],
               type2: data.labasset?.filter((item) => item.type === 2) || [],
               type3: data.labasset?.filter((item) => item.type === 3) || [],
             });
+
+            setCourseUser(data.courseUser);
 
             setLoading(false);
           }
@@ -331,6 +382,28 @@ export default function Detail() {
     await _callInvent(type);
   };
 
+  const _onPressAddUser = async () => {
+    setUserFormModal(true);
+    inventForm.setValues({
+      labassetId: "",
+      personId: "",
+      roleId: "",
+      flagDel: 0,
+      userId: session?.user.person_id,
+    });
+  };
+
+  const _onPressEditUser = async (id) => {
+    setUserFormModal(true);
+    const asset = courseUser.find((item) => item.courseUserId === id);
+    userForm.setValues({
+      courseUserId: asset.courseUserId,
+      personId: asset.personId,
+      roleId: asset.roleId,
+      userId: session?.user.person_id,
+    });
+  };
+
   const _onPressEditInvent = async (id, type) => {
     setInventFormModal(true);
     let asset;
@@ -352,6 +425,18 @@ export default function Detail() {
       userId: session?.user.person_id,
     });
     await _callInvent(type);
+  };
+
+  const _onPressDeleteUser = async (id) => {
+    const result = await confirmDialog(
+      "คุณแน่ใจหรือไม่?",
+      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
+    );
+    if (result.isConfirmed) {
+      setCourseUser((prevItem) =>
+        prevItem.filter((item) => item.courseUserId !== id)
+      );
+    }
   };
 
   const _onPressDeleteInvent = async (id, type) => {
@@ -382,6 +467,11 @@ export default function Detail() {
 
   const _onCloseInventForm = (status) => {
     setInventFormModal(status);
+    inventForm.resetForm();
+  };
+
+  const _onCloseUserForm = (status) => {
+    setUserFormModal(status);
     inventForm.resetForm();
   };
 
@@ -600,7 +690,87 @@ export default function Detail() {
                 )}
                 {activeTab === "tab2" && (
                   <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                    <p>เนื้อหาแท็บที่ 2</p>
+                    <div className="sm:col-span-12">
+                      <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+                        <div className="pb-4 border-gray-200 flex justify-between items-center">
+                          <div className="font-xl font-semibold inline">
+                            <span className="pe-2">ผู้รับผิดชอบ</span>
+                            <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
+                              {courseUser.length} รายการ
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            onClick={() => _onPressAddUser()}
+                          >
+                            <FiPlus className="w-4 h-4" />
+                            เพิ่มใหม่
+                          </button>
+                        </div>
+                        <TableList
+                          exports={false}
+                          meta={[
+                            {
+                              content: "ผู้รับผิดชอบ",
+                              className: "text-center",
+                              key: "fullname",
+                            },
+                            {
+                              content: "ตำแหน่งที่รับผิดชอบ",
+                              key: "roleId",
+                              render: (item) => (
+                                <div>
+                                  {
+                                    roleList.find(
+                                      (role) =>
+                                        parseInt(role.roleId) === item.roleId
+                                    )?.roleName
+                                  }
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "courseUserId",
+                              content: "Action",
+                              width: "100",
+                              sort: false,
+
+                              render: (item) => (
+                                <div className="flex gap-1">
+                                  <button
+                                    type="button"
+                                    className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    onClick={() => {
+                                      return _onPressEditUser(
+                                        item.courseUserId
+                                      );
+                                    }}
+                                  >
+                                    <FiEdit className="w-4 h-4" />
+                                    แก้ไข
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    onClick={() => {
+                                      return _onPressDeleteUser(
+                                        item.courseUserId
+                                      );
+                                    }}
+                                  >
+                                    <FiTrash2 className="w-4 h-4" />
+                                    ลบ
+                                  </button>
+                                </div>
+                              ),
+                            },
+                          ]}
+                          data={courseUser}
+                          loading={loading}
+                        />
+                      </div>
+                    </div>
                   </div>
                 )}
                 {activeTab === "tab3" && (
@@ -641,6 +811,7 @@ export default function Detail() {
                             </button>
                           </div>
                           <TableList
+                            exports={false}
                             meta={[
                               {
                                 content: "รายการ",
@@ -893,6 +1064,114 @@ export default function Detail() {
                       type="button"
                       data-autofocus
                       onClick={() => _onCloseInventForm(false)}
+                      className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                    >
+                      ยกเลิก
+                    </button>
+                  </div>
+                </form>
+              )}
+            </DialogPanel>
+          </div>
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={userFormModal}
+        onClose={_onCloseUserForm}
+        className="relative z-10"
+      >
+        <DialogBackdrop
+          transition
+          className="fixed inset-0 text-gray-900 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
+        />
+
+        <div className="fixed inset-0 z-10 w-screen overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <DialogPanel
+              transition
+              className="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 w-full sm:max-w-2xl data-closed:sm:translate-y-0 data-closed:sm:scale-95"
+            >
+              {loadingUser ? (
+                <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+                  กำลังโหลดข้อมูล...
+                </div>
+              ) : (
+                <form onSubmit={userForm.handleSubmit}>
+                  <div className="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                      <div className="sm:col-span-12">
+                        <label className={className.label}>ผู้รับผิดชอบ</label>
+                        <select
+                          name="personId"
+                          value={userForm.values.personId}
+                          onChange={userForm.handleChange}
+                          className={`${className.select} ${
+                            userForm.touched.personId &&
+                            userForm.errors.personId
+                              ? "border-red-500"
+                              : ""
+                          }`}
+                        >
+                          <option value="" disabled>
+                            เลือกผู้รับผิดชอบ
+                          </option>
+                          {data.users.map((inv) => (
+                            <option key={inv.personId} value={inv.personId}>
+                              {inv.fullname}
+                            </option>
+                          ))}
+                        </select>
+                        {userForm.touched.personId &&
+                          userForm.errors.personId && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {userForm.errors.personId}
+                            </p>
+                          )}
+                      </div>
+
+                      <div className="sm:col-span-12">
+                        <label className={className.label}>
+                          ตำแหน่งที่รับผิดชอบ
+                        </label>
+                        <select
+                          name="roleId"
+                          value={userForm.values.roleId}
+                          onChange={userForm.handleChange}
+                          className={`${className.select} ${
+                            userForm.touched.roleId && userForm.errors.roleId
+                              ? "border-red-500"
+                              : ""
+                          }`}
+                        >
+                          <option value="" disabled>
+                            เลือกตำแหน่งที่รับผิดชอบ
+                          </option>
+                          {roleList.map((role) => (
+                            <option key={role.roleId} value={role.roleId}>
+                              {role.roleName}
+                            </option>
+                          ))}
+                        </select>
+                        {userForm.touched.roleId && userForm.errors.roleId && (
+                          <p className="mt-1 text-sm text-red-500">
+                            {userForm.errors.roleId}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+                    <button
+                      type="submit"
+                      className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto"
+                    >
+                      ยืนยัน
+                    </button>
+                    <button
+                      type="button"
+                      data-autofocus
+                      onClick={() => _onCloseUserForm(false)}
                       className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 shadow-xs ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
                     >
                       ยกเลิก
