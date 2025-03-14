@@ -452,136 +452,149 @@ export default function Detail() {
                       <i>รายละเอียด</i> : {data.course?.description1}
                     </div>
 
-                    <div className="sm:col-span-6">
-                      <label className={className.label}>
-                        กลุ่มห้องปฎิบัติการ
-                      </label>
-                      <select
-                        name="labgroupId"
-                        value={formik.values.labgroupId}
-                        onChange={formik.handleChange}
-                        className={`${className.select} ${
-                          formik.touched.labgroupId && formik.errors.labgroupId
-                            ? "border-red-500"
-                            : ""
-                        }`}
-                      >
-                        <option value="" disabled>
-                          เลือกกลุ่มห้องปฎิบัติการ
-                        </option>
-                        {data.labgroup.map((labgroup) => (
-                          <option
-                            key={labgroup.labgroupId}
-                            value={labgroup.labgroupId}
-                          >
-                            {labgroup.labgroupName}
-                          </option>
-                        ))}
-                      </select>
-                      {formik.touched.labgroupId &&
-                        formik.errors.labgroupId && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {formik.errors.labgroupId}
-                          </p>
-                        )}
-                    </div>
-                    <div className="sm:col-span-6">
-                      <label className={className.label}>
-                        ผู้ประสานงานรายวิชา
-                      </label>
-                      <select
-                        name="personId"
-                        value={formik.values.personId}
-                        onChange={formik.handleChange}
-                        className={`${className.select} ${
-                          formik.touched.personId && formik.errors.personId
-                            ? "border-red-500"
-                            : ""
-                        }`}
-                      >
-                        <option value="" disabled>
-                          เลือกผู้รับผิดชอบหลัก
-                        </option>
-                        {data.users.map((user) => (
-                          <option key={user.personId} value={user.personId}>
-                            {user.fullname} ({user.roleName})
-                          </option>
-                        ))}
-                      </select>
-                      {formik.touched.personId && formik.errors.personId && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {formik.errors.personId}
-                        </p>
-                      )}
-                    </div>
+                    <div className="sm:col-span-12">
+                      <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+                        <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                          <div className="sm:col-span-6">
+                            <label className={className.label}>
+                              กลุ่มห้องปฎิบัติการ
+                            </label>
+                            <select
+                              name="labgroupId"
+                              value={formik.values.labgroupId}
+                              onChange={formik.handleChange}
+                              className={`${className.select} ${
+                                formik.touched.labgroupId &&
+                                formik.errors.labgroupId
+                                  ? "border-red-500"
+                                  : ""
+                              }`}
+                            >
+                              <option value="" disabled>
+                                เลือกกลุ่มห้องปฎิบัติการ
+                              </option>
+                              {data.labgroup.map((labgroup) => (
+                                <option
+                                  key={labgroup.labgroupId}
+                                  value={labgroup.labgroupId}
+                                >
+                                  {labgroup.labgroupName}
+                                </option>
+                              ))}
+                            </select>
+                            {formik.touched.labgroupId &&
+                              formik.errors.labgroupId && (
+                                <p className="mt-1 text-sm text-red-500">
+                                  {formik.errors.labgroupId}
+                                </p>
+                              )}
+                          </div>
+                          <div className="sm:col-span-6">
+                            <label className={className.label}>
+                              ผู้ประสานงานรายวิชา
+                            </label>
+                            <select
+                              name="personId"
+                              value={formik.values.personId}
+                              onChange={formik.handleChange}
+                              className={`${className.select} ${
+                                formik.touched.personId &&
+                                formik.errors.personId
+                                  ? "border-red-500"
+                                  : ""
+                              }`}
+                            >
+                              <option value="" disabled>
+                                เลือกผู้รับผิดชอบหลัก
+                              </option>
+                              {data.users.map((user) => (
+                                <option
+                                  key={user.personId}
+                                  value={user.personId}
+                                >
+                                  {user.fullname} ({user.roleName})
+                                </option>
+                              ))}
+                            </select>
+                            {formik.touched.personId &&
+                              formik.errors.personId && (
+                                <p className="mt-1 text-sm text-red-500">
+                                  {formik.errors.personId}
+                                </p>
+                              )}
+                          </div>
 
-                    <div className="sm:col-span-4">
-                      <label className={className.label}>
-                        จำนวนห้อง LAB ที่เปิดบริการ
-                      </label>
+                          <div className="sm:col-span-4">
+                            <label className={className.label}>
+                              จำนวนห้อง LAB ที่เปิดบริการ
+                            </label>
 
-                      <input
-                        type="number"
-                        name="labroom"
-                        value={formik.values.labroom}
-                        onChange={formik.handleChange}
-                        className={`${className.input} ${
-                          formik.touched.labroom && formik.errors.labroom
-                            ? "border-red-500"
-                            : ""
-                        }`}
-                      />
-                      {formik.touched.labroom && formik.errors.labroom && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {formik.errors.labroom}
-                        </p>
-                      )}
-                    </div>
+                            <input
+                              type="number"
+                              name="labroom"
+                              value={formik.values.labroom}
+                              onChange={formik.handleChange}
+                              className={`${className.input} ${
+                                formik.touched.labroom && formik.errors.labroom
+                                  ? "border-red-500"
+                                  : ""
+                              }`}
+                            />
+                            {formik.touched.labroom &&
+                              formik.errors.labroom && (
+                                <p className="mt-1 text-sm text-red-500">
+                                  {formik.errors.labroom}
+                                </p>
+                              )}
+                          </div>
 
-                    <div className="sm:col-span-4">
-                      <label className={className.label}>
-                        จำนวนกลุ่มต่อห้อง
-                      </label>
-                      <input
-                        type="number"
-                        name="labgroupNum"
-                        value={formik.values.labgroupNum}
-                        onChange={formik.handleChange}
-                        className={`${className.input} ${
-                          formik.touched.labgroupNum &&
-                          formik.errors.labgroupNum
-                            ? "border-red-500"
-                            : ""
-                        }`}
-                      />
-                      {formik.touched.labgroupNum &&
-                        formik.errors.labgroupNum && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {formik.errors.labgroupNum}
-                          </p>
-                        )}
-                    </div>
+                          <div className="sm:col-span-4">
+                            <label className={className.label}>
+                              จำนวนกลุ่มต่อห้อง
+                            </label>
+                            <input
+                              type="number"
+                              name="labgroupNum"
+                              value={formik.values.labgroupNum}
+                              onChange={formik.handleChange}
+                              className={`${className.input} ${
+                                formik.touched.labgroupNum &&
+                                formik.errors.labgroupNum
+                                  ? "border-red-500"
+                                  : ""
+                              }`}
+                            />
+                            {formik.touched.labgroupNum &&
+                              formik.errors.labgroupNum && (
+                                <p className="mt-1 text-sm text-red-500">
+                                  {formik.errors.labgroupNum}
+                                </p>
+                              )}
+                          </div>
 
-                    <div className="sm:col-span-4">
-                      <label className={className.label}>
-                        จำนวนชั่วโมงเรียน
-                      </label>
-                      <input
-                        type="number"
-                        name="hour"
-                        value={formik.values.hour}
-                        onChange={formik.handleChange}
-                        className={`${className.input} ${
-                          formik.touched.hour && formik.errors.hour
-                            ? "border-red-500"
-                            : ""
-                        }`}
-                      />
-                      {formik.touched.hour && formik.errors.hour && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {formik.errors.hour}
-                        </p>
-                      )}
+                          <div className="sm:col-span-4">
+                            <label className={className.label}>
+                              จำนวนชั่วโมงเรียน
+                            </label>
+                            <input
+                              type="number"
+                              name="hour"
+                              value={formik.values.hour}
+                              onChange={formik.handleChange}
+                              className={`${className.input} ${
+                                formik.touched.hour && formik.errors.hour
+                                  ? "border-red-500"
+                                  : ""
+                              }`}
+                            />
+                            {formik.touched.hour && formik.errors.hour && (
+                              <p className="mt-1 text-sm text-red-500">
+                                {formik.errors.hour}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
