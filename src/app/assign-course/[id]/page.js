@@ -713,7 +713,6 @@ export default function Detail() {
                           meta={[
                             {
                               content: "ผู้รับผิดชอบ",
-                              className: "text-center",
                               key: "fullname",
                             },
                             {
