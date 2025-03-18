@@ -1,53 +1,49 @@
 "use client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useForm, Controller } from "react-hook-form";
+import Select from "react-select";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Content from "@/components/Content";
-import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
+import { FiEdit } from "react-icons/fi";
 import TableList from "@/components/TableList";
-
-const data = [
-  {
-    plabId: 1,
-    brandName: "BIO61-192",
-    status: "1",
-    brandId: 1,
-    used: 0,
-    nameSub: "Basic Medical Biochemistry Laboratory",
-    numLab: 1,
-    num: 20,
-    numStu: 30,
-  },
-  {
-    plabId: 2,
-    brandName: "BIO62-192",
-    status: "1",
-    brandId: 1,
-    used: 0,
-    nameSub: "Basic Medical Biochemistry Laboratory 2",
-    numLab: 10,
-    num: 10,
-    numStu: 30,
-  },
-];
 export default function Page() {
   const breadcrumb = [{ name: "เตรียมปฏิบัติการ", link: "/prepare-lab" }];
+  const searchParams = useSearchParams();
   const router = useRouter();
+  const { control } = useForm(); // ✅ Fix: Define control
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [reload, setReload] = useState(0);
+  const [schYears, setSchYears] = useState([]);
+  const [lab, setLab] = useState([]);
+  const schId = searchParams.get("schId") || ""; // ✅ Fix: Get schId from URL
 
-  const _onPressAdd = () => {
-    router.push("/prepare-lab/new");
+  const _onPressAdd = (labId) => {
+    router.push(`/prepare-lab/new?labId=${labId}`);
   };
 
   useEffect(() => {
     async function fetchData() {
       try {
-        // ใช้ข้อมูลจำลองโดยตรง
-        setEmployees(data);
+        const schYearRes = await axios.get("/api/academic");
+        console.log("Academic Data:", schYearRes.data); // Debugging
+        setSchYears(schYearRes.data.data || []);
+        const response = await axios.get(`/api/prepare-lab`, {
+          params: { schId },
+        });
+        const data = response.data;
+        console.log("lab", data);
+        if (response.data.success) {
+          setLab(response.data.data || []); // Access `data.data`
+        } else {
+          setLab([]); // Ensure it's always an array
+        }
       } catch (err) {
+        console.error(
+          "Error fetching lab data:",
+          err.response?.data || err.message
+        );
         setError("เกิดข้อผิดพลาดในการดึงข้อมูล");
       } finally {
         setLoading(false);
@@ -55,43 +51,70 @@ export default function Page() {
     }
 
     fetchData();
-  }, [reload]);
+  }, [schId]);
   if (loading) return <p>กำลังโหลด...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
   // Define the meta variable if needed
 
   const meta = [
     {
-      key: "brandName",
+      key: "courseunicode",
       content: "รหัสวิชา",
+      className: "text-center",
+      width: "150",
+      render: (item) => {
+        return (
+          <>
+            <div className="item-center">
+              <span>{item.courseunicode}</span>
+            </div>
+            <div className="item-center">
+              <span>{item.courseunit}</span>
+            </div>
+          </>
+        );
+      },
     },
+    ,
     {
-      key: "nameSub",
+      key: "coursename",
       content: "รายวิชา",
+      render: (item) => {
+        return (
+          <>
+            <div className="item-center">
+              <span> {item.coursename}</span>
+            </div>
+            <div className="item-center">
+              <span>({item.coursenameeng})</span>
+            </div>
+          </>
+        );
+      },
     },
     {
-      key: "numLab",
+      key: "labroom",
       content: " จำนวนห้อง LAB ที่เปิด",
       width: "200",
       className: "text-center",
       render: (item) => {
-        return <span className="item-center">{item.numLab}</span>;
+        return <span className="item-center">{item.labroom}</span>;
       },
     },
     {
-      key: "num",
+      key: "section",
       content: " จำนวนกลุ่ม (กลุ่ม)",
       width: "200",
       className: "text-center",
     },
     {
-      key: "numStu",
-      content: " จำนวนนักศึกษาทั้งหมด (คน)",
+      key: "hour",
+      content: " จำนวนชม.ที่เรียนต่อสัปดาห์",
       width: "200",
       className: "text-center",
     },
     {
-      key: "plabId",
+      key: "labId",
       content: "จัดการใบเตรียมปฏิบัติการ",
       width: "200",
       className: "text-center",
@@ -99,7 +122,7 @@ export default function Page() {
         <div className="cursor-pointer items-center justify-center flex gap-1">
           <button
             className="cursor-pointer p-2 text-white text-sm bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-            onClick={() => _onPressAdd(item.plabId)}>
+            onClick={() => _onPressAdd(item.labId)}>
             <FiEdit className="w-4 h-4" />
             จัดการ
           </button>
@@ -123,16 +146,54 @@ export default function Page() {
               <FiPlus className="w-4 h-4" />
               เพิ่มใหม่
             </button> */}
+            <div className="flex gap-4">
+              <div className="flex gap-2 items-center">
+                <label className={className.label}>เทอมการศึกษา :</label>
+                {/* <select className="block px-4 py-2 border rounded-md dark:bg-gray-800">
+                  <option value="">แสดงทุกเทอมการศึกษา</option>
+                </select> */}
+                <Controller
+                  name="schId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      options={schYears.map((schYear) => ({
+                        value: schYear.schId, // Use acadyear instead of schId
+                        label: `${schYear.acadyear}/${schYear.semester || "-"}`, // Handle missing semester
+                      }))}
+                      placeholder="- เลือก -"
+                      isClearable
+                      className="react-select-container"
+                      classNamePrefix="react-select"
+                      onChange={(selectedOption) => {
+                        field.onChange(selectedOption?.value || "");
+                        router.push(
+                          `/prepare-lab?schId=${selectedOption?.value || ""}`
+                        );
+                      }}
+                    />
+                  )}
+                />
+              </div>
+            </div>
           </div>
         </div>
         <div className="p-4 overflow-auto">
           {error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (
-            <TableList meta={meta} data={employees} loading={loading} />
+            <TableList meta={meta} data={lab} loading={loading} />
           )}
         </div>
       </div>
     </Content>
   );
 }
+const className = {
+  label:
+    "block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300",
+  input:
+    "block w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
+  select: "block px-4 py-2 border rounded-md dark:bg-gray-800",
+};

@@ -106,8 +106,8 @@ export default function List() {
       key: "personId",
       content: "Action",
       width: "100",
-      sort: false,
-      export: false,
+      sort: false, // ไม่ต้องเรียงข้อมูล
+      export: false, // ไม่ต้อง export ข้อมูล
       render: (item) => (
         <div className="flex gap-1">
           <button
@@ -155,7 +155,8 @@ export default function List() {
           {error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (
-            <TableList meta={meta} data={employees} loading={loading} />
+            <TableList meta={meta} data={employees} loading={loading} exports={false} />
+            // <TableList meta={meta} data={employees} loading={loading}  />
           )}
         </div>
       </div>
