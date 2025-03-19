@@ -15,12 +15,24 @@ export default function Detail() {
   const [facultyId, setFacultyId] = useState(
     searchParams.get("facultyId") || ""
   );
+  const [selected, setSelected] = useState("0");
+
   const [schId, setSchId] = useState(searchParams.get("schId") || "");
   const [data, setData] = useState({
     course: [],
     faculty: [],
     term: [],
   });
+
+  const [filterData, setFilterData] = useState([]);
+
+  useEffect(() => {
+    if (selected === "0") {
+      setFilterData(data.course);
+    } else {
+      setFilterData(data.course.filter((item) => item.type === selected));
+    }
+  }, [selected]);
 
   useEffect(() => {
     setLoading(true);
@@ -36,6 +48,13 @@ export default function Detail() {
             faculty: data.faculty,
             term: data.term,
           });
+
+          if (selected === "0") {
+            setFilterData(data.data);
+          } else {
+            setFilterData(data.data.filter((item) => item.type === selected));
+          }
+
           setLoading(false);
         }
       } catch (err) {
@@ -61,6 +80,12 @@ export default function Detail() {
     {
       key: "coursename",
       content: "ชื่อรายวิชา",
+    },
+    {
+      key: "courseunit",
+      content: "หน่วยกิต",
+      className: "text-center",
+      width: 150,
     },
     {
       key: "section",
@@ -155,9 +180,37 @@ export default function Detail() {
             </select>
           </div>
           <div className="sm:col-span-12">
+            <div className="flex justify-end space-x-4">
+              {[
+                { id: "0", label: "ทั้งหมด" },
+                { id: "1", label: "บรรยาย" },
+                { id: "2", label: "ปฎิบัติการ" },
+                { id: "3", label: "บรรยายและปฎิบัติการ" },
+              ].map((option) => (
+                <label
+                  key={option.id}
+                  className="flex items-center space-x-2 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="options"
+                    value={option.id}
+                    checked={selected === option.id}
+                    onChange={() => setSelected(option.id)}
+                    className="peer hidden "
+                  />
+                  <div className="w-5 h-5 border-2 border-gray-400 rounded-full peer-checked:border-white peer-checked:ring-2 peer-checked:ring-blue-300 peer-checked:bg-blue-500"></div>
+                  <span className="text-gray-700 peer-checked:text-blue-600">
+                    {option.label}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="sm:col-span-12">
             <TableList
               meta={meta}
-              data={data.course}
+              data={filterData}
               loading={loading}
               exports={false}
             />
