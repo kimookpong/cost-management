@@ -7,7 +7,7 @@ import Content from "@/components/Content";
 import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
 import TableList from "@/components/TableList";
 import Swal from "sweetalert2";
-
+import { useSession } from "next-auth/react";
 
 export default function Page() {
   const breadcrumb = [{ name: "เตรียมปฏิบัติการ", link: "/prepare-lab" }];
@@ -16,6 +16,9 @@ export default function Page() {
   const [error, setError] = useState(null);
   const [reload, setReload] = useState(0);
   const [labjob, setLabjob] = useState([]);
+  const { data: session } = useSession();
+  const sId = session?.user.person_id;
+  const [datacourse, setDatacourse] = useState(null);
   // const [labjobId, setLabjobId] = useState(null);
   const searchParams = useSearchParams();
   const labId = searchParams.get("labId") || "";
@@ -25,7 +28,9 @@ export default function Page() {
       alert("labId ไม่ถูกต้อง");
       return;
     }
-    router.push(`/prepare-lab/worksheet?labId=${labId}&labjobId=new`);
+    router.push(
+      `/prepare-lab/worksheet?labId=${labId}&labjobId=new&sId=${sId}`
+    );
   };
   const _onPressEdit = (labjobId) => {
     if (!labjobId) {
@@ -64,13 +69,12 @@ export default function Page() {
     async function fetchData() {
       try {
         const response = await axios.get(`/api/labjob`, { params: { labId } });
-        // console.log("API Response:", response.data); // ตรวจสอบข้อมูลทั้งหมดที่ได้รับ
+        setDatacourse(response.data.datacourse[0]);
         if (response.data.labjoblist) {
           const labjoblist = response.data.labjoblist;
-          // console.log("Labjob List:", labjoblist[0].fullname);
+
           setLabjob(labjoblist || []);
         } else {
-          // console.log("labjoblist ไม่พบใน response");
           setLabjob([]); // ถ้าไม่มี labjoblist ให้ตั้งเป็น array ว่าง
         }
       } catch (err) {
@@ -132,7 +136,12 @@ export default function Page() {
           </div>
           <div className="flex gap-1 justify-center items-center p-1 border-b border-gray-200">
             <p className="text-xl text-gray-500">
-              BlO61-192 Basic Medical Biochemistry Laboratory
+              {" "}
+              {datacourse ? datacourse.coursename : " "}
+            </p>
+            <p className="text-xl text-gray-500">
+              {" "}
+              ({datacourse ? datacourse.coursenameeng : " "})
             </p>
           </div>
           <div className="flex gap-1 justify-left items-left p-1 border-b font-semibold">
@@ -145,10 +154,15 @@ export default function Page() {
           </div>
           <div className="flex gap-1 justify-left items-left  ps-16 border-gray-200">
             <p className="text-lg text-gray-700">
-              1 Section จำนวน 2 ห้องปฏิบัติการ
+              {datacourse ? datacourse.labSection : " "}
+              <span> </span>
+              Section จำนวน <span>
+                {datacourse ? datacourse.labroom : " "}
+              </span>{" "}
+              ห้องปฏิบัติการ
             </p>
           </div>
-          <div className="flex gap-1 justify-left items-left p-1 border-gray-200">
+          {/* <div className="flex gap-1 justify-left items-left p-1 border-gray-200">
             <p className="text-lg text-gray-900 p-2 font-medium">
               วันและเวลาเรียน
             </p>
@@ -157,7 +171,7 @@ export default function Page() {
             <p className="text-lg text-gray-700 ">
               วันพฤหัสบดี เวลา 03.00 - 16.00 น. จำนวน 2 ห้องปฏิบัติการ(เคมี 3-4)
             </p>
-          </div>
+          </div> */}
           <div className="flex gap-1 justify-left items-left pt-6 border-b font-semibold">
             <h3 className="text-xl text-gray-900 p-2 boder">
               รายการเตรียมปฏิบัติการ

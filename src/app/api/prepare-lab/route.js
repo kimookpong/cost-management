@@ -20,12 +20,18 @@ export async function GET(req) {
     course.courseunit,
     course.coursename,
     course.coursenameeng,
+    reg.totalseat,
+    reg.enrollseat,
     l.labroom,
-     l.section,
+    l.section,
     l.hour
   FROM cst_labcourse l
   INNER JOIN PBL_AVSREGCOURSE_V COURSE ON COURSE.COURSEID = l.COURSEID
   INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = l.SCH_ID
+  INNER JOIN PBL_AVSREGCLASS_V REG 
+    ON REG.COURSEID = COURSE.COURSEID 
+    AND SCH.ACADYEAR = REG.ACADYEAR
+    AND SCH.semester = REG.semester
   WHERE l.FLAG_DEL = 0
   AND l.SCH_ID = :schId`,
       { schId: req.nextUrl.searchParams.get("schId") } // Correct JSON object structure

@@ -1,7 +1,7 @@
 "use client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
-import Select from "react-select";
+//import { useForm, Controller } from "react-hook-form";
+//import Select from "react-select";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Content from "@/components/Content";
@@ -11,13 +11,14 @@ export default function Page() {
   const breadcrumb = [{ name: "เตรียมปฏิบัติการ", link: "/prepare-lab" }];
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { control } = useForm(); // ✅ Fix: Define control
+
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [schYears, setSchYears] = useState([]);
   const [lab, setLab] = useState([]);
-  const schId = searchParams.get("schId") || ""; // ✅ Fix: Get schId from URL
+  const initialSchId = searchParams.get("schId") || ""; // Get schId from URL
+  const [schId, setSchId] = useState(initialSchId);
 
   const _onPressAdd = (labId) => {
     router.push(`/prepare-lab/new?labId=${labId}`);
@@ -28,7 +29,18 @@ export default function Page() {
       try {
         const schYearRes = await axios.get("/api/academic");
         console.log("Academic Data:", schYearRes.data); // Debugging
-        setSchYears(schYearRes.data.data || []);
+        const fetchedSchYears = schYearRes.data.data || [];
+        setSchYears(fetchedSchYears);
+        // Set the initial schId where status is 1
+        if (!schId) {
+          const defaultSchId = fetchedSchYears.find(
+            (item) => item.status === 1
+          )?.schId;
+          if (defaultSchId) {
+            setSchId(defaultSchId);
+          }
+        }
+
         const response = await axios.get(`/api/prepare-lab`, {
           params: { schId },
         });
@@ -52,6 +64,7 @@ export default function Page() {
 
     fetchData();
   }, [schId]);
+
   if (loading) return <p>กำลังโหลด...</p>;
   if (error) return <p className="text-red-500">{error}</p>;
   // Define the meta variable if needed
@@ -89,6 +102,19 @@ export default function Page() {
               <span>({item.coursenameeng})</span>
             </div>
           </>
+        );
+      },
+    },
+    {
+      key: "enrollseat",
+      content: "เปิดลงทะเบียน/จำนวนนักศึกษา",
+      width: "200",
+      className: "text-center",
+      render: (item) => {
+        return (
+          <span className="item-center">
+            {item.totalseat} / {item.enrollseat}
+          </span>
         );
       },
     },
@@ -139,43 +165,22 @@ export default function Page() {
             <h3 className="font-semibold">เตรียมปฏิบัติการ</h3>
           </div>
 
-          <div className="flex gap-1">
-            {/* <button
-              className="cursor-pointer p-3 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 justify-center"
-              onClick={_onPressAdd}>
-              <FiPlus className="w-4 h-4" />
-              เพิ่มใหม่
-            </button> */}
-            <div className="flex gap-4">
-              <div className="flex gap-2 items-center">
-                <label className={className.label}>เทอมการศึกษา :</label>
-                {/* <select className="block px-4 py-2 border rounded-md dark:bg-gray-800">
-                  <option value="">แสดงทุกเทอมการศึกษา</option>
-                </select> */}
-                <Controller
-                  name="schId"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      options={schYears.map((schYear) => ({
-                        value: schYear.schId, // Use acadyear instead of schId
-                        label: `${schYear.acadyear}/${schYear.semester || "-"}`, // Handle missing semester
-                      }))}
-                      placeholder="- เลือก -"
-                      isClearable
-                      className="react-select-container"
-                      classNamePrefix="react-select"
-                      onChange={(selectedOption) => {
-                        field.onChange(selectedOption?.value || "");
-                        router.push(
-                          `/prepare-lab?schId=${selectedOption?.value || ""}`
-                        );
-                      }}
-                    />
-                  )}
-                />
-              </div>
+          <div className=" gap-1  justify-end">
+            <div className="flex gap-2 justify-end items-center">
+              <label className="block text-lg font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300 w-full">
+                ปีการศึกษา
+              </label>
+              <select
+                name="schId"
+                className="border border-gray-500 p-2 rounded-lg w-full"
+                value={schId}
+                onChange={(e) => setSchId(e.target.value)}>
+                {schYears.map((item) => (
+                  <option key={item.schId} value={item.schId}>
+                    {item.acadyear} / {item.semester}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@ import axios from "axios";
 import Content from "@/components/Content";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 import { useSession } from "next-auth/react";
+import { set } from "react-hook-form";
 // import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
 
 /**
@@ -17,50 +18,49 @@ import { useSession } from "next-auth/react";
 
 export default function Page() {
   const { data: session } = useSession();
+
   const userCreated = session?.user.person_id;
-  // console.log(user);
+  const [data, setData] = useState([]); // Data for the first dropdown
+  const [subData, setSubData] = useState([]); // Data for the second dropdown
+  const [divPerson, setDivPerson] = useState(""); // State สำหรับค่า default
   const searchParams = useSearchParams();
   const labId = searchParams.get("labId");
   const labjobId = searchParams.get("labjobId");
-  // const isNew = labjobId;
   const isNew = labjobId === "new";
-  // console.log("isNew", isNew);
   const [loading, setLoading] = useState(!isNew);
   const breadcrumb = [{ name: "เตรียมปฏิบัติการ", link: "/prepare-lab" }];
-
   const router = useRouter();
+  const [datacourse, setDatacourse] = useState(null);
   const [formData, setFormData] = useState({
-    labjobTitle: "", // ชื่อใบงานเตรียมปฏิบัติการ
-    personId: "", // หัวหน้าบทปฏิบัติการ
+    labjobTitle: "",
+    personId: "",
+    divId: "", // ID ของฝ่าย
     userCreated: userCreated,
   });
 
-  // ฟังก์ชันจัดการค่าที่เปลี่ยนในฟอร์ม
+  // Handle form data changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ฟังก์ชันบันทึกข้อมูล (Create / Update)
+  // Handle form submission (Create/Update)
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      let response;     
-      const updatedFormData = { ...formData, labId, userCreated };     
+      let response;
+      const updatedFormData = { ...formData, labId, userCreated };
       if (labjobId !== "new") {
-        // อัปเดตข้อมูลถ้ามี labjobId      
         response = await axios.put(
           `/api/labjob?labjobId=${labjobId}`,
           updatedFormData
-        );      
-       
+        );
       } else {
-        // สร้างข้อมูลใหม่      
         response = await axios.post("/api/labjob", updatedFormData);
       }
 
       if (response.data.success) {
         toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
-        router.push("/prepare-lab/new?labId=" + labId); // กลับไปหน้าหลัก
+        router.push("/prepare-lab/new?labId=" + labId); // Go back to the main page
       } else {
         alert("เกิดข้อผิดพลาดในการบันทึก");
       }
@@ -69,34 +69,125 @@ export default function Page() {
       alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
     }
   };
+
+  // Fetch Labjob list
+  const fetchLabjobList = async () => {
+    try {
+      const response = await axios.get(`/api/labjob?sId=${userCreated}`);
+      const fetchedDivPerson = response.data.divperson[0].subdivisionId;
+      setDivPerson(fetchedDivPerson); // เก็บค่า divPerson
+      console.log("divPerson:", fetchedDivPerson);
+      if (response.data.success) {
+        setData(response.data.listdiv); // Set the first dropdown data
+      }
+    } catch (err) {
+      console.error("❌ Error fetching data:", err);
+    }
+  };
+  // Fetch details of the specific labjob
+  const fetchLabjobDetails = async () => {
+    try {
+      const response = await axios.get(
+        `/api/labjob?labjobId=${labjobId}&sId=${userCreated}`
+      );
+      const data = response.data;
+
+      if (data.success) {
+        const labjob = data.data[0];
+        const person = subData.find(
+          (person) => person.personId === labjob.personId
+        );
+        fetchSubDivisionData(labjob.subdivisionId);
+        setFormData({
+          labjobTitle: labjob.labjobTitle || "", // ตั้งค่าชื่อใบงาน
+          personId: labjob.personId || "", // ตั้งค่าผู้รับผิดชอบ
+          divId: labjob.subdivisionId || "", // ตั้งค่าฝ่าย
+        });
+      } else {
+        console.error("Error fetching labjob data:", data.error);
+        alert("ไม่สามารถโหลดข้อมูลได้");
+      }
+    } catch (err) {
+      console.error("Error fetching labjob data:", err);
+      alert("ไม่สามารถโหลดข้อมูลได้");
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    if (!isNew) {
-      setLoading(true);
-      const fetchData = async () => {
-        try {
-          const response = await axios.get(`/api/labjob?labjobId=${labjobId}`);
-          const data = response.data;
-          if (data.success) {
-            const labjob = data.data[0];
-            setFormData({
-              labjobTitle: labjob.labjobTitle || "",
-              personId: labjob.personId || "",
-              userCreated: labjob.userCreated || "",
-            });
-          } else {
-            console.error("Error fetching labjob data:", data.error);
-            alert("ไม่สามารถโหลดข้อมูลได้");
-          }
-        } catch (err) {
-          console.error("Error fetching labjob data:", err);
-          alert("ไม่สามารถโหลดข้อมูลได้");
-        } finally {
-          setLoading(false); // Ensures that loading is set to false no matter what
+    fetchLabjobList();
+  }, []);
+  useEffect(() => {
+    if (isNew && divPerson) {
+      setFormData((prev) => ({ ...prev, divId: divPerson }));
+      fetchSubDivisionData(divPerson);
+    }
+  }, [divPerson, isNew]); // รันโค้ดเมื่อ divPerson หรือ isNew เปลี่ยนค่า
+
+  const fetchSubDivisionData = async (divId) => {
+    try {
+      let response; // กำหนดตัวแปร response ให้อยู่ข้างนอก
+      if (labjobId === "new") {
+        response = await axios.get(`/api/labjob?divId=${divId}`);
+      } else {
+        response = await axios.get(
+          `/api/labjob?divId=${divId}&labjobId=${labjobId}`
+        );
+      }
+      // console.log("Person:", response.data.data[0].personId);
+      if (response.data.success) {
+        setSubData(response.data.listperson);
+        if (!isNew && response.data.listperson.length > 0) {
+          setFormData((prev) => ({
+            ...prev,
+            personId: response.data.data[0].personId,
+          }));
         }
-      };
+      }
+    } catch (err) {
+      console.error("❌ Error fetching sub-division data:", err);
+    }
+  };
+
+  // Fetch data when the page loads or labjobId changes
+  useEffect(() => {
+    setLoading(true);
+    // Fetch the labjob list for the dropdown
+    fetchLabjobList();
+
+    if (!isNew) {
+      // Fetch the labjob details if not creating a new labjob
+      fetchLabjobDetails();
+    }
+  }, [isNew, userCreated, labjobId]); // Dependencies to trigger effect
+
+  // Handle dropdown changes
+  useEffect(() => {
+    if (isNew && divPerson) {
+      setFormData((prev) => ({ ...prev, divId: divPerson }));
+    }
+  }, [divPerson, isNew]);
+
+  const handleSelectChange = async (event) => {
+    const value = event.target.value;
+    console.log("Selected value:", value);
+    setFormData((prev) => ({ ...prev, divId: value })); // อัปเดตค่า divId
+    fetchSubDivisionData(value); // ดึงข้อมูลตามค่าที่เลือก
+  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`/api/labjob`, { params: { labId } });
+        setDatacourse(response.data.datacourse[0]);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    if (labId) {
       fetchData();
     }
-  }, [isNew]); // Trigger effect when isNew changes
+  }, [labId]);
 
   return (
     <Content breadcrumb={breadcrumb} title="เตรียมปฏิบัติการ">
@@ -108,7 +199,12 @@ export default function Page() {
           </div>
           <div className="flex gap-1 justify-center items-center p-1 border-b border-gray-200">
             <p className="text-xl text-gray-500">
-              BlO61-192 Basic Medical Biochemistry Laboratory
+              {" "}
+              {datacourse ? datacourse.coursename : " "}
+            </p>
+            <p className="text-xl text-gray-500">
+              {" "}
+              ({datacourse ? datacourse.coursenameeng : " "})
             </p>
           </div>
           <div className="flex gap-1 justify-left items-left p-1 border-b font-semibold">
@@ -121,10 +217,15 @@ export default function Page() {
           </div>
           <div className="flex gap-1 justify-left items-left  ps-16 border-gray-200">
             <p className="text-lg text-gray-700">
-              1 Section จำนวน 2 ห้องปฏิบัติการ
+              {datacourse ? datacourse.labSection : " "}
+              <span> </span>
+              Section จำนวน <span>
+                {datacourse ? datacourse.labroom : " "}
+              </span>{" "}
+              ห้องปฏิบัติการ
             </p>
           </div>
-          <div className="flex gap-1 justify-left items-left p-1 border-gray-200">
+          {/* <div className="flex gap-1 justify-left items-left p-1 border-gray-200">
             <p className="text-lg text-gray-900 p-2 font-medium">
               วันและเวลาเรียน
             </p>
@@ -133,7 +234,7 @@ export default function Page() {
             <p className="text-lg text-gray-700 ">
               วันพฤหัสบดี เวลา 03.00 - 16.00 น. จำนวน 2 ห้องปฏิบัติการ(เคมี 3-4)
             </p>
-          </div>
+          </div> */}
           <form onSubmit={handleSubmit}>
             <div className="flex gap-1 justify-left items-left pt-6 border-b font-semibold">
               <h3 className="text-xl text-gray-900 p-2 boder">
@@ -154,17 +255,38 @@ export default function Page() {
             </div>
             <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
               <label className="text-lg text-gray-900 font-medium w-60">
+                ฝ่าย
+              </label>
+              <select
+                name="divId"
+                value={formData.divId}
+                onChange={handleSelectChange}
+                className="border border-gray-500 p-2 rounded-lg w-full"
+                required>
+                <option value="">-เลือก-</option>
+                {data?.map((item) => (
+                  <option key={item.divisionId} value={item.divisionId}>
+                    {item.divisionThName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
+              <label className="text-lg text-gray-900 font-medium w-60">
                 หัวหน้าบทปฏิบัติการ
               </label>
               <select
                 name="personId"
-                value={formData.personId} // เชื่อมโยงกับ formData.personId
-                onChange={handleChange} // ให้ฟังก์ชัน handleChange อัปเดตค่าของ formData
+                value={formData.personId}
+                onChange={handleChange}
                 className="border border-gray-500 p-2 rounded-lg w-full"
                 required>
-                <option value="">-เลือก-</option>
-                <option value="6300000261">ญาปกา สัมพันธมาศ</option>
-                <option value="6300000263">สุภาพร ทองจันทร์</option>
+                <option value="">- เลือก -</option>
+                {subData.map((person) => (
+                  <option key={person.personId} value={person.personId}>
+                    {person.fullname}
+                  </option>
+                ))}
               </select>
             </div>
 
