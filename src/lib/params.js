@@ -96,7 +96,7 @@ const navigation = [
         id: 21,
         name: "บันทึกใบงานเตรียมปฏิบัติการ",
         icon: FiChevronsRight,
-        href: "/user",
+        href: "/prepare-lab",
       },
       // {
       //   name: "แผนการใช้ทรัพยากร",

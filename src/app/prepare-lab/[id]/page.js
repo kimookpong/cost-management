@@ -10,7 +10,10 @@ import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
 
 export default function Page() {
-  const breadcrumb = [{ name: "เตรียมปฏิบัติการ", link: "/prepare-lab" }];
+  const breadcrumb = [
+    { name: "รายวิชา", link: "/prepare-lab" },
+    { name: "ใบเตรียมปฏิบัติการ" },
+  ];
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,10 +22,9 @@ export default function Page() {
   const { data: session } = useSession();
   const sId = session?.user.person_id;
   const [datacourse, setDatacourse] = useState(null);
-  // const [labjobId, setLabjobId] = useState(null);
   const searchParams = useSearchParams();
   const labId = searchParams.get("labId") || "";
-  console.log(labId);
+  //console.log(labId);
   const _onPressAdd = (labId) => {
     if (!labId) {
       alert("labId ไม่ถูกต้อง");

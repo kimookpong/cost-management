@@ -13,27 +13,39 @@ export async function GET(req) {
   try {
     const data = await executeQuery(
       `SELECT 
-    l.LAB_ID,
-    l.courseid,
-    course.courseid,
-    course.courseunicode,
-    course.courseunit,
-    course.coursename,
-    course.coursenameeng,
-    reg.totalseat,
-    reg.enrollseat,
-    l.labroom,
-    l.section,
-    l.hour
-  FROM cst_labcourse l
-  INNER JOIN PBL_AVSREGCOURSE_V COURSE ON COURSE.COURSEID = l.COURSEID
-  INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = l.SCH_ID
-  INNER JOIN PBL_AVSREGCLASS_V REG 
+    L.LAB_ID,
+    L.COURSEID,
+    COURSE.COURSEID,
+    COURSE.COURSEUNICODE,
+    COURSE.COURSEUNIT,
+    COURSE.COURSENAME,
+    COURSE.COURSENAMEENG,
+    SUM(REG.TOTALSEAT) AS TOTALSEAT,
+    SUM(REG.ENROLLSEAT) AS ENROLLSEAT,
+    L.LABROOM,
+    L.SECTION,
+    L.HOUR
+FROM CST_LABCOURSE L
+INNER JOIN PBL_AVSREGCOURSE_V COURSE ON COURSE.COURSEID = L.COURSEID
+INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = L.SCH_ID
+INNER JOIN PBL_AVSREGCLASS_V REG 
     ON REG.COURSEID = COURSE.COURSEID 
     AND SCH.ACADYEAR = REG.ACADYEAR
-    AND SCH.semester = REG.semester
-  WHERE l.FLAG_DEL = 0
-  AND l.SCH_ID = :schId`,
+    AND SCH.SEMESTER = REG.SEMESTER
+WHERE L.FLAG_DEL = 0
+AND L.SCH_ID = :schId 
+GROUP BY 
+    L.LAB_ID,
+    L.COURSEID,
+    COURSE.COURSEID,
+    COURSE.COURSEUNICODE,
+    COURSE.COURSEUNIT,
+    COURSE.COURSENAME,
+    COURSE.COURSENAMEENG,
+    L.LABROOM,
+    L.SECTION,
+    L.HOUR
+HAVING SUM(REG.TOTALSEAT) > 0`,
       { schId: req.nextUrl.searchParams.get("schId") } // Correct JSON object structure
     );
 

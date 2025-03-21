@@ -1,34 +1,34 @@
 "use client";
-import { useRouter, useSearchParams } from "next/navigation";
-//import { useForm, Controller } from "react-hook-form";
-//import Select from "react-select";
+
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import Content from "@/components/Content";
 import { FiEdit } from "react-icons/fi";
 import TableList from "@/components/TableList";
-export default function Page() {
-  const breadcrumb = [{ name: "เตรียมปฏิบัติการ", link: "/prepare-lab" }];
-  const searchParams = useSearchParams();
-  const router = useRouter();
 
-  const [employees, setEmployees] = useState([]);
+export default function Page() {
+  const router = useRouter(); // Get the router object
+  const breadcrumb = [{ name: "รายวิชา", link: "/prepare-lab" }];
+  const searchParams = useSearchParams();
+  const initialSchId = searchParams.get("schId") || ""; // Get schId from URL
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [schYears, setSchYears] = useState([]);
   const [lab, setLab] = useState([]);
-  const initialSchId = searchParams.get("schId") || ""; // Get schId from URL
   const [schId, setSchId] = useState(initialSchId);
 
   const _onPressAdd = (labId) => {
     router.push(`/prepare-lab/new?labId=${labId}`);
   };
-
+  const _onPressAddasset = (labId) => {
+    router.push(`/prepare-lab/plan-asset?labId=${labId}`);
+  };
   useEffect(() => {
     async function fetchData() {
       try {
         const schYearRes = await axios.get("/api/academic");
-        console.log("Academic Data:", schYearRes.data); // Debugging
+        //console.log("Academic Data:", schYearRes.data); // Debugging
         const fetchedSchYears = schYearRes.data.data || [];
         setSchYears(fetchedSchYears);
         // Set the initial schId where status is 1
@@ -45,7 +45,7 @@ export default function Page() {
           params: { schId },
         });
         const data = response.data;
-        console.log("lab", data);
+        //console.log("lab", data);
         if (response.data.success) {
           setLab(response.data.data || []); // Access `data.data`
         } else {
@@ -107,21 +107,21 @@ export default function Page() {
     },
     {
       key: "enrollseat",
-      content: "เปิดลงทะเบียน/จำนวนนักศึกษา",
-      width: "200",
+      content: "เปิดลง | นักศึกษา",
+      width: "150",
       className: "text-center",
       render: (item) => {
         return (
           <span className="item-center">
-            {item.totalseat} / {item.enrollseat}
+            {item.totalseat} | {item.enrollseat}
           </span>
         );
       },
     },
     {
       key: "labroom",
-      content: " จำนวนห้อง LAB ที่เปิด",
-      width: "200",
+      content: " จำนวนห้อง LAB ",
+      width: "150",
       className: "text-center",
       render: (item) => {
         return <span className="item-center">{item.labroom}</span>;
@@ -129,8 +129,8 @@ export default function Page() {
     },
     {
       key: "section",
-      content: " จำนวนกลุ่ม (กลุ่ม)",
-      width: "200",
+      content: " จำนวนกลุ่ม",
+      width: "120",
       className: "text-center",
     },
     {
@@ -142,15 +142,21 @@ export default function Page() {
     {
       key: "labId",
       content: "จัดการใบเตรียมปฏิบัติการ",
-      width: "200",
+      width: "270",
       className: "text-center",
       render: (item) => (
         <div className="cursor-pointer items-center justify-center flex gap-1">
           <button
             className="cursor-pointer p-2 text-white text-sm bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
             onClick={() => _onPressAdd(item.labId)}>
-            <FiEdit className="w-4 h-4" />
-            จัดการ
+            {/* <FiEdit className="w-4 h-4" /> */}
+            กำหนดหัวหน้าบท
+          </button>
+          <button
+            className="cursor-pointer p-2 text-white text-sm bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+            onClick={() => _onPressAddasset(item.labId)}>
+            {/* <FiEdit className="w-4 h-4" /> */}
+            แผนการใช้ทรัพยากร
           </button>
         </div>
       ),
@@ -158,11 +164,11 @@ export default function Page() {
   ];
 
   return (
-    <Content breadcrumb={breadcrumb} title="เตรียมปฏิบัติการ">
+    <Content breadcrumb={breadcrumb} title="รายวิชาที่เตรียมปฏิบัติการ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <div>
-            <h3 className="font-semibold">เตรียมปฏิบัติการ</h3>
+            <h3 className="font-semibold">รายวิชาที่เตรียมปฏิบัติการ</h3>
           </div>
 
           <div className=" gap-1  justify-end">

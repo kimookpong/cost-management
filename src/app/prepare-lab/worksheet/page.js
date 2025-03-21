@@ -28,7 +28,11 @@ export default function Page() {
   const labjobId = searchParams.get("labjobId");
   const isNew = labjobId === "new";
   const [loading, setLoading] = useState(!isNew);
-  const breadcrumb = [{ name: "เตรียมปฏิบัติการ", link: "/prepare-lab" }];
+  const breadcrumb = [
+    { name: "รายวิชา", link: "/prepare-lab" },
+    { name: "ใบเตรียมปฏิบัติการ", link: "/prepare-lab/new?labId=" + labId },
+    { name: "กำหนดหัวหน้าบทปฏิบัติการ" },
+  ];
   const router = useRouter();
   const [datacourse, setDatacourse] = useState(null);
   const [formData, setFormData] = useState({
@@ -76,7 +80,7 @@ export default function Page() {
       const response = await axios.get(`/api/labjob?sId=${userCreated}`);
       const fetchedDivPerson = response.data.divperson[0].subdivisionId;
       setDivPerson(fetchedDivPerson); // เก็บค่า divPerson
-      console.log("divPerson:", fetchedDivPerson);
+      //console.log("divPerson:", fetchedDivPerson);
       if (response.data.success) {
         setData(response.data.listdiv); // Set the first dropdown data
       }
@@ -170,7 +174,7 @@ export default function Page() {
 
   const handleSelectChange = async (event) => {
     const value = event.target.value;
-    console.log("Selected value:", value);
+    //console.log("Selected value:", value);
     setFormData((prev) => ({ ...prev, divId: value })); // อัปเดตค่า divId
     fetchSubDivisionData(value); // ดึงข้อมูลตามค่าที่เลือก
   };
