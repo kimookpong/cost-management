@@ -98,11 +98,12 @@ const navigation = [
         icon: FiChevronsRight,
         href: "/prepare-lab",
       },
-      // {
-      //   name: "แผนการใช้ทรัพยากร",
-      //   icon: FiChevronsRight,
-      //   href: "/userRole",
-      // },
+      {
+        id: 22,
+        name: "บันทึกการใช้ทรัพยากรตามใบงาน",
+        icon: FiChevronsRight,
+        href: "/prepare-lab",
+      },
       // {
       //   name: "บันทึกการใช้ทรัพยากรตามใบงาน",
       //   icon: FiChevronsRight,

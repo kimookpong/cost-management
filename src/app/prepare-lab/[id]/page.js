@@ -89,8 +89,7 @@ export default function Page() {
 
     fetchData();
   }, [reload]);
-  if (loading) return <p>กำลังโหลด...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
+
   const meta = [
     {
       key: "labjobTitle",

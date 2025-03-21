@@ -77,12 +77,16 @@ export default function Page() {
   // Fetch Labjob list
   const fetchLabjobList = async () => {
     try {
-      const response = await axios.get(`/api/labjob?sId=${userCreated}`);
-      const fetchedDivPerson = response.data.divperson[0].subdivisionId;
+      const response = await axios.get(`/api/assign-course?id=${labId}`);
+      const fetchedDivPerson = response.data.users[0].personId;
       setDivPerson(fetchedDivPerson); // เก็บค่า divPerson
       //console.log("divPerson:", fetchedDivPerson);
       if (response.data.success) {
-        setData(response.data.listdiv); // Set the first dropdown data
+        setData(
+          response.data.users.filter(
+            (user) => user.roleName === "หัวหน้าบทปฏิบัติการ"
+          )
+        ); // Set the first dropdown data
       }
     } catch (err) {
       console.error("❌ Error fetching data:", err);
@@ -262,20 +266,20 @@ export default function Page() {
                 ฝ่าย
               </label>
               <select
-                name="divId"
-                value={formData.divId}
-                onChange={handleSelectChange}
+                name="personId"
+                value={formData.personId}
+                onChange={handleChange}
                 className="border border-gray-500 p-2 rounded-lg w-full"
                 required>
                 <option value="">-เลือก-</option>
                 {data?.map((item) => (
-                  <option key={item.divisionId} value={item.divisionId}>
-                    {item.divisionThName}
+                  <option key={item.personId} value={item.personId}>
+                    {item.fullname}
                   </option>
                 ))}
               </select>
             </div>
-            <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
+            {/* <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
               <label className="text-lg text-gray-900 font-medium w-60">
                 หัวหน้าบทปฏิบัติการ
               </label>
@@ -292,7 +296,7 @@ export default function Page() {
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
 
             <div className="md:col-span-2 flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
               <button

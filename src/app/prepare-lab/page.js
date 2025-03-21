@@ -6,9 +6,13 @@ import axios from "axios";
 import Content from "@/components/Content";
 import { FiEdit } from "react-icons/fi";
 import TableList from "@/components/TableList";
+import { useSession } from "next-auth/react";
 
 export default function Page() {
   const router = useRouter(); // Get the router object
+  const { data: session } = useSession();
+  const userlogin = session?.user.userRole;
+  // console.log("userlogin", userlogin);
   const breadcrumb = [{ name: "รายวิชา", link: "/prepare-lab" }];
   const searchParams = useSearchParams();
   const initialSchId = searchParams.get("schId") || ""; // Get schId from URL
@@ -65,9 +69,9 @@ export default function Page() {
     fetchData();
   }, [schId]);
 
-  if (loading) return <p>กำลังโหลด...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
-  // Define the meta variable if needed
+  // if (loading) return <p>กำลังโหลด...</p>;
+  // if (error) return <p className="text-red-500">{error}</p>;
+  // // Define the meta variable if needed
 
   const meta = [
     {
@@ -139,9 +143,11 @@ export default function Page() {
       width: "200",
       className: "text-center",
     },
-    {
+  ];
+  if (userlogin === "แอดมิน") {
+    meta.push({
       key: "labId",
-      content: "จัดการใบเตรียมปฏิบัติการ",
+      content: "จัดการ",
       width: "270",
       className: "text-center",
       render: (item) => (
@@ -150,7 +156,7 @@ export default function Page() {
             className="cursor-pointer p-2 text-white text-sm bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
             onClick={() => _onPressAdd(item.labId)}>
             {/* <FiEdit className="w-4 h-4" /> */}
-            กำหนดหัวหน้าบท
+            กำหนดปฏิบัติการ
           </button>
           <button
             className="cursor-pointer p-2 text-white text-sm bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
@@ -160,15 +166,37 @@ export default function Page() {
           </button>
         </div>
       ),
-    },
-  ];
-
+    });
+  } else if (userlogin === "หัวหน้าบทปฏิบัติการ") {
+    meta.push({
+      key: "labId",
+      content: "จัดการ",
+      width: "270",
+      className: "text-center",
+      render: (item) => (
+        <div className="cursor-pointer items-center justify-center flex gap-1">
+          <button
+            className="cursor-pointer p-2 text-white text-sm bg-indigo-500 hover:bg-indigo-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+            onClick={() => _onPressAdd(item.labId)}>
+            {/* <FiEdit className="w-4 h-4" /> */}
+            การใช้ทรัพยากรและอุปกรณ์ชำรุด
+          </button>
+        </div>
+      ),
+    });
+  }
+  let title;
+  if (userlogin === "หัวหน้าบทปฏิบัติการ" || userlogin === "แอดมิน") {
+    title = "รายวิชา";
+  } else if (userlogin === "แอดมิน") {
+    title = "รายวิชาที่เตรียมปฏิบัติการ";
+  }
   return (
-    <Content breadcrumb={breadcrumb} title="รายวิชาที่เตรียมปฏิบัติการ">
+    <Content breadcrumb={breadcrumb} title={title}>
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <div>
-            <h3 className="font-semibold">รายวิชาที่เตรียมปฏิบัติการ</h3>
+            <h3 className="font-semibold">{title}</h3>
           </div>
 
           <div className=" gap-1  justify-end">
@@ -183,7 +211,7 @@ export default function Page() {
                 onChange={(e) => setSchId(e.target.value)}>
                 {schYears.map((item) => (
                   <option key={item.schId} value={item.schId}>
-                    {item.acadyear} / {item.semester}
+                    {item.semester} / {item.acadyear}
                   </option>
                 ))}
               </select>
