@@ -81,7 +81,7 @@ export default function List() {
       width: "100",
       render: (item) => (
         <div>
-          เทอม {item.semester}/{item.acadyear}
+           {item.semester}/{item.acadyear}
         </div>
       ),
     },
@@ -90,8 +90,8 @@ export default function List() {
       content: "รายวิชา",
       render: (item) => (
         <div className="flex flex-col">
-          <p className="block">{item.coursename}</p>
-          <p className="block opacity-70">รหัสวิชา : {item.coursecode}</p>
+          <p className="block">{item.coursecode} {item.coursename}</p>
+           
         </div>
       ),
     },
