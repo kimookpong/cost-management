@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Content from "@/components/Content";
-import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
+import { FiPlus, FiEdit, FiTrash2, FiChevronLeft } from "react-icons/fi";
 import TableList from "@/components/TableList";
 import Swal from "sweetalert2";
 import { useSession } from "next-auth/react";
@@ -14,12 +14,13 @@ export default function Page() {
     { name: "รายวิชา", link: "/prepare-lab" },
     { name: "ใบเตรียมปฏิบัติการ" },
   ];
-  const router = useRouter();
+  const router = useRouter(); // Get the router object
+  const { data: session } = useSession();
+  const userlogin = session?.user.userRole;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reload, setReload] = useState(0);
   const [labjob, setLabjob] = useState([]);
-  const { data: session } = useSession();
   const sId = session?.user.person_id;
   const [datacourse, setDatacourse] = useState(null);
   const searchParams = useSearchParams();
@@ -33,6 +34,18 @@ export default function Page() {
     router.push(
       `/prepare-lab/worksheet?labId=${labId}&labjobId=new&sId=${sId}`
     );
+  };
+  const _onPressAsset = (labId, labjobId) => {
+    console.log("labId", labId);
+    console.log("labjobId", labjobId);
+    if (!labId) {
+      alert("labId ไม่ถูกต้อง");
+      return;
+    }
+    //  router.push(
+    //    `/prepare-lab/worksheet?labId=${labId}&labjobId=new&sId=${sId}`
+    //  );
+    router.push(`/prepare-lab/Use-asset?id=${labId}&labjobId=${labjobId}`);
   };
   const _onPressEdit = (labjobId) => {
     if (!labjobId) {
@@ -104,8 +117,37 @@ export default function Page() {
         return <span className="item-center">{item.fullname}</span>;
       },
     },
-
-    {
+  ];
+  let button;
+  if (userlogin === "หัวหน้าบทปฏิบัติการ") {
+    button = " ";
+    meta.push({
+      key: "labjobId",
+      content: "จัดการ",
+      width: "200",
+      className: "text-center",
+      render: (item) => (
+        <div className="cursor-pointer items-center justify-center flex gap-1">
+          <button
+            className="cursor-pointer p-2 text-white text-sm bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+            onClick={() => _onPressAsset(item.labId, item.labjobId)}>
+            <FiEdit className="w-4 h-4" />
+            การใช้ทรัพยากร
+          </button>
+        </div>
+      ),
+    });
+  } else {
+    button = (
+      <button
+        className="cursor-pointer p-3 text-white text-sm bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+        onClick={() => _onPressAdd(labId)}
+        disabled={!labId}>
+        <FiPlus className="w-4 h-4" />
+        เพิ่มใบงานเตรียมปฏิบัติการ
+      </button>
+    );
+    meta.push({
       key: "labjobId",
       content: "จัดการใบเตรียมปฏิบัติการ",
       width: "200",
@@ -126,11 +168,21 @@ export default function Page() {
           </button>
         </div>
       ),
-    },
-  ];
+    });
+  }
   return (
     <Content breadcrumb={breadcrumb} title="เตรียมปฏิบัติการ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+        <div className="flex gap-1 p-4">
+          <button
+            type="button"
+            className="cursor-pointer p-3 text-white text-sm bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+            onClick={() => router.back()}>
+            <FiChevronLeft className="w-4 h-4" />
+            ย้อนกลับ
+          </button>
+          <span className="flex-1"></span>
+        </div>
         <div className="p-4 border-b border-gray-200 items-center">
           <div className="flex gap-1 justify-center items-center p-4">
             <h3 className="font-semibold text-2xl">ใบเตรียมปฏิบัติการ</h3>
@@ -178,15 +230,7 @@ export default function Page() {
               รายการเตรียมปฏิบัติการ
             </h3>
           </div>
-          <div className="p-2 mr-4 flex justify-end items-center">
-            <button
-              className="cursor-pointer p-3 text-white text-sm bg-yellow-600 hover:bg-yellow-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
-              onClick={() => _onPressAdd(labId)}
-              disabled={!labId}>
-              <FiPlus className="w-4 h-4" />
-              เพิ่มใบงานเตรียมปฏิบัติการ
-            </button>
-          </div>
+          <div className="p-2 mr-4 flex justify-end items-center">{button}</div>
         </div>
         <div className="p-2 overflow-auto responsive">
           {error ? (

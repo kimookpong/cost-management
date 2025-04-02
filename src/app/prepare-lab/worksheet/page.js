@@ -263,7 +263,7 @@ export default function Page() {
             </div>
             <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
               <label className="text-lg text-gray-900 font-medium w-60">
-                ฝ่าย
+                หัวหน้าบทปฏิบัติการ
               </label>
               <select
                 name="personId"

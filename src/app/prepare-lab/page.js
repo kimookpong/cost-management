@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 export default function Page() {
   const router = useRouter(); // Get the router object
   const { data: session } = useSession();
+  //console.log("session", session);
   const userlogin = session?.user.userRole;
   // console.log("userlogin", userlogin);
   const breadcrumb = [{ name: "รายวิชา", link: "/prepare-lab" }];
@@ -26,7 +27,7 @@ export default function Page() {
     router.push(`/prepare-lab/new?labId=${labId}`);
   };
   const _onPressAddasset = (labId) => {
-    router.push(`/prepare-lab/plan-asset?labId=${labId}`);
+    router.push(`/prepare-lab/plan-asset?id=${labId}`);
   };
   useEffect(() => {
     async function fetchData() {
@@ -186,10 +187,10 @@ export default function Page() {
     });
   }
   let title;
-  if (userlogin === "หัวหน้าบทปฏิบัติการ" || userlogin === "แอดมิน") {
-    title = "รายวิชา";
+  if (userlogin === "หัวหน้าบทปฏิบัติการ") {
+    title = "ใบงานปฏิบัติการตามรายวิชา";
   } else if (userlogin === "แอดมิน") {
-    title = "รายวิชาที่เตรียมปฏิบัติการ";
+    title = "บันทึกใบงานเตรียมปฏิบัติการตามรายวิชา";
   }
   return (
     <Content breadcrumb={breadcrumb} title={title}>
