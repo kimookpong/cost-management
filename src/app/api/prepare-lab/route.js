@@ -10,6 +10,20 @@ async function getSemester() {
   );
 }
 export async function GET(req) {
+  // const schId = req.nextUrl.searchParams.get("schId");
+  const userIdlogin = req.nextUrl.searchParams.get("userIdlogin");
+  const userlogin = req.nextUrl.searchParams.get("userlogin");
+  console.log("userlogin", userlogin);
+  console.log("userIdlogin", userIdlogin);
+  let sql;
+  let sql2;
+  if (userlogin === "หัวหน้าบทปฏิบัติการ") {
+    sql = `INNER JOIN CST_LABJOB LB ON L.LAB_ID = LB.LAB_ID`;
+    sql2 = `AND LB.PERSON_ID = ${userIdlogin}`;
+  } else if (userlogin === "แอดมิน") {
+    sql = ``;
+    sql2 = ``;
+  }
   try {
     const data = await executeQuery(
       `SELECT 
@@ -32,7 +46,9 @@ INNER JOIN PBL_AVSREGCLASS_V REG
     ON REG.COURSEID = COURSE.COURSEID 
     AND SCH.ACADYEAR = REG.ACADYEAR
     AND SCH.SEMESTER = REG.SEMESTER
+    ${sql}
 WHERE L.FLAG_DEL = 0
+${sql2}
 AND L.SCH_ID = :schId 
 GROUP BY 
     L.LAB_ID,

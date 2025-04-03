@@ -7,6 +7,8 @@ export async function GET(req) {
     const labId = req.nextUrl.searchParams.get("labId");
     const sId = req.nextUrl.searchParams.get("sId");
     const divId = req.nextUrl.searchParams.get("divId");
+    const userloginId = req.nextUrl.searchParams.get("userloginId");
+    const userlogin = req.nextUrl.searchParams.get("userlogin");
     console.log("🔍 GET API - labjobId:", labjobId);
     console.log("🔍 GET API - labId:", labId);
     console.log("🔍 GET API - sId:", sId);
@@ -32,19 +34,30 @@ export async function GET(req) {
       query += " AND L.LAB_ID = :labId";
       params.labId = labId;
     }
+    if (userloginId) {
+      query += " AND L.PERSON_ID = :userloginId";
+      params.userloginId = userloginId;
+    }
     console.log("SQL Query:", query);
     console.log("Parameters:", params);
     const data = await executeQuery(query, params);
+    console.log("Data:", data); // Log the data for debugging
 
     // ดึงข้อมูล labjoblist
-    const labjoblist = await executeQuery(
-      `SELECT L.*, P.TITLE_NAME || P.FIRST_NAME || ' ' || P.LAST_NAME AS FULLNAME 
+    // let labjoblist ;
+    let labjoblist2 = `SELECT L.*, P.TITLE_NAME || P.FIRST_NAME || ' ' || P.LAST_NAME AS FULLNAME 
        FROM CST_LABJOB L
        INNER JOIN PBL_VPER_PERSON P 
        ON L.PERSON_ID = P.PERSON_ID
-       WHERE L.FLAG_DEL = 0 AND L.LAB_ID = :labId`,
-      { labId }
-    );
+       WHERE L.FLAG_DEL = 0 AND L.LAB_ID = :labId`;
+    let params2 = { labId };
+    if (userloginId && userlogin === "หัวหน้าบทปฏิบัติการ") {
+      labjoblist2 += " AND L.PERSON_ID = :userloginId";
+      params2.userloginId = userloginId;
+    } else if (userlogin === "แอดมิน") {
+      labjoblist2 += " ";
+    }
+    const labjoblist = await executeQuery(labjoblist2, params2);
     const listdiv = await executeQuery(
       `SELECT * from PBL_VORG_DIVISION
       WHERE DIVISION_PARENT_ID = 

@@ -13,7 +13,8 @@ export default function Page() {
   const { data: session } = useSession();
   //console.log("session", session);
   const userlogin = session?.user.userRole;
-  // console.log("userlogin", userlogin);
+  const userIdlogin = session?.user.person_id;
+  console.log("userIdlogin", userIdlogin);
   const breadcrumb = [{ name: "รายวิชา", link: "/prepare-lab" }];
   const searchParams = useSearchParams();
   const initialSchId = searchParams.get("schId") || ""; // Get schId from URL
@@ -47,8 +48,9 @@ export default function Page() {
         }
 
         const response = await axios.get(`/api/prepare-lab`, {
-          params: { schId },
+          params: { schId, userIdlogin, userlogin },
         });
+
         const data = response.data;
         //console.log("lab", data);
         if (response.data.success) {

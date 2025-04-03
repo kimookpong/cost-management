@@ -17,6 +17,7 @@ export default function Page() {
   const router = useRouter(); // Get the router object
   const { data: session } = useSession();
   const userlogin = session?.user.userRole;
+  const userloginId = session?.user.person_id;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [reload, setReload] = useState(0);
@@ -83,7 +84,9 @@ export default function Page() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await axios.get(`/api/labjob`, { params: { labId } });
+        const response = await axios.get(`/api/labjob`, {
+          params: { labId, userloginId, userlogin },
+        });
         setDatacourse(response.data.datacourse[0]);
         if (response.data.labjoblist) {
           const labjoblist = response.data.labjoblist;
