@@ -253,18 +253,19 @@ export default function Detail() {
       inventForm.resetForm();
     },
   });
-
   useEffect(() => {
     if (inventForm.values.assetId) {
-      setAssetInfo(
-        invent.find(
-          (inv) => inv.assetId === parseInt(inventForm.values.assetId)
-        )
+      const found = invent.find(
+        (inv) => inv.assetId === parseInt(inventForm.values.assetId)
       );
+      setAssetInfo(found || null);
     } else {
       setAssetInfo(null);
     }
-  }, [inventForm.values.assetId]);
+  }, [inventFormModal, inventForm.values.assetId]);
+  useEffect(() => {
+    fetchData();
+  }, [labId, searchParams.get("id")]);
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -337,9 +338,6 @@ export default function Detail() {
       setLoading(false);
     }
   };
-  useEffect(() => {
-    fetchData();
-  }, [labId, searchParams.get("id")]);
 
   const breadcrumb = [
     // { name: "แผนการให้บริการห้องปฎิบัติการ" },
@@ -369,7 +367,6 @@ export default function Detail() {
   };
 
   const _onPressAddInvent = async (type) => {
-    setInventFormModal(true);
     inventForm.setValues({
       labassetId: "",
       assetId: "",
@@ -380,10 +377,10 @@ export default function Detail() {
       userId: session?.user.person_id,
     });
     await _callInvent(type);
+    setInventFormModal(true);
   };
 
   const _onPressEditInvent = async (id, type) => {
-    setInventFormModal(true);
     // fetchData();
     let asset;
     if (type === 1) {
@@ -402,7 +399,10 @@ export default function Detail() {
       type: type,
       userId: session?.user.person_id,
     });
+    // const info = invent.find((inv) => inv.assetId === asset.assetId);
+    // setAssetInfo(info || null);
     await _callInvent(type);
+    setInventFormModal(true);
   };
 
   const _onPressDeleteInvent = async (id, type) => {
