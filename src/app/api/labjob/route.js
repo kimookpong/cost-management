@@ -9,10 +9,10 @@ export async function GET(req) {
     const divId = req.nextUrl.searchParams.get("divId");
     const userloginId = req.nextUrl.searchParams.get("userloginId");
     const userlogin = req.nextUrl.searchParams.get("userlogin");
-    console.log("🔍 GET API - labjobId:", labjobId);
-    console.log("🔍 GET API - labId:", labId);
-    console.log("🔍 GET API - sId:", sId);
-    console.log("🔍 GET API - sId:", divId);
+    // console.log("🔍 GET API - labjobId:", labjobId);
+    // console.log("🔍 GET API - labId:", labId);
+    // console.log("🔍 GET API - sId:", sId);
+    // console.log("🔍 GET API - sId:", divId);
 
     let query = `
       SELECT L.*, P.TITLE_NAME || P.FIRST_NAME || ' ' || P.LAST_NAME AS FULLNAME ,P.SUBDIVISION_ID
@@ -38,10 +38,10 @@ export async function GET(req) {
       query += " AND L.PERSON_ID = :userloginId";
       params.userloginId = userloginId;
     }
-    console.log("SQL Query:", query);
-    console.log("Parameters:", params);
+    // console.log("SQL Query:", query);
+    // console.log("Parameters:", params);
     const data = await executeQuery(query, params);
-    console.log("Data:", data); // Log the data for debugging
+    // console.log("Data:", data); // Log the data for debugging
 
     // ดึงข้อมูล labjoblist
     // let labjoblist ;
