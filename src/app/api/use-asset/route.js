@@ -132,7 +132,9 @@ export async function GET(req) {
         INNER JOIN CST_INVBRAND BRAND
           ON INV.BRAND_ID = BRAND.BRAND_ID
         WHERE ASSET.FLAG_DEL = 0
-        AND ASSET.LABJOB_ID = :labjobId`,
+        AND ASSET.LABJOB_ID = :labjobId 
+        ORDER BY LABJOB_ASSET_ID DESC
+        `,
         { labjobId }
       );
       const assetbroken = await executeQuery(
@@ -155,7 +157,8 @@ export async function GET(req) {
         INNER JOIN CST_INVBRAND BRAND
           ON INV.BRAND_ID = BRAND.BRAND_ID
         WHERE ASSET.FLAG_DEL = 0
-        AND ASSET.LABJOB_ID = :labjobId`,
+        AND ASSET.LABJOB_ID = :labjobId 
+        ORDER BY ASSET_BROKEN_ID DESC`,
         { labjobId }
       );
       const course = await getCourse(data[0].courseid);

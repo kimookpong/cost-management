@@ -437,11 +437,11 @@ export default function Detail() {
   };
 
   return (
-    <Content breadcrumb={breadcrumb} title=" แผนการใช้ทรัพยากร : ตามรายวิชา">
+    <Content breadcrumb={breadcrumb} title=" แผนการใช้ทรัพยากร ">
       <div className="relative flex flex-col w-full text-gray-900 dark:text-gray-300 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
-            {isNew ? "แผนการใช้ทรัพยากร" : "แผนการใช้ทรัพยากร"} :{" "}
+            {isNew ? "แผนการใช้ทรัพยากร" : "แผนการใช้ทรัพยากร"} : {"รายวิชา"} {" "}
             {data.course?.coursename} ({data.course?.coursecode})
           </h3>
         </div>

@@ -174,6 +174,7 @@ export default function Detail() {
       labjobId: labjobId, // Ensure labjobId is properly passed in
       assetUsedRemark: "",
     },
+    validationSchema: validationInventForm,
     onSubmit: async (values, { resetForm }) => {
       try {
         const response = await fetch("/api/use-asset/broken", {
