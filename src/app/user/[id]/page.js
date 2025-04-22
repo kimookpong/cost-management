@@ -23,6 +23,7 @@ export default function Detail() {
   const [loading, setLoading] = useState(!isNew);
 
   const [roleOptions, setRoleOptions] = useState([]);
+  const [labgroupOptions, setLabgroupOptions] = useState([]);
 
   const validationSchema = Yup.object({
     personId: Yup.string().required("กรุณาเลือกผู้ใช้"),
@@ -65,9 +66,11 @@ export default function Detail() {
             personId: user.personId || "",
             role: user.role?.toString() || "1",
             statusId: user.statusId?.toString() || "1",
+            labgroupId: user.labgroupId || "",
           });
 
           setRoleOptions(data.role);
+          setLabgroupOptions(data.labgroup);
 
           setLoading(false);
         } else {
@@ -119,7 +122,7 @@ export default function Detail() {
                 )}
               </div>
 
-              <div className="sm:col-span-6">
+              <div className="sm:col-span-4">
                 <label className={className.label}>สิทธิการใช้งาน</label>
                 <div className="mt-2 grid grid-cols-1">
                   <select
@@ -137,7 +140,28 @@ export default function Detail() {
                 </div>
               </div>
 
-              <div className="sm:col-span-6">
+              <div className="sm:col-span-4">
+                <label className={className.label}>กลุ่มห้องปฎิบัติการ</label>
+                <div className="mt-2 grid grid-cols-1">
+                  <select
+                    name="labgroupId"
+                    value={formik.values.labgroupId}
+                    onChange={formik.handleChange}
+                    className={className.select}
+                  >
+                    {labgroupOptions.map((labgroup) => (
+                      <option
+                        key={labgroup.labgroupId}
+                        value={labgroup.labgroupId}
+                      >
+                        {labgroup.labgroupName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="sm:col-span-4">
                 <label className={className.label}>สถานะ</label>
                 <div className="mt-2 grid grid-cols-1">
                   <select

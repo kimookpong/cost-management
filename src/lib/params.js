@@ -113,8 +113,8 @@ const navigation = [
   },
   {
     id: 5,
-    name: "รายงานต้นทุน",
-    description: "รายงานต้นทุน",
+    name: "รายงานต่างๆ",
+    description: "รายงานต่างๆ",
     icon: FiArchive,
     child: [
       {
@@ -122,6 +122,12 @@ const navigation = [
         name: "รายงานแผนการใช้บริการห้องปฎิบัติการ",
         icon: FiChevronsRight,
         href: "/report/assign-course",
+      },
+      {
+        id: 52,
+        name: "รายงานสรุปหัวข้อใบงานเตรียมปฏิบัติการตามรายวิชา",
+        icon: FiChevronsRight,
+        href: "/report/prepare-lab",
       },
     ],
   },

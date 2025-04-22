@@ -83,6 +83,16 @@ export default function List() {
     {
       key: "roleName",
       content: "สิทธิ์การใช้งาน",
+      render: (item) => {
+        return (
+          <div className="min-w-0 flex-auto">
+            <p className="font-semibold">{item.roleName}</p>
+            <p className="mt-1 truncate text-xs/5 text-gray-500">
+              {item.labgroupName}
+            </p>
+          </div>
+        );
+      },
     },
     {
       key: "statusId",
@@ -155,7 +165,12 @@ export default function List() {
           {error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (
-            <TableList meta={meta} data={employees} loading={loading} exports={false} />
+            <TableList
+              meta={meta}
+              data={employees}
+              loading={loading}
+              exports={false}
+            />
             // <TableList meta={meta} data={employees} loading={loading}  />
           )}
         </div>
