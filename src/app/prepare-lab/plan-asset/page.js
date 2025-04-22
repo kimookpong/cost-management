@@ -128,42 +128,51 @@ export default function Detail() {
       .nullable()
       .max(100, "ข้อความต้องไม่เกิน 100 ตัวอักษร"),
   });
+  const saveLabAsset = async (values) => {
+    try {
+      const payload = {
+        labassetId: values.labassetId, // ถ้ามี = ใช้ PUT
+        labId: values.labId || searchParams.get("id"),
+        assetId: values.assetId,
+        amount: values.amount,
+        assetRemark: values.assetRemark || "",
+        userId: values.userId,
+      };
 
-  const validationUserForm = Yup.object({
-    personId: Yup.string().required("กรุณาเลือกข้อมูล"),
-    roleId: Yup.string().required("กรุณาเลือกข้อมูล"),
-  });
-
-  const userForm = useFormik({
-    initialValues: {
-      courseUserId: "",
-      labId: "",
-      personId: "",
-      fullname: "",
-      roleId: "",
-    },
-    validationSchema: validationUserForm,
-    onSubmit: async (values) => {
-      values.userId = session?.user.person_id;
-      values.fullname = data.users.find(
-        (item) => parseInt(item.personId) === parseInt(values.personId)
-      )?.fullname;
-
-      if (values.courseUserId) {
-        setCourseUser((prevItem) =>
-          prevItem.map((item) =>
-            item.courseUserId === values.courseUserId ? values : item
-          )
-        );
-      } else {
-        values.courseUserId = uuidv4();
-        setCourseUser((prevItem) => [...prevItem, values]);
+      if (
+        !payload.labId ||
+        !payload.assetId ||
+        !payload.amount ||
+        !payload.userId
+      ) {
+        toastDialog("ข้อมูลไม่ครบถ้วน โปรดตรวจสอบ", "error");
+        return;
       }
-      console.log("values", values);
-      setUserFormModal(false);
-      userForm.resetForm();
-    },
-  });
+
+      // ถ้ามี labassetId ให้ใช้ PUT แทน POST
+      if (payload.labassetId) {
+        await axios.put(`/api/use-asset/plnasset`, { labaset: payload });
+      } else {
+        await axios.post(`/api/use-asset/plnasset`, { labaset: payload });
+      }
+
+      localStorage.setItem("labCourseAssetData", JSON.stringify(payload));
+      toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
+      setInventFormModal(false);
+
+      // รีโหลดข้อมูล
+      fetchData();
+
+      // ดึงข้อมูลล่าสุดอีกครั้ง
+      await axios.get(`/api/assign-course?id=${payload.labId}`);
+
+      // เปลี่ยนหน้า
+      await router.push(`/prepare-lab/plan-asset?id=${payload.labId}`);
+    } catch (error) {
+      console.error("Error saving lab course asset:", error);
+      toastDialog("เกิดข้อผิดพลาดในการบันทึก", "error");
+    }
+  };
 
   const inventForm = useFormik({
     initialValues: {
@@ -239,112 +248,96 @@ export default function Detail() {
           }));
         }
       }
-
+      await saveLabAsset(values);
       setInventFormModal(false);
       inventForm.resetForm();
     },
   });
-
   useEffect(() => {
     if (inventForm.values.assetId) {
-      setAssetInfo(
-        invent.find(
-          (inv) => inv.assetId === parseInt(inventForm.values.assetId)
-        )
+      const found = invent.find(
+        (inv) => inv.assetId === parseInt(inventForm.values.assetId)
       );
+      setAssetInfo(found || null);
     } else {
       setAssetInfo(null);
     }
-  }, [inventForm.values.assetId]);
+  }, [inventFormModal, inventForm.values.assetId]);
   useEffect(() => {
-    if (!isNew) {
+    fetchData();
+  }, [labId, searchParams.get("id")]);
+  const fetchData = async () => {
+    try {
       setLoading(true);
-      const fetchData = async () => {
-        try {
-          const response = await axios.get(`/api/assign-course?id=${labId}`);
-          const data = response.data;
-          if (data.success) {
-            setData({
-              course: data.course,
-              class: data.class,
-              users: data.users,
-              labgroup: data.labgroup,
-            });
+      let response;
 
-            const form = data.data;
-            formik.setValues({
-              courseid: form.courseid,
-              labgroupId: form.labgroupId,
-              schId: form.schId,
-              acadyear: form.acadyear,
-              semester: form.semester,
-              section: form.section,
-              labroom: form.labroom,
-              hour: form.hour,
-              labgroupNum: form.labgroupNum,
-              personId: form.personId,
-              userId: session?.user.person_id,
-            });
+      if (!isNew) {
+        response = await axios.get(`/api/assign-course?id=${labId}`);
+      } else {
+        response = await axios.get(`/api/assign-course`, {
+          params: {
+            courseId: searchParams.get("courseId"),
+            schId: searchParams.get("schId"),
+          },
+        });
+      }
 
-            setLabasset({
-              type1: data.labasset?.filter((item) => item.type === 1) || [],
-              type2: data.labasset?.filter((item) => item.type === 2) || [],
-              type3: data.labasset?.filter((item) => item.type === 3) || [],
-            });
+      const data = response.data;
 
-            setCourseUser(data.courseUser);
+      if (data.success) {
+        setData({
+          course: data.course,
+          class: data.class,
+          users: data.users,
+          labgroup: data.labgroup,
+        });
 
-            setLoading(false);
-          }
-        } catch (err) {
-          console.error("❌ Error fetching data:", err);
-          toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
-        }
-      };
-      fetchData();
-    } else {
-      setLoading(true);
-      const fetchData = async () => {
-        try {
-          const response = await axios.get(`/api/assign-course`, {
-            params: {
-              courseId: searchParams.get("courseId"),
-              schId: searchParams.get("schId"),
-            },
+        if (!isNew) {
+          const form = data.data;
+          formik.setValues({
+            courseid: form.courseid,
+            labgroupId: form.labgroupId,
+            schId: form.schId,
+            acadyear: form.acadyear,
+            semester: form.semester,
+            section: form.section,
+            labroom: form.labroom,
+            hour: form.hour,
+            labgroupNum: form.labgroupNum,
+            personId: form.personId,
+            userId: session?.user.person_id,
           });
-          const data = response.data;
 
-          if (data.success) {
-            setData({
-              course: data.course,
-              class: data.class,
-              users: data.users,
-              labgroup: data.labgroup,
-            });
-            formik.setValues({
-              courseid: data.course?.courseid,
-              labgroupId: "",
-              schId: searchParams.get("schId"),
-              acadyear: data.class?.[0]?.acadyear,
-              semester: data.class?.[0]?.semester,
-              section: data.class?.length,
-              labroom: "",
-              hour: "",
-              labgroupNum: "",
-              personId: "",
-              userId: session?.user.person_id,
-            });
+          setLabasset({
+            type1: data.labasset?.filter((item) => item.type === 1) || [],
+            type2: data.labasset?.filter((item) => item.type === 2) || [],
+            type3: data.labasset?.filter((item) => item.type === 3) || [],
+          });
 
-            setLoading(false);
-          }
-        } catch (err) {
-          console.error("❌ Error fetching data:", err);
-          toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
+          setCourseUser(data.courseUser);
+        } else {
+          formik.setValues({
+            courseid: data.course?.courseid,
+            labgroupId: "",
+            schId: searchParams.get("schId"),
+            acadyear: data.class?.[0]?.acadyear,
+            semester: data.class?.[0]?.semester,
+            section: data.class?.length,
+            labroom: "",
+            hour: "",
+            labgroupNum: "",
+            personId: "",
+            userId: session?.user.person_id,
+          });
         }
-      };
-      fetchData();
+      }
+    } catch (err) {
+      console.error("❌ Error fetching data:", err);
+      toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
+    } finally {
+      setLoading(false);
     }
-  }, [labId]);
+  };
 
   const breadcrumb = [
     // { name: "แผนการให้บริการห้องปฎิบัติการ" },
@@ -374,7 +367,6 @@ export default function Detail() {
   };
 
   const _onPressAddInvent = async (type) => {
-    setInventFormModal(true);
     inventForm.setValues({
       labassetId: "",
       assetId: "",
@@ -385,32 +377,11 @@ export default function Detail() {
       userId: session?.user.person_id,
     });
     await _callInvent(type);
-  };
-
-  const _onPressAddUser = async () => {
-    setUserFormModal(true);
-    inventForm.setValues({
-      labassetId: "",
-      personId: "",
-      roleId: "",
-      flagDel: 0,
-      userId: session?.user.person_id,
-    });
-  };
-
-  const _onPressEditUser = async (id) => {
-    setUserFormModal(true);
-    const asset = courseUser.find((item) => item.courseUserId === id);
-    userForm.setValues({
-      courseUserId: asset.courseUserId,
-      personId: asset.personId,
-      roleId: asset.roleId,
-      userId: session?.user.person_id,
-    });
+    setInventFormModal(true);
   };
 
   const _onPressEditInvent = async (id, type) => {
-    setInventFormModal(true);
+    // fetchData();
     let asset;
     if (type === 1) {
       asset = labasset.type1.find((item) => item.labassetId === id);
@@ -419,7 +390,6 @@ export default function Detail() {
     } else if (type === 3) {
       asset = labasset.type3.find((item) => item.labassetId === id);
     }
-
     inventForm.setValues({
       labassetId: asset.labassetId,
       assetId: asset.assetId,
@@ -429,19 +399,10 @@ export default function Detail() {
       type: type,
       userId: session?.user.person_id,
     });
+    // const info = invent.find((inv) => inv.assetId === asset.assetId);
+    // setAssetInfo(info || null);
     await _callInvent(type);
-  };
-
-  const _onPressDeleteUser = async (id) => {
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
-    if (result.isConfirmed) {
-      setCourseUser((prevItem) =>
-        prevItem.filter((item) => item.courseUserId !== id)
-      );
-    }
+    setInventFormModal(true);
   };
 
   const _onPressDeleteInvent = async (id, type) => {
@@ -475,17 +436,12 @@ export default function Detail() {
     inventForm.resetForm();
   };
 
-  const _onCloseUserForm = (status) => {
-    setUserFormModal(status);
-    inventForm.resetForm();
-  };
-
   return (
-    <Content breadcrumb={breadcrumb} title=" แผนการใช้ทรัพยากร : ตามรายวิชา">
+    <Content breadcrumb={breadcrumb} title=" แผนการใช้ทรัพยากร ">
       <div className="relative flex flex-col w-full text-gray-900 dark:text-gray-300 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
-            {isNew ? "แผนการใช้ทรัพยากร" : "แผนการใช้ทรัพยากร"} :{" "}
+            {isNew ? "แผนการใช้ทรัพยากร" : "แผนการใช้ทรัพยากร"} : {"รายวิชา"} {" "}
             {data.course?.coursename} ({data.course?.coursecode})
           </h3>
         </div>
@@ -868,7 +824,7 @@ export default function Detail() {
             </div>
 
             <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
-              <button
+              {/* <button
                 type="button"
                 className="cursor-pointer p-3 text-white text-sm bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
                 onClick={() => router.back()}>
@@ -879,7 +835,7 @@ export default function Detail() {
                 type="submit"
                 className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
                 บันทึกข้อมูล
-              </button>
+              </button> */}
             </div>
           </form>
         )}

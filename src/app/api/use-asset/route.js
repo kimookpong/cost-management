@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { executeQuery } from "@/lib/oracle";
-
 async function getSemester() {
   return await executeQuery(
     `SELECT SCH_ID, ACADYEAR, SEMESTER 
@@ -77,249 +76,6 @@ async function getClass(courseId, schId) {
   );
 }
 
-const saveCourseUser = async (courseUser, id) => {
-  if (courseUser) {
-    await executeQuery(`DELETE FROM CST_LABCOURSE_USER WHERE LAB_ID = :id`, {
-      id,
-    });
-
-    courseUser.map(async (user) => {
-      await executeQuery(
-        `INSERT INTO CST_LABCOURSE_USER (LAB_ID, PERSON_ID, ROLE_ID, DATE_CREATED, USER_CREATED)
-        VALUES (:id, :personId, :roleId, SYSDATE, :userCreated)`,
-        {
-          id,
-          personId: user.personId,
-          roleId: user.roleId,
-          userCreated: user.userId,
-        }
-      );
-    });
-  }
-};
-
-const saveLabasset = async (uselabasset, id) => {
-  if (uselabasset) {
-    // await executeQuery(`DELETE FROM CST_LABJOB_ASSET WHERE LABJOB_ID = :id`, {
-    //   id,
-    // });
-
-    await Promise.all(
-      uselabasset.type1.map(async (asset) => {
-        console.log("asset", asset);
-        const userCreated = asset.labjobAssetId
-          ? "USER_UPDATED"
-          : "USER_CREATED";
-        const dateColumn = asset.labjobAssetId
-          ? "DATE_UPDATED"
-          : "DATE_CREATED"; // ใช้ชื่อคอลัมน์ที่ถูกต้อง
-        if (!asset.labjobAssetId) {
-          console.log("❌ Missing labjobAssetId:", asset);
-          try {
-            const result = await executeQuery(
-              `SELECT CST_LABJOB_ASSET_SEQ.NEXTVAL AS ID FROM DUAL`
-            );
-            if (result && result[0] && result[0].id) {
-              console.log("Returned ID:", result[0].id);
-              asset.labjobAssetId = result[0].id;
-            } else {
-              console.log("❌ No ID returned from query");
-              return; // หยุดทำงานหากไม่ได้ค่า ID
-            }
-          } catch (error) {
-            console.error("❌ Error getting labjobAssetId:", error);
-            return;
-          }
-
-          try {
-            const insertResult = await executeQuery(
-              `INSERT INTO CST_LABJOB_ASSET 
-            (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED, ASSET_USED_REMARK, ${dateColumn}, ${userCreated},ASSETEXTRA_FLAG) 
-          VALUES (:labjobAssetId, :labjobId, :assetId, :amount, :assetRemark, SYSDATE, :userCreated,:assetExtraFlag)`,
-              {
-                labjobAssetId: asset.labjobAssetId,
-                labjobId: id,
-                assetId: asset.assetId,
-                amount: asset.amountUsed,
-                assetRemark: asset.assetUsedRemark || "",
-                userCreated: asset.userId, // กำหนดค่าให้ USER_CREATED
-                assetExtraFlag: asset.assetextraFlag || 0,
-              }
-            );
-            console.log("Insert Result:", insertResult);
-          } catch (error) {
-            console.error("❌ Error inserting into CST_LABJOB_ASSET:", error);
-          }
-        } else {
-          console.log("asset.labjobAssetId", asset.labjobAssetId);
-          try {
-            const updateResult = await executeQuery(
-              `UPDATE CST_LABJOB_ASSET 
-            SET ASSET_ID = :assetId, AMOUNT_USED = :amount, ASSET_USED_REMARK = :assetRemark, 
-                ${dateColumn} = SYSDATE, ${userCreated} = :userCreated,ASSETEXTRA_FLAG = :assetExtraFlag
-            WHERE LABJOB_ASSET_ID = :labjobAssetId`,
-              {
-                labjobAssetId: asset.labjobAssetId,
-                assetId: asset.assetId,
-                amount: asset.amountUsed,
-                assetRemark: asset.assetUsedRemark || "",
-                userCreated: asset.userId, // กำหนดค่าให้ USER_UPDATED
-                assetExtraFlag: asset.assetextraFlag || "0",
-              }
-            );
-            console.log("Update Result:", updateResult);
-          } catch (error) {
-            console.error("❌ Error updating CST_LABJOB_ASSET:", error);
-          }
-        }
-      })
-    );
-
-    await Promise.all(
-      uselabasset.type2.map(async (asset) => {
-        const userCreated = asset.labjobAssetId
-          ? "USER_UPDATED"
-          : "USER_CREATED";
-        const dateColumn = asset.labjobAssetId
-          ? "DATE_UPDATED"
-          : "DATE_CREATED"; // ใช้ชื่อคอลัมน์ที่ถูกต้อง
-        console.log("asset", asset);
-        if (!asset.labjobAssetId) {
-          console.log("❌ Missing labjobAssetId:", asset);
-          try {
-            const result = await executeQuery(
-              `SELECT CST_LABJOB_ASSET_SEQ.NEXTVAL AS ID FROM DUAL`
-            );
-            if (result && result[0] && result[0].id) {
-              console.log("Returned ID:", result[0].id);
-              asset.labjobAssetId = result[0].id;
-            } else {
-              console.log("❌ No ID returned from query");
-              return; // หยุดทำงานหากไม่ได้ค่า ID
-            }
-          } catch (error) {
-            console.error("❌ Error getting labjobAssetId:", error);
-            return;
-          }
-
-          try {
-            const insertResult = await executeQuery(
-              `INSERT INTO CST_LABJOB_ASSET 
-            (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED, ASSET_USED_REMARK, ${dateColumn}, ${userCreated},ASSETEXTRA_FLAG) 
-          VALUES (:labjobAssetId, :labjobId, :assetId, :amount, :assetRemark, SYSDATE, :userCreated,:assetExtraFlag)`,
-              {
-                labjobAssetId: asset.labjobAssetId,
-                labjobId: id,
-                assetId: asset.assetId,
-                amount: asset.amountUsed,
-                assetRemark: asset.assetUsedRemark || "",
-                userCreated: asset.userId, // กำหนดค่าให้ USER_CREATED
-                assetExtraFlag: asset.assetextraFlag || 0,
-              }
-            );
-            console.log("Insert Result:", insertResult);
-          } catch (error) {
-            console.error("❌ Error inserting into CST_LABJOB_ASSET:", error);
-          }
-        } else {
-          console.log("asset.labjobAssetId", asset.labjobAssetId);
-          try {
-            const updateResult = await executeQuery(
-              `UPDATE CST_LABJOB_ASSET 
-            SET ASSET_ID = :assetId, AMOUNT_USED = :amount, ASSET_USED_REMARK = :assetRemark, 
-                ${dateColumn} = SYSDATE, ${userCreated} = :userCreated,ASSETEXTRA_FLAG = :assetExtraFlag
-            WHERE LABJOB_ASSET_ID = :labjobAssetId`,
-              {
-                labjobAssetId: asset.labjobAssetId,
-                assetId: asset.assetId,
-                amount: asset.amountUsed,
-                assetRemark: asset.assetUsedRemark || "",
-                userCreated: asset.userId, // กำหนดค่าให้ USER_UPDATED
-                assetExtraFlag: asset.assetextraFlag || "0",
-              }
-            );
-            console.log("Update Result:", updateResult);
-          } catch (error) {
-            console.error("❌ Error updating CST_LABJOB_ASSET:", error);
-          }
-        }
-      })
-    );
-
-    await Promise.all(
-      uselabasset.type3.map(async (asset) => {
-        console.log("asset", asset);
-        const userCreated = asset.labjobAssetId
-          ? "USER_UPDATED"
-          : "USER_CREATED";
-        const dateColumn = asset.labjobAssetId
-          ? "DATE_UPDATED"
-          : "DATE_CREATED"; // ใช้ชื่อคอลัมน์ที่ถูกต้อง
-
-        if (!asset.labjobAssetId) {
-          console.log("❌ Missing labjobAssetId:", asset);
-          try {
-            const result = await executeQuery(
-              `SELECT CST_LABJOB_ASSET_SEQ.NEXTVAL AS ID FROM DUAL`
-            );
-            if (result && result[0] && result[0].id) {
-              console.log("Returned ID:", result[0].id);
-              asset.labjobAssetId = result[0].id;
-            } else {
-              console.log("❌ No ID returned from query");
-              return; // หยุดทำงานหากไม่ได้ค่า ID
-            }
-          } catch (error) {
-            console.error("❌ Error getting labjobAssetId:", error);
-            return;
-          }
-
-          try {
-            const insertResult = await executeQuery(
-              `INSERT INTO CST_LABJOB_ASSET 
-            (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED, ASSET_USED_REMARK, ${dateColumn}, ${userCreated},ASSETEXTRA_FLAG) 
-          VALUES (:labjobAssetId, :labjobId, :assetId, :amount, :assetRemark, SYSDATE, :userCreated,:assetExtraFlag)`,
-              {
-                labjobAssetId: asset.labjobAssetId,
-                labjobId: id,
-                assetId: asset.assetId,
-                amount: asset.amountUsed,
-                assetRemark: asset.assetUsedRemark || "",
-                userCreated: asset.userId, // กำหนดค่าให้ USER_CREATED
-                assetExtraFlag: asset.assetextraFlag || 0,
-              }
-            );
-            console.log("Insert Result:", insertResult);
-          } catch (error) {
-            console.error("❌ Error inserting into CST_LABJOB_ASSET:", error);
-          }
-        } else {
-          console.log("asset.labjobAssetId", asset.labjobAssetId);
-          try {
-            const updateResult = await executeQuery(
-              `UPDATE CST_LABJOB_ASSET 
-            SET ASSET_ID = :assetId, AMOUNT_USED = :amount, ASSET_USED_REMARK = :assetRemark, 
-                ${dateColumn} = SYSDATE, ${userCreated} = :userCreated,ASSETEXTRA_FLAG = :assetExtraFlag
-            WHERE LABJOB_ASSET_ID = :labjobAssetId`,
-              {
-                labjobAssetId: asset.labjobAssetId,
-                assetId: asset.assetId,
-                amount: asset.amountUsed,
-                assetRemark: asset.assetUsedRemark || "",
-                userCreated: asset.userId, // กำหนดค่าให้ USER_UPDATED
-                assetExtraFlag: asset.assetextraFlag || "0",
-              }
-            );
-            console.log("Update Result:", updateResult);
-          } catch (error) {
-            console.error("❌ Error updating CST_LABJOB_ASSET:", error);
-          }
-        }
-      })
-    );
-  }
-};
-
 export async function GET(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
@@ -376,7 +132,33 @@ export async function GET(req) {
         INNER JOIN CST_INVBRAND BRAND
           ON INV.BRAND_ID = BRAND.BRAND_ID
         WHERE ASSET.FLAG_DEL = 0
-        AND ASSET.LABJOB_ID = :labjobId`,
+        AND ASSET.LABJOB_ID = :labjobId 
+        ORDER BY LABJOB_ASSET_ID DESC
+        `,
+        { labjobId }
+      );
+      const assetbroken = await executeQuery(
+        `SELECT ASSET.ASSET_BROKEN_ID,
+         ASSET.LABJOB_ID,
+         ASSET.BROKEN_AMOUNT,
+        INV.ASSET_NAME_TH,
+        BRAND.BRAND_NAME,
+        INV.AMOUNT_UNIT,
+        UNIT.UNIT_NAME,
+        GRP.INVGROUP_NAME,       
+        INV.INVTYPE_ID AS TYPE
+        FROM CST_ASSET_BROKEN ASSET
+        INNER JOIN CST_INVASSET INV
+          ON ASSET.ASSET_ID = INV.ASSET_ID
+        INNER JOIN CST_INVGROUP GRP 
+          ON INV.INVGROUP_ID = GRP.INVGROUP_ID
+        INNER JOIN CST_INVUNIT UNIT 
+          ON INV.UNIT_ID = UNIT.UNIT_ID
+        INNER JOIN CST_INVBRAND BRAND
+          ON INV.BRAND_ID = BRAND.BRAND_ID
+        WHERE ASSET.FLAG_DEL = 0
+        AND ASSET.LABJOB_ID = :labjobId 
+        ORDER BY ASSET_BROKEN_ID DESC`,
         { labjobId }
       );
       const course = await getCourse(data[0].courseid);
@@ -391,6 +173,7 @@ export async function GET(req) {
         labgroup: labgroup,
         labasset: labasset,
         uselabasset: uselabasset,
+        assetbroken: assetbroken,
         courseUser: await courseUser(id),
       });
     } else if (!courseId) {
@@ -545,75 +328,60 @@ export async function POST(req) {
   try {
     const body = await req.json();
     const {
-      acadyear,
-      courseid,
-      hour,
-      labgroupId,
-      labgroupNum,
-      labroom,
-      personId,
-      schId,
-      section,
-      semester,
+      labjobId,
+      assetId,
+      amountUsed,
+      assetUsedRemark,
       userId,
-      labasset,
-      uselabasset,
-      courseUser,
-    } = body;
+      assetextraFlag,
+      assetNameTh,
+      brandName,
+      amountUnit,
+      unitName,
+    } = body.uselabasset;
 
-    if (
-      !acadyear ||
-      !courseid ||
-      !hour ||
-      !labgroupId ||
-      !labgroupNum ||
-      !labroom ||
-      !personId ||
-      !schId ||
-      !section ||
-      !semester ||
-      !userId
-    ) {
-      return NextResponse.json(
-        { success: false, message: "Missing fields" },
-        { status: 400 }
-      );
+    // แปลงค่า labjobId, userId, amountUnit เป็นตัวเลข
+    const labjobIdNumber = parseInt(labjobId, 10);
+    const userIdNumber = parseInt(userId, 10);
+    const amountUnitNumber = Number(amountUnit);
+
+    // ตรวจสอบว่าค่าที่แปลงเป็นตัวเลขถูกต้องหรือไม่
+    if (isNaN(labjobIdNumber) || isNaN(userIdNumber)) {
+      throw new Error("One or more values are not valid numbers.");
     }
 
-    const labId = await executeQuery(
-      `SELECT CST_LABJOB_ASSET_SEQ.NEXTVAL AS ID FROM DUAL`
+    // Log the query for debugging
+    console.log(
+      "Executing query:",
+      `INSERT INTO CST_LABJOB_ASSET 
+    (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED, ASSET_USED_REMARK, DATE_CREATED, USER_CREATED, ASSETEXTRA_FLAG, ASSET_NAME_TH, BRAND_NAME, AMOUNT_UNIT, UNIT_NAME) 
+    VALUES 
+    (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :assetUsedRemark, SYSDATE, :userId, :assetextraFlag, :assetNameTh, :brandName, :amountUnit, :unitName)`
     );
 
+    // Execute the query
     await executeQuery(
-      `INSERT INTO CST_LABCOURSE
-        (LAB_ID, ACADYEAR, COURSEID, HOUR, LABGROUP_ID, LABGROUP_NUM, LABROOM, SCH_ID, SECTION, SEMESTER, PERSON_ID, DATE_CREATED, USER_CREATED, DATE_UPDATED, USER_UPDATED)
-      VALUES
-        (:labId, :acadyear, :courseid, :hour, :labgroupId, :labgroupNum, :labroom, :schId, :section, :semester, :personId, SYSDATE, :userCreated, SYSDATE, :userUpdated)`,
+      `INSERT INTO CST_LABJOB_ASSET 
+  (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED, ASSET_USED_REMARK, FLAG_DEL, USER_CREATED, DATE_CREATED, ASSETEXTRA_FLAG)
+  VALUES 
+  (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :assetUsedRemark, :flagDel, :userId, SYSDATE, :assetextraFlag)`,
       {
-        labId: labId[0].id,
-        acadyear,
-        courseid,
-        hour,
-        labgroupId: parseInt(labgroupId),
-        labgroupNum,
-        labroom,
-        schId,
-        section,
-        semester,
-        personId,
-        userCreated: userId,
-        userUpdated: userId,
+        labjobId: labjobIdNumber,
+        assetId,
+        amountUsed,
+        assetUsedRemark: assetUsedRemark || "",
+        flagDel: 0,
+        userId: userIdNumber,
+        assetextraFlag: assetextraFlag || 0,
       }
     );
 
-    await saveLabasset(uselabasset, labId[0].id);
-    console.log("uselabasset01", labId[0].id);
-    await saveCourseUser(courseUser, labId[0].id);
     return NextResponse.json(
-      { success: true, message: "User added successfully" },
+      { success: true, message: "Asset created successfully" },
       { status: 201 }
     );
   } catch (error) {
+    console.error("Error during POST:", error);
     return NextResponse.json(
       { success: false, message: "Database Error", error },
       { status: 500 }
@@ -623,22 +391,78 @@ export async function POST(req) {
 
 export async function PUT(req) {
   try {
-    const id = req.nextUrl.searchParams.get("labjobId");
     const body = await req.json();
-    const { uselabasset } = body;
-    console.log("uselabasset", uselabasset);
-    await saveLabasset(uselabasset, id);
-    console.log("uselabasset02", id);
-    // await saveCourseUser(courseUser, id);
+    console.log("Incoming PUT body:", body); // <--- DEBUG ตรงนี้
 
-    return NextResponse.json({
-      success: true,
-      message: "User updated successfully",
-    });
-  } catch (error) {
-    console.error("Database Error:", error);
+    const {
+      labjobAssetId,
+      labjobId,
+      assetId,
+      amountUsed,
+      assetUsedRemark,
+      userId,
+      assetextraFlag,
+    } = body.uselabasset;
+
+    const labjobAssetIdNumber = parseInt(labjobAssetId, 10);
+    const labjobIdNumber = parseInt(labjobId, 10);
+    const userIdNumber = parseInt(userId, 10);
+    const amountUsedNumber = Number(amountUsed);
+
+    if (
+      isNaN(labjobAssetIdNumber) ||
+      isNaN(labjobIdNumber) ||
+      isNaN(userIdNumber) ||
+      isNaN(amountUsedNumber)
+    ) {
+      console.log("Validation failed:", {
+        labjobAssetIdNumber,
+        labjobIdNumber,
+        userIdNumber,
+        amountUsedNumber,
+      }); // Log invalid data to debug
+      throw new Error("One or more values are not valid numbers.");
+    }
+
+    await executeQuery(
+      `UPDATE CST_LABJOB_ASSET SET 
+        LABJOB_ID = :labjobId,
+        ASSET_ID = :assetId,
+        AMOUNT_USED = :amountUsed,
+        ASSET_USED_REMARK = :assetUsedRemark,
+        FLAG_DEL = :flagDel,
+        USER_UPDATED = :userId,
+        DATE_UPDATED = SYSDATE,
+        ASSETEXTRA_FLAG = :assetextraFlag
+      WHERE LABJOB_ASSET_ID = :labjobAssetId`,
+      {
+        labjobId: labjobIdNumber,
+        assetId,
+        amountUsed: amountUsedNumber,
+        assetUsedRemark: assetUsedRemark || "",
+        flagDel: 0,
+        userId: userIdNumber,
+        assetextraFlag: assetextraFlag || 0,
+        labjobAssetId: labjobAssetIdNumber,
+      }
+    );
+
     return NextResponse.json(
-      { success: false, message: "Database Error", error },
+      { success: true, message: "Asset updated successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error during PUT:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Database Error",
+        error: {
+          message: error?.message,
+          stack: error?.stack,
+        },
+      },
       { status: 500 }
     );
   }
