@@ -81,7 +81,7 @@ export default function List() {
       width: "100",
       render: (item) => (
         <div>
-           {item.semester}/{item.acadyear}
+          {item.semester}/{item.acadyear}
         </div>
       ),
     },
@@ -90,8 +90,9 @@ export default function List() {
       content: "รายวิชา",
       render: (item) => (
         <div className="flex flex-col">
-          <p className="block">{item.coursecode} {item.coursename}</p>
-           
+          <p className="block">
+            {item.coursecode} {item.coursename}
+          </p>
         </div>
       ),
     },
@@ -125,12 +126,25 @@ export default function List() {
       key: "fullname",
       content: "รายละเอียดห้องปฎิบัติการ",
       width: "300",
-      render: (item) => (
-        <div className="flex flex-col">
-          <p className="block">{item.labgroupName}</p>
-          <p className="block opacity-70">ผู้รับผิดชอบหลัก : {item.fullname}</p>
-        </div>
-      ),
+      render: (item) => {
+        if (!item.labgroupName) {
+          return (
+            <div className="flex flex-col">
+              <i className="text-xs text-gray-300 dark:text-gray-700">
+                (ไม่มีข้อมูล)
+              </i>
+            </div>
+          );
+        }
+        return (
+          <div className="flex flex-col">
+            <p className="block">{item.labgroupName}</p>
+            <p className="block opacity-70">
+              ผู้รับผิดชอบหลัก : {item.fullname}
+            </p>
+          </div>
+        );
+      },
     },
     {
       key: "labId",
