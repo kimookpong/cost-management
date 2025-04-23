@@ -23,6 +23,9 @@ export async function GET(req) {
   } else if (userlogin === "แอดมิน") {
     sql = ``;
     sql2 = ``;
+  } else if (userlogin === "ผู้ประสานงานรายวิชา") {
+    sql = ``;
+    sql2 = ``;
   }
   try {
     const data = await executeQuery(

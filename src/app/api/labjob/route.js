@@ -56,7 +56,7 @@ export async function GET(req) {
       params2.userloginId = userloginId;
     } else if (userlogin === "แอดมิน") {
       labjoblist2 += " ";
-    } else if (userlogin === "ผู้ประสานงานรายวิชา") {
+    } else if (userloginId && userlogin === "ผู้ประสานงานรายวิชา") {
       labjoblist2 += " AND L.PERSON_ID = :userloginId";
       params2.userloginId = userloginId;
     }
@@ -68,6 +68,7 @@ export async function GET(req) {
        WHERE PERSON_ID = :sId)and DIVISION_STATUS = 1`,
       { sId }
     );
+    console.log("labjoblist2", labjoblist2);
     const divperson = await executeQuery(
       `SELECT SUBDIVISION_ID FROM PBL_VPER_PERSON  
        WHERE PERSON_ID = :sId `,
