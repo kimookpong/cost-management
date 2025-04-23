@@ -4,11 +4,13 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiCheckCircle } from "react-icons/fi";
+import { useSession } from "next-auth/react";
 
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 
 export default function Detail() {
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -65,6 +67,26 @@ export default function Detail() {
     fetchData();
   }, [facultyId, schId]);
 
+  const handleCreate = async (courseid) => {
+    const term = data.term.find((item) => item.schId == schId);
+    const section = filterData.find(
+      (item) => item.courseid === courseid
+    )?.section;
+    const response = await axios.post(`/api/assign-course`, {
+      courseid: courseid,
+      schId: schId,
+      acadyear: term.acadyear,
+      semester: term.semester,
+      section,
+      userId: session?.user.person_id,
+    });
+
+    const res = response.data;
+    if (res.success) {
+      router.push(`/assign-course/${res.labId}`);
+    }
+  };
+
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
     { name: "กำหนดรายวิชา", link: "/assign-course" },
@@ -73,13 +95,13 @@ export default function Detail() {
 
   const meta = [
     {
-      key: "coursecode",
-      content: "รหัสรายวิชา",
-      width: 120,
-    },
-    {
       key: "coursename",
       content: "ชื่อรายวิชา",
+      render: (item) => (
+        <div className="text-left">
+          {item.coursecode} {item.coursename}
+        </div>
+      ),
     },
     {
       key: "courseunit",
@@ -108,11 +130,7 @@ export default function Detail() {
         <div className="flex justify-center">
           <button
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() =>
-              router.push(
-                `/assign-course/new?courseId=${item.courseid}&schId=${schId}`
-              )
-            }
+            onClick={() => handleCreate(item.courseid)}
           >
             <FiCheckCircle className="w-4 h-4" />
             เลือก

@@ -18,6 +18,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 import TableList from "@/components/TableList";
+import { set } from "react-hook-form";
 
 const roleList = [
   { roleId: "1", roleName: "นักวิทยาศาสตร์" },
@@ -60,7 +61,7 @@ export default function Detail() {
   const tabs = [
     { id: "tab1", label: "รายละเอียดวิชา" },
     { id: "tab2", label: "ผู้รับผิดชอบ" },
-    { id: "tab3", label: "ทรัพยากรตามรายวิชา" },
+    // { id: "tab3", label: "ทรัพยากรตามรายวิชา" },
   ];
 
   const validationSchema = Yup.object({
@@ -92,8 +93,8 @@ export default function Detail() {
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
-      values.labasset = labasset;
-      values.courseUser = courseUser;
+      // values.labasset = labasset;
+      // values.courseUser = courseUser;
       try {
         console.log("values", values);
         if (isNew) {
@@ -142,18 +143,30 @@ export default function Detail() {
       values.fullname = data.users.find(
         (item) => parseInt(item.personId) === parseInt(values.personId)
       )?.fullname;
-
       if (values.courseUserId) {
-        setCourseUser((prevItem) =>
-          prevItem.map((item) =>
-            item.courseUserId === values.courseUserId ? values : item
-          )
+        const response = await axios.put(
+          `/api/assign-course/course-user?id=${values.courseUserId}`,
+          {
+            ...values,
+            labId: id,
+          }
         );
+        const res = response.data;
+        if (res.success) {
+          toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
+          setCourseUser(res.courseUser);
+        }
       } else {
-        values.courseUserId = uuidv4();
-        setCourseUser((prevItem) => [...prevItem, values]);
+        const response = await axios.post(`/api/assign-course/course-user`, {
+          ...values,
+          labId: id,
+        });
+        const res = response.data;
+        if (res.success) {
+          toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
+          setCourseUser(res.courseUser);
+        }
       }
-      console.log("values", values);
       setUserFormModal(false);
       userForm.resetForm();
     },
@@ -286,7 +299,7 @@ export default function Detail() {
               type2: data.labasset?.filter((item) => item.type === 2) || [],
               type3: data.labasset?.filter((item) => item.type === 3) || [],
             });
-
+            console.log("data.courseUser", data.courseUser);
             setCourseUser(data.courseUser);
 
             setLoading(false);
@@ -384,8 +397,8 @@ export default function Detail() {
 
   const _onPressAddUser = async () => {
     setUserFormModal(true);
-    inventForm.setValues({
-      labassetId: "",
+    userForm.setValues({
+      labcourseUserId: "",
       personId: "",
       roleId: "",
       flagDel: 0,
@@ -395,9 +408,11 @@ export default function Detail() {
 
   const _onPressEditUser = async (id) => {
     setUserFormModal(true);
-    const asset = courseUser.find((item) => item.courseUserId === id);
+    const asset = courseUser.find((item) => item.labcourseUserId === id);
+
+    console.log("id", id);
     userForm.setValues({
-      courseUserId: asset.courseUserId,
+      labcourseUserId: asset.labcourseUserId,
       personId: asset.personId,
       roleId: asset.roleId,
       userId: session?.user.person_id,
@@ -427,16 +442,36 @@ export default function Detail() {
     await _callInvent(type);
   };
 
-  const _onPressDeleteUser = async (id) => {
+  const _onPressDeleteUser = async (labcourseUserId) => {
+    console.log("labcourseUserId", labcourseUserId);
     const result = await confirmDialog(
       "คุณแน่ใจหรือไม่?",
       "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
     );
     if (result.isConfirmed) {
-      setCourseUser((prevItem) =>
-        prevItem.filter((item) => item.courseUserId !== id)
+      const response = await axios.delete(
+        `/api/assign-course/course-user?id=${labcourseUserId}&labId=${id}`
       );
+
+      const res = response.data;
+      if (res.success) {
+        toastDialog("ลบข้อมูลเรียบร้อย!", "success");
+        setCourseUser(res.courseUser);
+      }
+
+      // setCourseUser((prevItem) =>
+      //   prevItem.filter((item) => item.courseUserId !== id)
+      // );
     }
+  };
+
+  const _handleChangeLabgroup = (e) => {
+    const selectedUser = data.users.filter(
+      (item) => item.labgroupId == e.target.value
+    );
+
+    setUser(selectedUser);
+    formik.setFieldValue("personId", "");
   };
 
   const _onPressDeleteInvent = async (id, type) => {
@@ -483,8 +518,8 @@ export default function Detail() {
       <div className="relative flex flex-col w-full text-gray-900 dark:text-gray-300 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
-            {isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล"} : {data.course?.coursename} (
-            {data.course?.coursecode})
+            {isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล"} : {data.course?.coursecode}{" "}
+            {data.course?.coursename}
           </h3>
         </div>
 
@@ -514,179 +549,202 @@ export default function Detail() {
 
               <div>
                 {activeTab === "tab1" && (
-                  <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                    <div className="sm:col-span-12">
-                      <h3 className="font-xl font-semibold">
-                        {data.course?.coursename} ({data.course?.coursecode})
-                      </h3>
-                    </div>
-                    <div className="sm:col-span-4">
-                      <i>สำนักวิชา</i> : {data.course?.coursename}
-                    </div>
-                    <div className="sm:col-span-8">
-                      <i>เทอมการศึกษา</i> : {data.class?.[0]?.semester}/
-                      {data.class?.[0]?.acadyear}
-                    </div>
-                    <div className="sm:col-span-4">
-                      <i>จำนวนกลุ่ม</i> : {data.class?.length} กลุ่ม
-                    </div>
-                    <div className="sm:col-span-4">
-                      <i>จำนวนนักศึกษา</i> :{" "}
-                      {data.class?.reduce(
-                        (total, item) => total + item.totalseat,
-                        0
-                      )}{" "}
-                      คน
-                    </div>
-                    <div className="sm:col-span-12">
-                      <i>รายละเอียด</i> : {data.course?.description1}
-                    </div>
+                  <>
+                    <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                      <div className="sm:col-span-12">
+                        <h3 className="font-xl font-semibold">
+                          {data.course?.coursecode} {data.course?.coursename}
+                        </h3>
+                      </div>
+                      <div className="sm:col-span-4">
+                        <i>สำนักวิชา</i> : {data.course?.coursename}
+                      </div>
+                      <div className="sm:col-span-8">
+                        <i>เทอมการศึกษา</i> : {data.class?.[0]?.semester}/
+                        {data.class?.[0]?.acadyear}
+                      </div>
+                      <div className="sm:col-span-4">
+                        <i>จำนวนกลุ่ม</i> : {data.class?.length} กลุ่ม
+                      </div>
+                      <div className="sm:col-span-4">
+                        <i>จำนวนนักศึกษา</i> :{" "}
+                        {data.class?.reduce(
+                          (total, item) => total + item.totalseat,
+                          0
+                        )}{" "}
+                        คน
+                      </div>
+                      <div className="sm:col-span-12">
+                        <i>รายละเอียด</i> : {data.course?.description1}
+                      </div>
 
-                    <div className="sm:col-span-12">
-                      <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
-                        <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                          <div className="sm:col-span-6">
-                            <label className={className.label}>
-                              กลุ่มห้องปฎิบัติการ
-                            </label>
-                            <select
-                              name="labgroupId"
-                              value={formik.values.labgroupId}
-                              onChange={formik.handleChange}
-                              className={`${className.select} ${
-                                formik.touched.labgroupId &&
-                                formik.errors.labgroupId
-                                  ? "border-red-500"
-                                  : ""
-                              }`}
-                            >
-                              <option value="" disabled>
-                                เลือกกลุ่มห้องปฎิบัติการ
-                              </option>
-                              {data.labgroup.map((labgroup) => (
-                                <option
-                                  key={labgroup.labgroupId}
-                                  value={labgroup.labgroupId}
-                                >
-                                  {labgroup.labgroupName}
+                      <div className="sm:col-span-12">
+                        <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+                          <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                            <div className="sm:col-span-6">
+                              <label className={className.label}>
+                                กลุ่มห้องปฎิบัติการ
+                              </label>
+                              <select
+                                name="labgroupId"
+                                value={formik.values.labgroupId || ""}
+                                onChange={(event) => {
+                                  _handleChangeLabgroup(event);
+                                  formik.handleChange(event);
+                                }}
+                                className={`${className.select} ${
+                                  formik.touched.labgroupId &&
+                                  formik.errors.labgroupId
+                                    ? "border-red-500"
+                                    : ""
+                                }`}
+                              >
+                                <option value="" disabled>
+                                  เลือกกลุ่มห้องปฎิบัติการ
                                 </option>
-                              ))}
-                            </select>
-                            {formik.touched.labgroupId &&
-                              formik.errors.labgroupId && (
-                                <p className="mt-1 text-sm text-red-500">
-                                  {formik.errors.labgroupId}
-                                </p>
-                              )}
-                          </div>
-                          <div className="sm:col-span-6">
-                            <label className={className.label}>
-                              ผู้ประสานงานรายวิชา
-                            </label>
-                            <select
-                              name="personId"
-                              value={formik.values.personId}
-                              onChange={formik.handleChange}
-                              className={`${className.select} ${
-                                formik.touched.personId &&
-                                formik.errors.personId
-                                  ? "border-red-500"
-                                  : ""
-                              }`}
-                            >
-                              <option value="" disabled>
-                                เลือกผู้รับผิดชอบหลัก
-                              </option>
-                              {data.users.map((user) => (
-                                <option
-                                  key={user.personId}
-                                  value={user.personId}
-                                >
-                                  {user.fullname} ({user.roleName})
+                                {data.labgroup.map((labgroup) => (
+                                  <option
+                                    key={labgroup.labgroupId}
+                                    value={labgroup.labgroupId}
+                                  >
+                                    {labgroup.labgroupName}
+                                  </option>
+                                ))}
+                              </select>
+                              {formik.touched.labgroupId &&
+                                formik.errors.labgroupId && (
+                                  <p className="mt-1 text-sm text-red-500">
+                                    {formik.errors.labgroupId}
+                                  </p>
+                                )}
+                            </div>
+                            <div className="sm:col-span-6">
+                              <label className={className.label}>
+                                ผู้ประสานงานรายวิชา
+                              </label>
+                              <select
+                                name="personId"
+                                value={formik.values.personId || ""}
+                                onChange={formik.handleChange}
+                                className={`${className.select} ${
+                                  formik.touched.personId &&
+                                  formik.errors.personId
+                                    ? "border-red-500"
+                                    : ""
+                                }`}
+                              >
+                                <option value="" disabled>
+                                  {user.length > 0
+                                    ? "เลือกผู้รับผิดชอบหลัก"
+                                    : "- ไม่มีข้อมูล -"}
                                 </option>
-                              ))}
-                            </select>
-                            {formik.touched.personId &&
-                              formik.errors.personId && (
+                                {user.map((user, index) => (
+                                  <option
+                                    key={user.personId + index}
+                                    value={user.personId}
+                                  >
+                                    {user.fullname} ({user.roleName})
+                                  </option>
+                                ))}
+                              </select>
+                              {formik.touched.personId &&
+                                formik.errors.personId && (
+                                  <p className="mt-1 text-sm text-red-500">
+                                    {formik.errors.personId}
+                                  </p>
+                                )}
+                            </div>
+
+                            <div className="sm:col-span-4">
+                              <label className={className.label}>
+                                จำนวนห้อง LAB ที่เปิดบริการ
+                              </label>
+
+                              <input
+                                type="number"
+                                name="labroom"
+                                value={formik.values.labroom || ""}
+                                onChange={formik.handleChange}
+                                className={`${className.input} ${
+                                  formik.touched.labroom &&
+                                  formik.errors.labroom
+                                    ? "border-red-500"
+                                    : ""
+                                }`}
+                              />
+                              {formik.touched.labroom &&
+                                formik.errors.labroom && (
+                                  <p className="mt-1 text-sm text-red-500">
+                                    {formik.errors.labroom}
+                                  </p>
+                                )}
+                            </div>
+
+                            <div className="sm:col-span-4">
+                              <label className={className.label}>
+                                จำนวนกลุ่มต่อห้อง
+                              </label>
+                              <input
+                                type="number"
+                                name="labgroupNum"
+                                value={formik.values.labgroupNum || ""}
+                                onChange={formik.handleChange}
+                                className={`${className.input} ${
+                                  formik.touched.labgroupNum &&
+                                  formik.errors.labgroupNum
+                                    ? "border-red-500"
+                                    : ""
+                                }`}
+                              />
+                              {formik.touched.labgroupNum &&
+                                formik.errors.labgroupNum && (
+                                  <p className="mt-1 text-sm text-red-500">
+                                    {formik.errors.labgroupNum}
+                                  </p>
+                                )}
+                            </div>
+
+                            <div className="sm:col-span-4">
+                              <label className={className.label}>
+                                จำนวนชั่วโมงเรียน
+                              </label>
+                              <input
+                                type="number"
+                                name="hour"
+                                value={formik.values.hour || ""}
+                                onChange={formik.handleChange}
+                                className={`${className.input} ${
+                                  formik.touched.hour && formik.errors.hour
+                                    ? "border-red-500"
+                                    : ""
+                                }`}
+                              />
+                              {formik.touched.hour && formik.errors.hour && (
                                 <p className="mt-1 text-sm text-red-500">
-                                  {formik.errors.personId}
+                                  {formik.errors.hour}
                                 </p>
                               )}
-                          </div>
-
-                          <div className="sm:col-span-4">
-                            <label className={className.label}>
-                              จำนวนห้อง LAB ที่เปิดบริการ
-                            </label>
-
-                            <input
-                              type="number"
-                              name="labroom"
-                              value={formik.values.labroom}
-                              onChange={formik.handleChange}
-                              className={`${className.input} ${
-                                formik.touched.labroom && formik.errors.labroom
-                                  ? "border-red-500"
-                                  : ""
-                              }`}
-                            />
-                            {formik.touched.labroom &&
-                              formik.errors.labroom && (
-                                <p className="mt-1 text-sm text-red-500">
-                                  {formik.errors.labroom}
-                                </p>
-                              )}
-                          </div>
-
-                          <div className="sm:col-span-4">
-                            <label className={className.label}>
-                              จำนวนกลุ่มต่อห้อง
-                            </label>
-                            <input
-                              type="number"
-                              name="labgroupNum"
-                              value={formik.values.labgroupNum}
-                              onChange={formik.handleChange}
-                              className={`${className.input} ${
-                                formik.touched.labgroupNum &&
-                                formik.errors.labgroupNum
-                                  ? "border-red-500"
-                                  : ""
-                              }`}
-                            />
-                            {formik.touched.labgroupNum &&
-                              formik.errors.labgroupNum && (
-                                <p className="mt-1 text-sm text-red-500">
-                                  {formik.errors.labgroupNum}
-                                </p>
-                              )}
-                          </div>
-
-                          <div className="sm:col-span-4">
-                            <label className={className.label}>
-                              จำนวนชั่วโมงเรียน
-                            </label>
-                            <input
-                              type="number"
-                              name="hour"
-                              value={formik.values.hour}
-                              onChange={formik.handleChange}
-                              className={`${className.input} ${
-                                formik.touched.hour && formik.errors.hour
-                                  ? "border-red-500"
-                                  : ""
-                              }`}
-                            />
-                            {formik.touched.hour && formik.errors.hour && (
-                              <p className="mt-1 text-sm text-red-500">
-                                {formik.errors.hour}
-                              </p>
-                            )}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                    <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+                      <button
+                        type="button"
+                        className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
+                        onClick={() => router.back()}
+                      >
+                        ยกเลิก
+                      </button>
+                      <button
+                        type="submit"
+                        className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+                      >
+                        บันทึกข้อมูล
+                      </button>
+                    </div>
+                  </>
                 )}
                 {activeTab === "tab2" && (
                   <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
@@ -730,7 +788,7 @@ export default function Detail() {
                               ),
                             },
                             {
-                              key: "courseUserId",
+                              key: "labcourseUserId",
                               content: "Action",
                               width: "100",
                               sort: false,
@@ -741,9 +799,7 @@ export default function Detail() {
                                     type="button"
                                     className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                     onClick={() => {
-                                      return _onPressEditUser(
-                                        item.courseUserId
-                                      );
+                                      _onPressEditUser(item.labcourseUserId);
                                     }}
                                   >
                                     <FiEdit className="w-4 h-4" />
@@ -752,11 +808,9 @@ export default function Detail() {
                                   <button
                                     type="button"
                                     className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    onClick={() => {
-                                      return _onPressDeleteUser(
-                                        item.courseUserId
-                                      );
-                                    }}
+                                    onClick={() =>
+                                      _onPressDeleteUser(item.labcourseUserId)
+                                    }
                                   >
                                     <FiTrash2 className="w-4 h-4" />
                                     ลบ
@@ -772,7 +826,7 @@ export default function Detail() {
                     </div>
                   </div>
                 )}
-                {activeTab === "tab3" && (
+                {/* {activeTab === "tab3" && (
                   <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
                     {[
                       {
@@ -894,24 +948,8 @@ export default function Detail() {
                       </div>
                     ))}
                   </div>
-                )}
+                )} */}
               </div>
-            </div>
-
-            <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
-              <button
-                type="button"
-                className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
-                onClick={() => router.back()}
-              >
-                ยกเลิก
-              </button>
-              <button
-                type="submit"
-                className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
-              >
-                บันทึกข้อมูล
-              </button>
             </div>
           </form>
         )}
@@ -1115,8 +1153,11 @@ export default function Detail() {
                           <option value="" disabled>
                             เลือกผู้รับผิดชอบ
                           </option>
-                          {data.users.map((inv) => (
-                            <option key={inv.personId} value={inv.personId}>
+                          {data.users.map((inv, index) => (
+                            <option
+                              key={inv.personId + index}
+                              value={inv.personId}
+                            >
                               {inv.fullname}
                             </option>
                           ))}

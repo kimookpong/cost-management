@@ -33,7 +33,7 @@ async function getLabgroup() {
 
 async function courseUser(id) {
   return await executeQuery(
-    `SELECT USR.PERSON_ID,ROLE_ID,
+    `SELECT USR.LABCOURSE_USER_ID,USR.PERSON_ID,USR.ROLE_ID,
     PERSON.TITLE_NAME || PERSON.FIRST_NAME || ' ' || PERSON.LAST_NAME AS FULLNAME
     FROM CST_LABCOURSE_USER USR
     INNER JOIN PBL_VPER_PERSON PERSON
@@ -49,12 +49,16 @@ async function getUser() {
   return await executeQuery(
     `SELECT ADMIN.PERSON_ID, 
       PERSON.TITLE_NAME || PERSON.FIRST_NAME || ' ' || PERSON.LAST_NAME AS FULLNAME,
-      ROLE.ROLE_NAME
+      ROLE.ROLE_NAME,
+      ADMIN.LABGROUP_ID,
+      LABGROUP.LABGROUP_NAME
     FROM CST_USER ADMIN
     INNER JOIN PBL_VPER_PERSON PERSON 
       ON ADMIN.PERSON_ID = PERSON.PERSON_ID
     INNER JOIN CST_ROLE ROLE 
       ON ADMIN.ROLE = ROLE.ROLE_ID
+    INNER JOIN CST_LABGROUP LABGROUP
+      ON ADMIN.LABGROUP_ID = LABGROUP.LABGROUP_ID
     WHERE ADMIN.FLAG_DEL = 0
     ORDER BY PERSON.FIRST_NAME ASC`
   );
@@ -217,13 +221,13 @@ export async function GET(req) {
         FROM CST_LABCOURSE LAB 
         INNER JOIN PBL_AVSREGCOURSE_V COURSE
             ON COURSE.COURSEID = LAB.COURSEID
-        INNER JOIN PBL_AVSREGCLASS_V REG
+        LEFT JOIN PBL_AVSREGCLASS_V REG
             ON REG.COURSEID = LAB.COURSEID
-        INNER JOIN CST_LABGROUP LABGROUP
+        LEFT JOIN CST_LABGROUP LABGROUP
             ON LAB.LABGROUP_ID = LABGROUP.LABGROUP_ID
-        INNER JOIN PBL_VPER_PERSON PERSON 
+        LEFT JOIN PBL_VPER_PERSON PERSON 
             ON LAB.PERSON_ID = PERSON.PERSON_ID
-        INNER JOIN PBL_FACULTY_V FAC 
+        LEFT JOIN PBL_FACULTY_V FAC 
             ON COURSE.FACULTYID = FAC.FACULTYID
         WHERE LAB.FLAG_DEL = 0
         GROUP BY LAB.LAB_ID
@@ -257,13 +261,13 @@ export async function GET(req) {
         FROM CST_LABCOURSE LAB 
         INNER JOIN PBL_AVSREGCOURSE_V COURSE
             ON COURSE.COURSEID = LAB.COURSEID
-        INNER JOIN PBL_AVSREGCLASS_V REG
+        LEFT JOIN PBL_AVSREGCLASS_V REG
             ON REG.COURSEID = LAB.COURSEID
-        INNER JOIN CST_LABGROUP LABGROUP
+        LEFT JOIN CST_LABGROUP LABGROUP
             ON LAB.LABGROUP_ID = LABGROUP.LABGROUP_ID
-        INNER JOIN PBL_VPER_PERSON PERSON 
+        LEFT JOIN PBL_VPER_PERSON PERSON 
             ON LAB.PERSON_ID = PERSON.PERSON_ID
-        INNER JOIN PBL_FACULTY_V FAC 
+        LEFT JOIN PBL_FACULTY_V FAC 
             ON COURSE.FACULTYID = FAC.FACULTYID
         INNER JOIN CST_SCHYEAR SCH 
             ON SCH.SCH_ID = :schId
@@ -295,15 +299,15 @@ export async function GET(req) {
         FROM CST_LABCOURSE LAB 
         INNER JOIN PBL_AVSREGCOURSE_V COURSE
             ON COURSE.COURSEID = LAB.COURSEID
-        INNER JOIN PBL_AVSREGCLASS_V REG
+        LEFT JOIN PBL_AVSREGCLASS_V REG
             ON REG.COURSEID = LAB.COURSEID
-        INNER JOIN CST_LABGROUP LABGROUP
+        LEFT JOIN CST_LABGROUP LABGROUP
             ON LAB.LABGROUP_ID = LABGROUP.LABGROUP_ID
-        INNER JOIN PBL_VPER_PERSON PERSON 
+        LEFT JOIN PBL_VPER_PERSON PERSON 
             ON LAB.PERSON_ID = PERSON.PERSON_ID
-        INNER JOIN PBL_FACULTY_V FAC 
+        LEFT JOIN PBL_FACULTY_V FAC 
             ON COURSE.FACULTYID = FAC.FACULTYID
-        INNER JOIN CST_SCHYEAR SCH 
+        LEFT JOIN CST_SCHYEAR SCH 
             ON SCH.SCH_ID = :schId
             AND SCH.SEMESTER = LAB.SEMESTER
             AND SCH.ACADYEAR = LAB.ACADYEAR
@@ -346,38 +350,90 @@ export async function GET(req) {
   }
 }
 
+// export async function POST(req) {
+//   try {
+//     const body = await req.json();
+//     const {
+//       acadyear,
+//       courseid,
+//       hour,
+//       labgroupId,
+//       labgroupNum,
+//       labroom,
+//       personId,
+//       schId,
+//       section,
+//       semester,
+//       userId,
+//       labasset,
+//       courseUser,
+//     } = body;
+
+//     if (
+//       !acadyear ||
+//       !courseid ||
+//       !hour ||
+//       !labgroupId ||
+//       !labgroupNum ||
+//       !labroom ||
+//       !personId ||
+//       !schId ||
+//       !section ||
+//       !semester ||
+//       !userId
+//     ) {
+//       return NextResponse.json(
+//         { success: false, message: "Missing fields" },
+//         { status: 400 }
+//       );
+//     }
+
+//     const labId = await executeQuery(
+//       `SELECT CST_LABCOURSE_SEQ.NEXTVAL AS ID FROM DUAL`
+//     );
+
+//     await executeQuery(
+//       `INSERT INTO CST_LABCOURSE
+//         (LAB_ID, ACADYEAR, COURSEID, HOUR, LABGROUP_ID, LABGROUP_NUM, LABROOM, SCH_ID, SECTION, SEMESTER, PERSON_ID, DATE_CREATED, USER_CREATED, DATE_UPDATED, USER_UPDATED)
+//       VALUES
+//         (:labId, :acadyear, :courseid, :hour, :labgroupId, :labgroupNum, :labroom, :schId, :section, :semester, :personId, SYSDATE, :userCreated, SYSDATE, :userUpdated)`,
+//       {
+//         labId: labId[0].id,
+//         acadyear,
+//         courseid,
+//         hour,
+//         labgroupId: parseInt(labgroupId),
+//         labgroupNum,
+//         labroom,
+//         schId,
+//         section,
+//         semester,
+//         personId,
+//         userCreated: userId,
+//         userUpdated: userId,
+//       }
+//     );
+
+//     await saveLabasset(labasset, labId[0].id);
+//     await saveCourseUser(courseUser, labId[0].id);
+//     return NextResponse.json(
+//       { success: true, message: "User added successfully" },
+//       { status: 201 }
+//     );
+//   } catch (error) {
+//     return NextResponse.json(
+//       { success: false, message: "Database Error", error },
+//       { status: 500 }
+//     );
+//   }
+// }
+
 export async function POST(req) {
   try {
     const body = await req.json();
-    const {
-      acadyear,
-      courseid,
-      hour,
-      labgroupId,
-      labgroupNum,
-      labroom,
-      personId,
-      schId,
-      section,
-      semester,
-      userId,
-      labasset,
-      courseUser,
-    } = body;
+    const { courseid, schId, userId, acadyear, semester, section } = body;
 
-    if (
-      !acadyear ||
-      !courseid ||
-      !hour ||
-      !labgroupId ||
-      !labgroupNum ||
-      !labroom ||
-      !personId ||
-      !schId ||
-      !section ||
-      !semester ||
-      !userId
-    ) {
+    if (!courseid || !schId || !userId || !acadyear || !semester || !section) {
       return NextResponse.json(
         { success: false, message: "Missing fields" },
         { status: 400 }
@@ -390,30 +446,22 @@ export async function POST(req) {
 
     await executeQuery(
       `INSERT INTO CST_LABCOURSE
-        (LAB_ID, ACADYEAR, COURSEID, HOUR, LABGROUP_ID, LABGROUP_NUM, LABROOM, SCH_ID, SECTION, SEMESTER, PERSON_ID, DATE_CREATED, USER_CREATED, DATE_UPDATED, USER_UPDATED)
+        (LAB_ID, COURSEID, SCH_ID, ACADYEAR, SEMESTER,SECTION, DATE_CREATED, USER_CREATED, DATE_UPDATED, USER_UPDATED)
       VALUES
-        (:labId, :acadyear, :courseid, :hour, :labgroupId, :labgroupNum, :labroom, :schId, :section, :semester, :personId, SYSDATE, :userCreated, SYSDATE, :userUpdated)`,
+        (:labId, :courseid, :schId,:acadyear,:semester,:section,  SYSDATE, :userCreated, SYSDATE, :userUpdated)`,
       {
         labId: labId[0].id,
-        acadyear,
         courseid,
-        hour,
-        labgroupId: parseInt(labgroupId),
-        labgroupNum,
-        labroom,
         schId,
-        section,
+        acadyear,
         semester,
-        personId,
+        section,
         userCreated: userId,
         userUpdated: userId,
       }
     );
-
-    await saveLabasset(labasset, labId[0].id);
-    await saveCourseUser(courseUser, labId[0].id);
     return NextResponse.json(
-      { success: true, message: "User added successfully" },
+      { success: true, message: "User added successfully", labId: labId[0].id },
       { status: 201 }
     );
   } catch (error) {
@@ -484,8 +532,8 @@ export async function PUT(req) {
       }
     );
 
-    await saveLabasset(labasset, id);
-    await saveCourseUser(courseUser, id);
+    // await saveLabasset(labasset, id);
+    // await saveCourseUser(courseUser, id);
 
     return NextResponse.json({
       success: true,
