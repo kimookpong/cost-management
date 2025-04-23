@@ -147,7 +147,7 @@ export default function Page() {
       className: "text-center",
     },
   ];
-  if (userlogin === "แอดมิน") {
+  if (userlogin === "แอดมิน" || userlogin === "ผู้ประสานงานรายวิชา") {
     meta.push({
       key: "labId",
       content: "จัดการ",
