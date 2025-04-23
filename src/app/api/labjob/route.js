@@ -54,8 +54,11 @@ export async function GET(req) {
     if (userloginId && userlogin === "หัวหน้าบทปฏิบัติการ") {
       labjoblist2 += " AND L.PERSON_ID = :userloginId";
       params2.userloginId = userloginId;
-    } else if (userlogin === "แอดมิน" || userlogin === "ผู้ประสานงานรายวิชา") {
+    } else if (userlogin === "แอดมิน") {
       labjoblist2 += " ";
+    } else if (userlogin === "ผู้ประสานงานรายวิชา") {
+      labjoblist2 += " AND L.PERSON_ID = :userloginId";
+      params2.userloginId = userloginId;
     }
     const labjoblist = await executeQuery(labjoblist2, params2);
     const listdiv = await executeQuery(
