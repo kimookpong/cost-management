@@ -158,8 +158,7 @@ export default function List() {
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressEdit(item.labId);
-            }}
-          >
+            }}>
             <FiEdit className="w-4 h-4" />
             แก้ไข
           </button>
@@ -167,8 +166,7 @@ export default function List() {
             className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressDelete(item.labId);
-            }}
-          >
+            }}>
             <FiTrash2 className="w-4 h-4" />
             ลบ
           </button>
@@ -180,8 +178,7 @@ export default function List() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title="แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา"
-    >
+      title="แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between">
           <div>
@@ -189,21 +186,20 @@ export default function List() {
           </div>
           <div className="flex gap-4">
             <div className="flex gap-2 items-center">
-              <label className={className.label}>เทอมการศึกษา :</label>
+              <label className={className.label}>ปีการศึกษา :</label>
               <select
                 value={schId}
                 onChange={(e) => {
                   setSchId(e.target.value);
                   router.push(`/assign-course?schId=${e.target.value}`);
                 }}
-                className="block bg-white px-4 py-2 border rounded-md dark:bg-gray-800"
-              >
+                className="block bg-white px-4 py-2 border rounded-md dark:bg-gray-800">
                 <option value="" disabled>
                   เลือกเทอมการศึกษา
                 </option>
                 {data.semester.map((item) => (
                   <option key={item.schId} value={item.schId}>
-                    เทอม {item.semester}/{item.acadyear}
+                    {item.semester}/{item.acadyear}
                   </option>
                 ))}
               </select>
@@ -211,8 +207,7 @@ export default function List() {
 
             <button
               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={_onPressAdd}
-            >
+              onClick={_onPressAdd}>
               <FiPlus className="w-4 h-4" />
               เพิ่มใหม่
             </button>

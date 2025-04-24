@@ -41,7 +41,8 @@ export async function GET(req) {
     SUM(REG.ENROLLSEAT) AS ENROLLSEAT,
     L.LABROOM,
     L.SECTION,
-    L.HOUR
+    L.HOUR ,
+    L.PERSON_ID
 FROM CST_LABCOURSE L
 INNER JOIN PBL_AVSREGCOURSE_V COURSE ON COURSE.COURSEID = L.COURSEID
 INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = L.SCH_ID
@@ -63,7 +64,9 @@ GROUP BY
     COURSE.COURSENAMEENG,
     L.LABROOM,
     L.SECTION,
-    L.HOUR
+    L.HOUR,
+    L.PERSON_ID
+
 HAVING SUM(REG.TOTALSEAT) > 0`,
       { schId: req.nextUrl.searchParams.get("schId") } // Correct JSON object structure
     );

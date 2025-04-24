@@ -147,28 +147,31 @@ export default function Page() {
       className: "text-center",
     },
   ];
-  if (userlogin === "แอดมิน" || userlogin === "ผู้ประสานงานรายวิชา") {
+
+  if (
+    userlogin === "ผู้ประสานงานรายวิชา" &&
+    lab.some((item) => item.personId === userIdlogin)
+  ) {
     meta.push({
       key: "labId",
       content: "จัดการ",
       width: "270",
       className: "text-center",
-      render: (item) => (
-        <div className="cursor-pointer items-center justify-center flex gap-1">
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-            onClick={() => _onPressAdd(item.labId)}>
-            {/* <FiEdit className="w-4 h-4" /> */}
-            กำหนดปฏิบัติการ
-          </button>
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-            onClick={() => _onPressAddasset(item.labId)}>
-            {/* <FiEdit className="w-4 h-4" /> */}
-            แผนการใช้ทรัพยากร
-          </button>
-        </div>
-      ),
+      render: (item) =>
+        item.personId === userIdlogin ? (
+          <div className="cursor-pointer items-center justify-center flex gap-1">
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+              onClick={() => _onPressAdd(item.labId)}>
+              กำหนดปฏิบัติการ
+            </button>
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+              onClick={() => _onPressAddasset(item.labId)}>
+              แผนการใช้ทรัพยากร
+            </button>
+          </div>
+        ) : null,
     });
   } else if (userlogin === "หัวหน้าบทปฏิบัติการ") {
     meta.push({
@@ -188,6 +191,12 @@ export default function Page() {
       ),
     });
   }
+  // else {
+  //   <div className="cursor-pointer items-center justify-center flex gap-1">
+  //     {"-"}
+  //   </div>;
+  // }
+
   let title;
   if (userlogin === "หัวหน้าบทปฏิบัติการ") {
     title = "ใบงานปฏิบัติการตามรายวิชา";
