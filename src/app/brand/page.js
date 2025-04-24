@@ -90,7 +90,7 @@ export default function List() {
       width: "100",
       render: (item) => {
         return (
-          <div className="flex  items-center">
+          <div className="flex items-center">
             <span
               className={`px-2 py-1 text-sm font-medium rounded-full ${
                 item.status === "1"
