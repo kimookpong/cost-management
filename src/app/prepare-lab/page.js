@@ -86,7 +86,10 @@ export default function Page() {
         return (
           <>
             <div className="item-center">
-              <span>{item.courseunicode}</span>
+              <span>
+                {item.courseunicode}
+                {/* {item.personId} */}
+              </span>
             </div>
             <div className="item-center">
               <span>{item.courseunit}</span>
@@ -149,16 +152,24 @@ export default function Page() {
   ];
 
   if (
-    userlogin === "ผู้ประสานงานรายวิชา" &&
-    lab.some((item) => item.personId === userIdlogin)
+    userlogin === "ผู้ประสานงานรายวิชา" ||
+    userlogin === "แอดมิน" ||
+    userlogin === "หัวหน้าฝ่าย"
   ) {
     meta.push({
       key: "labId",
       content: "จัดการ",
       width: "270",
       className: "text-center",
-      render: (item) =>
-        item.personId === userIdlogin ? (
+      render: (item) => {
+        console.log(
+          "Rendering item:",
+          item.labId,
+          item.personId,
+          "vs",
+          userIdlogin
+        );
+        return String(item.personId) === String(userIdlogin) ? (
           <div className="cursor-pointer items-center justify-center flex gap-1">
             <button
               className="cursor-pointer p-2 text-white text-sm bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
@@ -171,26 +182,43 @@ export default function Page() {
               แผนการใช้ทรัพยากร
             </button>
           </div>
-        ) : null,
+        ) : (
+          "-"
+        );
+      },
     });
-  } else if (userlogin === "หัวหน้าบทปฏิบัติการ") {
+  } else if (
+    userlogin === "ผู้ประสานงานรายวิชา" ||
+    userlogin === "แอดมิน" ||
+    userlogin === "หัวหน้าฝ่าย" ||
+    userlogin === "หัวหน้าบทปฏิบัติการ"
+  ) {
     meta.push({
       key: "labId",
       content: "จัดการ",
       width: "270",
       className: "text-center",
-      render: (item) => (
-        <div className="cursor-pointer items-center justify-center flex gap-1">
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-indigo-500 hover:bg-indigo-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-            onClick={() => _onPressAdd(item.labId)}>
-            {/* <FiEdit className="w-4 h-4" /> */}
-            การใช้ทรัพยากรและอุปกรณ์ชำรุด
-          </button>
-        </div>
-      ),
+      render: (item) => {
+        console.log(
+          "Rendering item:",
+          item.labId,
+          item.personId,
+          "vs",
+          userIdlogin
+        );
+        return String(item.personId) === String(userIdlogin) ? (
+          <div className="cursor-pointer items-center justify-center flex gap-1">
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-indigo-500 hover:bg-indigo-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+              onClick={() => _onPressAdd(item.labId)}>
+              การใช้ทรัพยากรและอุปกรณ์ชำรุด
+            </button>
+          </div>
+        ) : null;
+      },
     });
   }
+
   // else {
   //   <div className="cursor-pointer items-center justify-center flex gap-1">
   //     {"-"}
