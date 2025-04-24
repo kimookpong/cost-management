@@ -236,12 +236,12 @@ export default function Page() {
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <div>
-            <h3 className="font-semibold">{title}</h3>
+            <h3 className="font-semibold text-lg">{title}</h3>
           </div>
 
           <div className=" gap-1  justify-end">
             <div className="flex gap-2 justify-end items-center">
-              <label className="block text-lg font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300 w-full">
+              <label className="block text-base font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300 w-full">
                 ปีการศึกษา
               </label>
               <select
