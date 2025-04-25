@@ -691,7 +691,7 @@ export default function Detail() {
                                       </div>
                                     </div>
                                     <div className="text-sm">
-                                      Remark : {item.assetUsedRemark || "-"}
+                                      หมายเหตุ : {item.assetUsedRemark || "-"}
                                     </div>
                                   </div>
                                 ),
@@ -836,7 +836,7 @@ export default function Detail() {
                                       </div>
                                     </div>
                                     <div className="text-sm">
-                                      Remark : {item.assetUsedRemark || "-"}
+                                      หมายเหตุ : {item.assetUsedRemark || "-"}
                                     </div>
                                   </div>
                                 ),
@@ -978,7 +978,7 @@ export default function Detail() {
                                       </div>
                                     </div>
                                     <div className="text-sm">
-                                      Remark : {item.assetUsedRemark || "-"}
+                                      หมายเหตุ : {item.assetUsedRemark || "-"}
                                     </div>
                                   </div>
                                 ),
@@ -1100,7 +1100,7 @@ export default function Detail() {
                                         </div>
                                       </div>
                                       <div className="text-sm">
-                                        Remark : {item.assetUsedRemark || "-"}
+                                        หมายเหตุ : {item.assetUsedRemark || "-"}
                                       </div>
                                     </div>
                                   ),

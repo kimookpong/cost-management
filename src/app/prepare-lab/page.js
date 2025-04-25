@@ -86,7 +86,10 @@ export default function Page() {
         return (
           <>
             <div className="item-center">
-              <span>{item.courseunicode}</span>
+              <span>
+                {item.courseunicode}
+                {/* {item.personId} */}
+              </span>
             </div>
             <div className="item-center">
               <span>{item.courseunit}</span>
@@ -147,47 +150,81 @@ export default function Page() {
       className: "text-center",
     },
   ];
-  if (userlogin === "แอดมิน" || userlogin === "ผู้ประสานงานรายวิชา") {
+
+  if (
+    userlogin === "ผู้ประสานงานรายวิชา" ||
+    userlogin === "แอดมิน" ||
+    userlogin === "หัวหน้าฝ่าย"
+  ) {
     meta.push({
       key: "labId",
       content: "จัดการ",
       width: "270",
       className: "text-center",
-      render: (item) => (
-        <div className="cursor-pointer items-center justify-center flex gap-1">
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-            onClick={() => _onPressAdd(item.labId)}>
-            {/* <FiEdit className="w-4 h-4" /> */}
-            กำหนดปฏิบัติการ
-          </button>
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-            onClick={() => _onPressAddasset(item.labId)}>
-            {/* <FiEdit className="w-4 h-4" /> */}
-            แผนการใช้ทรัพยากร
-          </button>
-        </div>
-      ),
+      render: (item) => {
+        console.log(
+          "Rendering item:",
+          item.labId,
+          item.personId,
+          "vs",
+          userIdlogin
+        );
+        return String(item.personId) === String(userIdlogin) ? (
+          <div className="cursor-pointer items-center justify-center flex gap-1">
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+              onClick={() => _onPressAdd(item.labId)}>
+              กำหนดปฏิบัติการ
+            </button>
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+              onClick={() => _onPressAddasset(item.labId)}>
+              แผนการใช้ทรัพยากร
+            </button>
+          </div>
+        ) : (
+          "-"
+        );
+      },
     });
-  } else if (userlogin === "หัวหน้าบทปฏิบัติการ") {
+  } else if (
+    userlogin === "ผู้ประสานงานรายวิชา" ||
+    userlogin === "แอดมิน" ||
+    userlogin === "หัวหน้าฝ่าย" ||
+    userlogin === "หัวหน้าบทปฏิบัติการ"
+  ) {
     meta.push({
       key: "labId",
       content: "จัดการ",
       width: "270",
       className: "text-center",
-      render: (item) => (
-        <div className="cursor-pointer items-center justify-center flex gap-1">
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-indigo-500 hover:bg-indigo-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-            onClick={() => _onPressAdd(item.labId)}>
-            {/* <FiEdit className="w-4 h-4" /> */}
-            การใช้ทรัพยากรและอุปกรณ์ชำรุด
-          </button>
-        </div>
-      ),
+      render: (item) => {
+        console.log(
+          "Rendering item:",
+          item.labId,
+          item.personId,
+          "vs",
+          userIdlogin
+        );
+        return String(item.personId) === String(userIdlogin) ? (
+          <div className="cursor-pointer items-center justify-center flex gap-1">
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-indigo-500 hover:bg-indigo-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+              onClick={() => _onPressAdd(item.labId)}>
+              การใช้ทรัพยากรและอุปกรณ์ชำรุด
+            </button>
+          </div>
+        ) : null;
+      },
     });
   }
+
+  // else {
+  //   <div className="cursor-pointer items-center justify-center flex gap-1">
+  //     {"-"}
+  //   </div>;
+  // }
+
   let title;
   if (userlogin === "หัวหน้าบทปฏิบัติการ") {
     title = "ใบงานปฏิบัติการตามรายวิชา";
@@ -199,12 +236,12 @@ export default function Page() {
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <div>
-            <h3 className="font-semibold">{title}</h3>
+            <h3 className="font-semibold text-lg">{title}</h3>
           </div>
 
           <div className=" gap-1  justify-end">
             <div className="flex gap-2 justify-end items-center">
-              <label className="block text-lg font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300 w-full">
+              <label className="block text-base font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300 w-full">
                 ปีการศึกษา
               </label>
               <select

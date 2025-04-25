@@ -176,46 +176,49 @@ export default function Page() {
   return (
     <Content breadcrumb={breadcrumb} title="เตรียมปฏิบัติการ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
-        <div className="flex gap-1 p-4">
+        <div className="flex gap-1 p-2">
           <button
             type="button"
-            className="cursor-pointer p-3 text-white text-sm bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
+            className="cursor-pointer p-2 text-white text-sm bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
             onClick={() => router.back()}>
             <FiChevronLeft className="w-4 h-4" />
             ย้อนกลับ
           </button>
           <span className="flex-1"></span>
         </div>
-        <div className="p-4 border-b border-gray-200 items-center">
-          <div className="flex gap-1 justify-center items-center p-4">
-            <h3 className="font-semibold text-2xl">ใบเตรียมปฏิบัติการ</h3>
+        <div className="p-2 border-b border-gray-200 items-center">
+          <div className="flex gap-1 justify-center items-center p-2">
+            <h3 className="font-semibold text-lg">ใบเตรียมปฏิบัติการ</h3>
           </div>
           <div className="flex gap-1 justify-center items-center p-1 border-b border-gray-200">
-            <p className="text-xl text-gray-500">
+            <p className="text-lg text-gray-600">
               {" "}
+              {datacourse ? datacourse.courseunicode : " "}{" "}
               {datacourse ? datacourse.coursename : " "}
             </p>
-            <p className="text-xl text-gray-500">
+            <p className="text-lg text-gray-600">
               {" "}
               ({datacourse ? datacourse.coursenameeng : " "})
             </p>
           </div>
           <div className="flex gap-1 justify-left items-left p-1 border-b font-semibold">
-            <h3 className="text-xl text-gray-900 p-2 boder">รายละเอียดวิชา</h3>
+            <h3 className="text-base text-gray-900 p-1 boder">
+              รายละเอียดวิชา
+            </h3>
           </div>
-          <div className="flex gap-1 justify-left items-left p-1 border-gray-200 ">
-            <p className="text-lg text-gray-900 p-2 font-medium">
+          {/* <div className="flex gap-1 justify-left items-left p-1 border-gray-200 ">
+            <p className="text-lg text-gray-900 p-2 font-semibold">
               จำนวน Section ที่เปิดให้บริการ
             </p>
-          </div>
-          <div className="flex gap-1 justify-left items-left  ps-16 border-gray-200">
-            <p className="text-lg text-gray-700">
+          </div> */}
+          <div className="flex gap-1 justify-left items-left  ps-16 border-gray-200 p-1">
+            <p className="text-lg text-gray-700 font-medium">
               {datacourse ? datacourse.labSection : " "}
               <span> </span>
-              Section จำนวน <span>
+              กลุ่ม จำนวน <span>
                 {datacourse ? datacourse.labroom : " "}
               </span>{" "}
-              ห้องปฏิบัติการ
+              ห้อง {datacourse ? datacourse.labgroupName : " "}
             </p>
           </div>
           {/* <div className="flex gap-1 justify-left items-left p-1 border-gray-200">
@@ -228,11 +231,11 @@ export default function Page() {
               วันพฤหัสบดี เวลา 03.00 - 16.00 น. จำนวน 2 ห้องปฏิบัติการ(เคมี 3-4)
             </p>
           </div> */}
-          <div className="flex gap-1 justify-left items-left pt-6 border-b font-semibold">
+          {/* <div className="flex gap-1 justify-left items-left pt-6 border-b font-semibold">
             <h3 className="text-xl text-gray-900 p-2 boder">
               รายการเตรียมปฏิบัติการ
             </h3>
-          </div>
+          </div> */}
           <div className="p-2 mr-4 flex justify-end items-center">{button}</div>
         </div>
         <div className="p-2 overflow-auto responsive">
