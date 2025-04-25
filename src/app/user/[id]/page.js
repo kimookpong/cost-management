@@ -29,6 +29,7 @@ export default function Detail() {
     personId: Yup.string().required("กรุณาเลือกผู้ใช้"),
     role: Yup.string().required("กรุณากรอกตำแหน่ง"),
     statusId: Yup.string().required("กรุณาเลือกสถานะ"),
+    labgroupId: Yup.string().required("กรุณาเลือกกลุ่มห้องปฎิบัติการ"),
   });
 
   const formik = useFormik({
@@ -36,6 +37,7 @@ export default function Detail() {
       personId: "",
       role: "1",
       statusId: "1",
+      labgroupId: "",
     },
     validationSchema,
     onSubmit: async (values) => {
@@ -82,7 +84,7 @@ export default function Detail() {
         const data = response.data;
         if (data.success) {
           setRoleOptions(data.role);
-
+          setLabgroupOptions(data.labgroup);
           setLoading(false);
         } else {
           console.error("Error fetching data:", err);
@@ -131,6 +133,9 @@ export default function Detail() {
                     onChange={formik.handleChange}
                     className={className.select}
                   >
+                    <option value="" disabled>
+                      เลือกสิทธิการใช้งาน
+                    </option>
                     {roleOptions.map((role) => (
                       <option key={role.roleId} value={role.roleId}>
                         {role.roleName}
@@ -147,8 +152,15 @@ export default function Detail() {
                     name="labgroupId"
                     value={formik.values.labgroupId}
                     onChange={formik.handleChange}
-                    className={className.select}
+                    className={`${className.select} ${
+                      formik.touched.labgroupId && formik.errors.labgroupId
+                        ? "border-red-500"
+                        : ""
+                    }`}
                   >
+                    <option value="" disabled>
+                      เลือกกลุ่มห้องปฎิบัติการ
+                    </option>
                     {labgroupOptions.map((labgroup) => (
                       <option
                         key={labgroup.labgroupId}
@@ -158,6 +170,11 @@ export default function Detail() {
                       </option>
                     ))}
                   </select>
+                  {formik.touched.labgroupId && formik.errors.labgroupId && (
+                    <p className="mt-1 text-sm text-red-500">
+                      {formik.errors.labgroupId}
+                    </p>
+                  )}
                 </div>
               </div>
 
