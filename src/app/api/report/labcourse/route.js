@@ -38,12 +38,15 @@ async function getAsset(labId) {
     ASSET.AMOUNT,
     ASSETINV.UNIT_PRICE,
     ASSETINV.PACK_PRICE,
-    ASSET.ASSET_REMARK
+    ASSET.ASSET_REMARK,
+    INVTYPE.INVTYPE_NAME
     FROM CST_LABCOURSE_ASSET ASSET
     INNER JOIN CST_INVASSET ASSETINV
         ON ASSET.ASSET_ID = ASSETINV.ASSET_ID
     INNER JOIN CST_INVBRAND BRAND
         ON ASSETINV.BRAND_ID = BRAND.BRAND_ID
+    INNER JOIN CST_INVTYPE INVTYPE 
+        ON ASSETINV.INVTYPE_ID=INVTYPE.INVTYPE_ID
     WHERE ASSET.LAB_ID = :labId
     AND ASSET.FLAG_DEL = 0`,
     { labId }
@@ -92,6 +95,29 @@ async function getLabjobAsset(labjobId) {
   );
 }
 
+async function getProgramEnroll(labId) {
+  return await executeQuery(
+    `SELECT   COUNT(E.STUDENTID) AS COUNTSTD  ,  P.PROGRAMID  , P.PROGRAMNAME 
+    FROM CST_LABCOURSE  A  INNER JOIN PBL_AVSREGENROLLSUMMARY_V  E 
+    ON  A.COURSEID=E.COURSEID  AND A.ACADYEAR=E.ACADYEAR  AND A.SEMESTER = E.SEMESTER
+    INNER JOIN PBL_STUDENTMASTER_V S  ON E.STUDENTID=S.STUDENTID 
+    INNER JOIN PBL_PROGRAM_V P  ON S.PROGRAMID=P.PROGRAMID
+    WHERE LAB_ID = :labId GROUP BY   P.PROGRAMID, P.PROGRAMNAME `,
+    { labId }
+  );
+}
+
+async function getFacultyEnroll(labId) {
+  return await executeQuery(
+    `SELECT   COUNT(E.STUDENTID) AS COUNTSTD  ,  F.FACULTYID  , F.FACULTYNAME 
+    FROM CST_LABCOURSE  A  INNER JOIN PBL_AVSREGENROLLSUMMARY_V  E 
+    ON  A.COURSEID=E.COURSEID  AND A.ACADYEAR=E.ACADYEAR  AND A.SEMESTER = E.SEMESTER
+    INNER JOIN PBL_STUDENTMASTER_V S  ON E.STUDENTID=S.STUDENTID 
+    INNER JOIN PBL_FACULTY_V  F  ON S.FACULTYID=F.FACULTYID
+    WHERE LAB_ID = :labId GROUP BY F.FACULTYID, F.FACULTYNAME `,
+    { labId }
+  );
+}
 export async function GET(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
@@ -135,6 +161,8 @@ export async function GET(req) {
     return NextResponse.json({
       success: true,
       data: data,
+      faculty: await getFacultyEnroll(id),
+      program: await getProgramEnroll(id),
       reg:
         data.length > 0 &&
         (await getReg(data[0].courseid, data[0].semester, data[0].acadyear)),
