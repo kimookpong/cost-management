@@ -78,10 +78,10 @@ export default function Dashboard() {
           <p>ฝ่ายห้องปฏิบติการ</p>
         </div>
         <div className="collapse-content text-gray-800 dark:text-gray-300">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
-                title: "ฝ่ายห้องปฏิบัติการวิทยาศาสตร์สุขภาพ",
+                title: "วิทยาศาสตร์สุขภาพ",
                 value: "10",
                 number: "20",
                 unit: "รายวิชา",
@@ -89,7 +89,7 @@ export default function Dashboard() {
                 unitn: "ห้องปฏิบัติการ",
               },
               {
-                title: "ฝ่ายห้องปฏิบัติการวิทยาศาสตร์พื้นฐาน",
+                title: "วิทยาศาสตร์พื้นฐาน",
                 value: "30",
                 number: "29",
                 unit: "รายวิชา",
@@ -97,9 +97,17 @@ export default function Dashboard() {
                 unitn: "ห้องปฏิบัติการ",
               },
               {
-                title: "ฝ่ายห้องปฏิบัติการวิทยาศาสตร์เทคโนโลยี",
+                title: "วิทยาศาสตร์เทคโนโลยี",
                 value: "40",
                 number: "35",
+                unit: "รายวิชา",
+                icon: <FiHome className="text-purple-500" />,
+                unitn: "ห้องปฏิบัติการ",
+              },
+              {
+                title: "วิทยาศาสตร์การแพทย์",
+                value: "50",
+                number: "45",
                 unit: "รายวิชา",
                 icon: <FiHome className="text-purple-500" />,
                 unitn: "ห้องปฏิบัติการ",
@@ -125,8 +133,8 @@ export default function Dashboard() {
                       )}
                     </span>
                   </span>{" "}
-                  <div className="mt-2 flex items-center text-xs bg-gray-300 dark:bg-gray-700 p-2 rounded-lg">
-                    <div className="flex items-center text-gray-800 dark:text-gray-300">
+                  <div className="mt-2  items-center text-xs bg-gray-300 dark:bg-gray-700 p-2 rounded-lg">
+                    <div className="flex items-center text-gray-800 dark:text-gray-300 justify-center">
                       <span className="text-base"> {stat.title}</span>
                     </div>
                   </div>

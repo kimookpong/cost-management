@@ -129,6 +129,7 @@ export default function Detail() {
       .max(100, "ข้อความต้องไม่เกิน 100 ตัวอักษร"),
   });
   const saveLabAsset = async (values) => {
+    console.log("saveLabAsset", values);
     try {
       const payload = {
         labassetId: values.labassetId, // ถ้ามี = ใช้ PUT
@@ -148,7 +149,7 @@ export default function Detail() {
         toastDialog("ข้อมูลไม่ครบถ้วน โปรดตรวจสอบ", "error");
         return;
       }
-
+      console.log("payload", payload);
       // ถ้ามี labassetId ให้ใช้ PUT แทน POST
       if (payload.labassetId) {
         await axios.put(`/api/use-asset/plnasset`, { labaset: payload });
@@ -211,7 +212,7 @@ export default function Detail() {
             ),
           }));
         } else {
-          values.labassetId = uuidv4();
+          values.labassetId = "";
           setLabasset((prevLabasset) => ({
             ...prevLabasset,
             type1: [...(prevLabasset.type1 || []), values],
@@ -226,7 +227,7 @@ export default function Detail() {
             ),
           }));
         } else {
-          values.labassetId = uuidv4();
+          values.labassetId = "";
           setLabasset((prevLabasset) => ({
             ...prevLabasset,
             type2: [...(prevLabasset.type2 || []), values],
@@ -241,7 +242,7 @@ export default function Detail() {
             ),
           }));
         } else {
-          values.labassetId = uuidv4();
+          values.labassetId = "";
           setLabasset((prevLabasset) => ({
             ...prevLabasset,
             type3: [...(prevLabasset.type3 || []), values],
@@ -441,7 +442,7 @@ export default function Detail() {
       <div className="relative flex flex-col w-full text-gray-900 dark:text-gray-300 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
-            {isNew ? "แผนการใช้ทรัพยากร" : "แผนการใช้ทรัพยากร"} : {"รายวิชา"} {" "}
+            {isNew ? "แผนการใช้ทรัพยากร" : "แผนการใช้ทรัพยากร"} : {"รายวิชา"}{" "}
             {data.course?.coursename} ({data.course?.coursecode})
           </h3>
         </div>

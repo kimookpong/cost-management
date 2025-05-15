@@ -177,48 +177,46 @@ export default function Page() {
     <Content breadcrumb={breadcrumb} title="เตรียมปฏิบัติการ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="flex gap-1 p-2">
-          <button
+          {/* <button
             type="button"
             className="cursor-pointer p-2 text-white text-sm bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
             onClick={() => router.back()}>
             <FiChevronLeft className="w-4 h-4" />
             ย้อนกลับ
-          </button>
+          </button> */}
           <span className="flex-1"></span>
         </div>
         <div className="p-2 border-b border-gray-200 items-center">
           <div className="flex gap-1 justify-center items-center p-2">
             <h3 className="font-semibold text-lg">ใบเตรียมปฏิบัติการ</h3>
           </div>
-          <div className="flex gap-1 justify-center items-center p-1 border-b border-gray-200">
+          <div className="flex gap-1 justify-center items-center p-1 border-b border-gray-200"></div>
+          <div className="flex gap-1 justify-left items-left p-1 border-b font-semibold">
             <p className="text-lg text-gray-600">
-              {" "}
-              {datacourse ? datacourse.courseunicode : " "}{" "}
+              รายวิชา : {datacourse ? datacourse.courseunicode : " "}{" "}
               {datacourse ? datacourse.coursename : " "}
             </p>
-            <p className="text-lg text-gray-600">
-              {" "}
-              ({datacourse ? datacourse.coursenameeng : " "})
-            </p>
-          </div>
-          <div className="flex gap-1 justify-left items-left p-1 border-b font-semibold">
-            <h3 className="text-base text-gray-900 p-1 boder">
-              รายละเอียดวิชา
-            </h3>
+            {/* <p className="text-lg text-gray-600">
+                {" "}
+                ({datacourse ? datacourse.coursenameeng : " "})
+              </p> */}
           </div>
           {/* <div className="flex gap-1 justify-left items-left p-1 border-gray-200 ">
             <p className="text-lg text-gray-900 p-2 font-semibold">
               จำนวน Section ที่เปิดให้บริการ
             </p>
           </div> */}
-          <div className="flex gap-1 justify-left items-left  ps-16 border-gray-200 p-1">
+          <div className="flex gap-1 justify-left items-left  ps-2 border-gray-200 p-1">
             <p className="text-lg text-gray-700 font-medium">
-              {datacourse ? datacourse.labSection : " "}
+              {/* {datacourse ? datacourse.labSection : " "} */}
+              ปีการศึกษา : 2/2568
               <span> </span>
-              กลุ่ม จำนวน <span>
+              {/* กลุ่ม จำนวน <span>
                 {datacourse ? datacourse.labroom : " "}
-              </span>{" "}
-              ห้อง {datacourse ? datacourse.labgroupName : " "}
+              </span>{" "} */}
+            </p>
+            <p className="text-lg text-gray-700 font-medium">
+              {" "}{datacourse ? datacourse.labgroupName : " "}
             </p>
           </div>
           {/* <div className="flex gap-1 justify-left items-left p-1 border-gray-200">
