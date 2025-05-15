@@ -89,6 +89,7 @@ export default function Detail() {
       assetUsedRemark: "",
       type: "",
       assetextraFlag: 0,
+      unitPrice: 0,
       userId: session?.user.person_id,
     },
     validationSchema: validationInventForm,
@@ -108,6 +109,9 @@ export default function Detail() {
       values.unitName = invent.find(
         (inv) => inv.assetId === parseInt(values.assetId)
       )?.unitName;
+      values.unitPrice = invent.find(
+        (inv) => inv.assetId === parseInt(values.assetId)
+      )?.unitPrice;
       values.invgroupName = invent.find(
         (inv) => inv.assetId === parseInt(values.assetId)
       )?.invgroupName;
@@ -385,8 +389,11 @@ export default function Detail() {
 
   // useEffect เรียกเมื่อ labId หรือ labjobId เปลี่ยน
   useEffect(() => {
+    if (assetInfo?.unitPrice && !inventForm.values.unitPrice) {
+      inventForm.setFieldValue("unitPrice", assetInfo.unitPrice);
+    }
     fetchData();
-  }, [labId, searchParams.get("labjobId")]);
+  }, [assetInfo, labId, searchParams.get("labjobId")]);
 
   const breadcrumb = [
     // { name: "แผนการให้บริการห้องปฎิบัติการ" },
@@ -461,6 +468,7 @@ export default function Detail() {
       assetextraFlag: asset.assetextraFlag,
       userId: session?.user.person_id,
       unitName: asset.unitName,
+      unitPrice: asset.unitPrice,
     });
 
     // Fetch additional asset info if necessary
@@ -1247,11 +1255,12 @@ export default function Detail() {
                         </div>
                       )}
 
-                      <div className="sm:col-span-9">
+                      <div className="sm:col-span-6">
                         <label className={className.label}>จำนวนที่ใช้</label>
                         <input
                           type="number"
                           name="amountUsed"
+                          min="0"
                           value={inventForm.values.amountUsed || ""}
                           onChange={(e) =>
                             inventForm.setFieldValue(
@@ -1272,6 +1281,34 @@ export default function Detail() {
                               {inventForm.errors.amountUsed}
                             </p>
                           )}
+                      </div>
+                      <div className="sm:col-span-3">
+                        <label className={className.label}>
+                          ราคา ณ ปัจจุบันต่อหน่วย
+                        </label>
+                        <input
+                          type="number"
+                          name="unitPrice"
+                          value={inventForm.values.unitPrice ?? ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+
+                            if (val === "") {
+                              inventForm.setFieldValue("unitPrice", "");
+                            } else {
+                              const parsed = parseFloat(val);
+
+                              // ถ้าพิมพ์ค่าติดลบ → บังคับเป็น 0
+                              inventForm.setFieldValue(
+                                "unitPrice",
+                                parsed < 0 ? 0 : parsed
+                              );
+                            }
+                          }}
+                          min={0}
+                          step="0.01"
+                          className={className.input}
+                        />
                       </div>
                       <div className="sm:col-span-3">
                         <label className={className.label}>หน่วย</label>

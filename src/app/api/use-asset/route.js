@@ -114,7 +114,10 @@ export async function GET(req) {
         { id }
       );
       const uselabasset = await executeQuery(
-        `SELECT ASSET.LABJOB_ASSET_ID,ASSET.ASSET_ID, ASSET.AMOUNT_USED, ASSET.ASSET_USED_REMARK, 
+        `SELECT ASSET.LABJOB_ASSET_ID,ASSET.ASSET_ID,
+         ASSET.AMOUNT_USED, 
+         ASSET.UNIT_PRICE, 
+         ASSET.ASSET_USED_REMARK, 
         INV.ASSET_NAME_TH,
         BRAND.BRAND_NAME,
         INV.AMOUNT_UNIT,
@@ -337,6 +340,7 @@ export async function POST(req) {
       assetNameTh,
       brandName,
       amountUnit,
+      unitPrice,
       unitName,
     } = body.uselabasset;
 
@@ -354,17 +358,17 @@ export async function POST(req) {
     console.log(
       "Executing query:",
       `INSERT INTO CST_LABJOB_ASSET 
-    (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED, ASSET_USED_REMARK, DATE_CREATED, USER_CREATED, ASSETEXTRA_FLAG, ASSET_NAME_TH, BRAND_NAME, AMOUNT_UNIT, UNIT_NAME) 
+    (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED, ASSET_USED_REMARK, DATE_CREATED, USER_CREATED, ASSETEXTRA_FLAG, ASSET_NAME_TH, BRAND_NAME, AMOUNT_UNIT, UNIT_NAME, UNIT_PRICE) 
     VALUES 
-    (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :assetUsedRemark, SYSDATE, :userId, :assetextraFlag, :assetNameTh, :brandName, :amountUnit, :unitName)`
+    (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :assetUsedRemark, SYSDATE, :userId, :assetextraFlag, :assetNameTh, :brandName, :amountUnit, :unitName,unitPrice)`
     );
 
     // Execute the query
     await executeQuery(
       `INSERT INTO CST_LABJOB_ASSET 
-  (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED, ASSET_USED_REMARK, FLAG_DEL, USER_CREATED, DATE_CREATED, ASSETEXTRA_FLAG)
+  (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED, ASSET_USED_REMARK, FLAG_DEL, USER_CREATED, DATE_CREATED, ASSETEXTRA_FLAG, UNIT_PRICE)
   VALUES 
-  (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :assetUsedRemark, :flagDel, :userId, SYSDATE, :assetextraFlag)`,
+  (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :assetUsedRemark, :flagDel, :userId, SYSDATE, :assetextraFlag, :unitPrice)`,
       {
         labjobId: labjobIdNumber,
         assetId,
@@ -373,6 +377,7 @@ export async function POST(req) {
         flagDel: 0,
         userId: userIdNumber,
         assetextraFlag: assetextraFlag || 0,
+        unitPrice: unitPrice || 0,
       }
     );
 
@@ -402,24 +407,28 @@ export async function PUT(req) {
       assetUsedRemark,
       userId,
       assetextraFlag,
+      unitPrice,
     } = body.uselabasset;
 
     const labjobAssetIdNumber = parseInt(labjobAssetId, 10);
     const labjobIdNumber = parseInt(labjobId, 10);
     const userIdNumber = parseInt(userId, 10);
     const amountUsedNumber = Number(amountUsed);
+    const unitPriceNumber = Number(unitPrice);
 
     if (
       isNaN(labjobAssetIdNumber) ||
       isNaN(labjobIdNumber) ||
       isNaN(userIdNumber) ||
-      isNaN(amountUsedNumber)
+      isNaN(amountUsedNumber) ||
+      isNaN(unitPriceNumber)
     ) {
       console.log("Validation failed:", {
         labjobAssetIdNumber,
         labjobIdNumber,
         userIdNumber,
         amountUsedNumber,
+        unitPriceNumber,
       }); // Log invalid data to debug
       throw new Error("One or more values are not valid numbers.");
     }
@@ -434,6 +443,7 @@ export async function PUT(req) {
         USER_UPDATED = :userId,
         DATE_UPDATED = SYSDATE,
         ASSETEXTRA_FLAG = :assetextraFlag
+        , UNIT_PRICE = :unitPrice
       WHERE LABJOB_ASSET_ID = :labjobAssetId`,
       {
         labjobId: labjobIdNumber,
@@ -444,6 +454,7 @@ export async function PUT(req) {
         userId: userIdNumber,
         assetextraFlag: assetextraFlag || 0,
         labjobAssetId: labjobAssetIdNumber,
+        unitPrice: unitPriceNumber || 0,
       }
     );
 

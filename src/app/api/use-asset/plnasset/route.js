@@ -13,11 +13,13 @@ export async function GET(req) {
     let data;
 
     if (extraFlag === "1") {
+      console.log("Executing SELECT for extraFlag 1");
       data = await executeQuery(
         `SELECT ASSET.ASSET_ID, 
         ASSET.ASSET_NAME_TH,
         BRAND.BRAND_NAME,
         ASSET.AMOUNT_UNIT,
+        ASSET.UNIT_PRICE,
         UNIT.UNIT_NAME
         FROM CST_INVASSET ASSET
         INNER JOIN CST_INVBRAND BRAND
@@ -36,6 +38,7 @@ export async function GET(req) {
         BRAND.BRAND_NAME,
         ASSET.AMOUNT_UNIT,
         UNIT.UNIT_NAME,
+        ASSET.UNIT_PRICE,
         GRP.INVGROUP_NAME
         FROM CST_INVASSET ASSET
         INNER JOIN CST_LABCOURSE_ASSET LCA
