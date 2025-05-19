@@ -7,7 +7,7 @@ import {
 } from "react-icons/fi";
 import Content from "@/components/Content";
 import ExportButton from "@/components/ExportButton";
-
+import Link from "next/link";
 export default function Dashboard() {
   return (
     <Content>
@@ -20,6 +20,7 @@ export default function Dashboard() {
           <label className="text-gray-900 dark:text-gray-300 text-xl">
             ปีการศึกษา
           </label>
+          <Link href="/dashboard">คลิก</Link>
 
           <select className="p-4 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-lg focus:outline-none w-28 text-right text-gray-800 dark:text-gray-300 items-center">
             <option className="text-left">2 / 2568</option>
