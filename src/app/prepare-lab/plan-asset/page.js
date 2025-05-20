@@ -3,6 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
+import Select from "react-select";
 import {
   FiPlus,
   FiEdit,
@@ -255,7 +256,14 @@ export default function Detail() {
     },
   });
   useEffect(() => {
-    if (inventForm.values.assetId) {
+    if (inventFormModal && inventForm.values.assetId) {
+      const selected = invent.find(
+        (inv) => inv.assetId === inventForm.values.assetId
+      );
+      // ตั้งชื่อวัสดุในช่อง input
+      setTimeout(() => {
+        setSearch(selected?.assetNameTh || "");
+      }, 100);
       const found = invent.find(
         (inv) => inv.assetId === parseInt(inventForm.values.assetId)
       );
@@ -391,9 +399,12 @@ export default function Detail() {
     } else if (type === 3) {
       asset = labasset.type3.find((item) => item.labassetId === id);
     }
+    // หา assetNameTh จาก assetId ทันที
+    const assetData = invent.find((inv) => inv.assetId === asset.assetId);
     inventForm.setValues({
       labassetId: asset.labassetId,
       assetId: asset.assetId,
+      // assetNameTh: assetData?.assetNameTh || "",
       amount: asset.amount,
       assetRemark: asset.assetRemark ? asset.assetRemark : "",
       flagDel: 0,
@@ -402,6 +413,7 @@ export default function Detail() {
     });
     // const info = invent.find((inv) => inv.assetId === asset.assetId);
     // setAssetInfo(info || null);
+    setSearch(assetData?.assetNameTh || "");
     await _callInvent(type);
     setInventFormModal(true);
   };
@@ -435,6 +447,22 @@ export default function Detail() {
   const _onCloseInventForm = (status) => {
     setInventFormModal(status);
     inventForm.resetForm();
+  };
+  const [search, setSearch] = useState("");
+  const [filtered, setFiltered] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  useEffect(() => {
+    const keyword = search.toLowerCase();
+    setFiltered(
+      invent.filter((inv) => inv.assetNameTh.toLowerCase().includes(keyword))
+    );
+  }, [search, invent]);
+
+  const handleSelect = (inv) => {
+    setSearch(inv.assetNameTh);
+    inventForm.setFieldValue("assetId", inv.assetId);
+    setShowDropdown(false);
   };
 
   return (
@@ -868,27 +896,64 @@ export default function Detail() {
                         <label className={className.label}>
                           วัสดุที่เลือกใช้
                         </label>
-                        <select
-                          name="assetId"
-                          value={inventForm.values.assetId}
-                          onChange={inventForm.handleChange}
-                          className={`${className.select} ${
+                        <input
+                          type="text"
+                          value={search}
+                          onChange={(e) => {
+                            setSearch(e.target.value);
+                            setShowDropdown(true);
+                          }}
+                          onFocus={() => setShowDropdown(true)}
+                          onBlur={() =>
+                            setTimeout(() => setShowDropdown(false), 100)
+                          } // หน่วงเพื่อให้คลิก dropdown ทัน
+                          placeholder="พิมพ์หรือเลือกวัสดุ"
+                          className={`border p-2 rounded w-full text-gray-900 dark:text-gray-300 ${
                             inventForm.touched.assetId &&
                             inventForm.errors.assetId
                               ? "border-red-500"
                               : ""
-                          }`}>
-                          <option value="" disabled>
-                            เลือกวัสดุที่เลือกใช้
-                          </option>
-                          {invent.map((inv) => (
-                            <option key={inv.assetId} value={inv.assetId}>
-                              {inv.assetNameTh} {inv.amountUnit}
-                              {/* [{inv.brandName}                              ]  */}
-                              ({inv.unitName})
-                            </option>
-                          ))}
-                        </select>
+                          }`}
+                        />
+                        {showDropdown && filtered.length > 0 && (
+                          <ul className="absolute z-10 w-[93%] bg-white border border-gray-300 mt-1 rounded max-h-40 overflow-y-auto shadow">
+                            {filtered.map((inv) => (
+                              <li
+                                key={inv.assetId}
+                                className="p-2 hover:bg-gray-100 cursor-pointer text-gray-900 dark:text-gray-300"
+                                onClick={() => handleSelect(inv)}>
+                                {inv.assetNameTh} {inv.amountUnit} (
+                                {inv.unitName})
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        {inventForm.touched.assetId &&
+                          inventForm.errors.assetId && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {inventForm.errors.assetId}
+                            </p>
+                          )}
+                        {inventForm.touched.assetId &&
+                          inventForm.errors.assetId && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {inventForm.errors.assetId}
+                            </p>
+                          )}
+                        {inventForm.touched.assetId &&
+                          inventForm.errors.assetId && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {inventForm.errors.assetId}
+                            </p>
+                          )}
+
+                        {inventForm.touched.assetId &&
+                          inventForm.errors.assetId && (
+                            <p className="mt-1 text-sm text-red-500">
+                              {inventForm.errors.assetId}
+                            </p>
+                          )}
+
                         {inventForm.touched.assetId &&
                           inventForm.errors.assetId && (
                             <p className="mt-1 text-sm text-red-500">
