@@ -33,7 +33,7 @@ export default function Dashboard() {
   const [dataLabjob, setLabjob] = useState(null);
   const [dataCourse, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const id = 22;
+  const id = 102;
   const [activeTab1, setActiveTab1] = useState("ภาพรวม");
   const chartData = [
     { month: "ม.ค", value: 25000 },
@@ -493,7 +493,7 @@ export default function Dashboard() {
                                 บทปฏิบัติการ
                               </th>
                               <th className="text-left py-3 font-medium text-gray-500">
-                                หัวหน้างบปฏิบัติการ
+                                หัวหน้าบทปฏิบัติการ
                               </th>
                               <th className="text-right py-3 font-medium text-gray-500">
                                 ต้นทุนรวม (บาท)
