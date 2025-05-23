@@ -23,7 +23,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 import TableList from "@/components/TableList";
-
+import AutocompleteSelect2 from "@/components/AutocompleteSelect2";
 export default function Detail() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
@@ -89,7 +89,7 @@ export default function Detail() {
       assetUsedRemark: "",
       type: "",
       assetextraFlag: 0,
-      unitPrice: 0,
+      unitPrice: "",
       userId: session?.user.person_id,
     },
     validationSchema: validationInventForm,
@@ -109,9 +109,9 @@ export default function Detail() {
       values.unitName = invent.find(
         (inv) => inv.assetId === parseInt(values.assetId)
       )?.unitName;
-      values.unitPrice = invent.find(
-        (inv) => inv.assetId === parseInt(values.assetId)
-      )?.unitPrice;
+      // values.unitPrice = invent.find(
+      //   (inv) => inv.assetId === parseInt(values.assetId)
+      // )?.unitPrice;
       values.invgroupName = invent.find(
         (inv) => inv.assetId === parseInt(values.assetId)
       )?.invgroupName;
@@ -299,7 +299,15 @@ export default function Detail() {
     const assetId = inventForm.values.assetId || brokenForm.values.assetId;
 
     if (assetId) {
-      setAssetInfo(invent.find((inv) => inv.assetId === parseInt(assetId)));
+      const foundAsset = invent.find(
+        (inv) => inv.assetId === parseInt(assetId)
+      );
+      setAssetInfo(foundAsset);
+
+      // เซ็ตค่า unitPrice ถ้ายังไม่มีการกรอกไว้
+      if (foundAsset && inventForm.values.unitPrice === "") {
+        inventForm.setFieldValue("unitPrice", foundAsset.unitPrice ?? "");
+      }
     } else {
       setAssetInfo(null);
     }
@@ -586,6 +594,10 @@ export default function Detail() {
     });
     await _callInvent(type, labId, extraFlag);
   };
+  const assetOptions = invent.map((inv) => ({
+    label: `${inv.assetNameTh} ${inv.amountUnit} (${inv.unitName})`,
+    value: inv.assetId,
+  }));
   return (
     <Content
       breadcrumb={breadcrumb}
@@ -655,7 +667,7 @@ export default function Detail() {
                               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
                               onClick={() =>
                                 _onPressAddInvent(
-                                  uselabasset?.type1?.[0]?.type,
+                                  uselabasset?.type1?.[0]?.type ?? 1,
                                   labjobId,
                                   labId,
                                   0
@@ -676,7 +688,9 @@ export default function Detail() {
                                 render: (item) => (
                                   <div>
                                     <div>
-                                      {item.assetNameTh}{" "}
+                                      {item.assetNameTh} (ราคาต่อหน่วย{" "}
+                                      {item.unitPrice} บาท)
+                                      {""}
                                       {item.assetextraFlag === "1" ? (
                                         <span style={{ color: "red" }}>
                                           (เพิ่มเติม)
@@ -822,7 +836,8 @@ export default function Detail() {
                                 render: (item) => (
                                   <div>
                                     <div>
-                                      {item.assetNameTh}{" "}
+                                      {item.assetNameTh} (ราคาต่อหน่วย{" "}
+                                      {item.unitPrice} บาท){" "}
                                       {item.assetextraFlag === "1" ? (
                                         <span style={{ color: "red" }}>
                                           (เพิ่มเติม)
@@ -950,7 +965,7 @@ export default function Detail() {
                                 )
                               }>
                               <FiPlus className="w-4 h-4" />
-                              เพิ่มใหม่
+                              เพิ่ม
                             </button>
                           </div>
                         </div>
@@ -964,7 +979,8 @@ export default function Detail() {
                                 render: (item) => (
                                   <div>
                                     <div>
-                                      {item.assetNameTh}{" "}
+                                      {item.assetNameTh}(ราคาต่อหน่วย{" "}
+                                      {item.unitPrice} บาท){" "}
                                       {item.assetextraFlag === "1" ? (
                                         <span style={{ color: "red" }}>
                                           (เพิ่มเติม)
@@ -1194,7 +1210,7 @@ export default function Detail() {
                         <label className={className.label}>
                           วัสดุที่เลือกใช้
                         </label>
-                        <select
+                        {/* <select
                           name="assetId"
                           value={inventForm.values.assetId}
                           onChange={(e) => {
@@ -1220,8 +1236,18 @@ export default function Detail() {
                               )
                             </option>
                           ))}
-                        </select>
-
+                        </select> */}
+                        <AutocompleteSelect2
+                          name="assetId"
+                          options={assetOptions}
+                          value={inventForm.values.assetId}
+                          onSelect={(name, item) => {
+                            inventForm.setFieldValue(name, item.value);
+                          }}
+                          error={inventForm.errors.assetId}
+                          touched={inventForm.touched.assetId}
+                          // placeholder="พิมพ์หรือเลือกวัสดุ"
+                        />
                         {inventForm.touched.assetId &&
                           inventForm.errors.assetId && (
                             <p className="mt-1 text-sm text-red-500">
@@ -1289,21 +1315,19 @@ export default function Detail() {
                         <input
                           type="number"
                           name="unitPrice"
-                          value={inventForm.values.unitPrice ?? ""}
+                          value={
+                            inventForm.values.unitPrice !== "" &&
+                            inventForm.values.unitPrice !== undefined
+                              ? inventForm.values.unitPrice.toString()
+                              : ""
+                          }
                           onChange={(e) => {
                             const val = e.target.value;
-
-                            if (val === "") {
-                              inventForm.setFieldValue("unitPrice", "");
-                            } else {
-                              const parsed = parseFloat(val);
-
-                              // ถ้าพิมพ์ค่าติดลบ → บังคับเป็น 0
-                              inventForm.setFieldValue(
-                                "unitPrice",
-                                parsed < 0 ? 0 : parsed
-                              );
-                            }
+                            const parsed = parseFloat(val);
+                            inventForm.setFieldValue(
+                              "unitPrice",
+                              val === "" ? "" : parsed < 0 ? 0 : parsed
+                            );
                           }}
                           min={0}
                           step="0.01"

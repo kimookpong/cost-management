@@ -17,15 +17,19 @@ export async function GET(req) {
   console.log("userIdlogin", userIdlogin);
   let sql;
   let sql2;
+  let personId1 = "";
   if (userlogin === "หัวหน้าบทปฏิบัติการ") {
     sql = `INNER JOIN CST_LABJOB LB ON L.LAB_ID = LB.LAB_ID`;
     sql2 = `AND LB.PERSON_ID = ${userIdlogin}`;
+    personId1 = `,LB.PERSON_ID`;
   } else if (userlogin === "แอดมิน") {
+    personId1 = `,L.PERSON_ID`;
     sql = ``;
     sql2 = ``;
   } else if (userlogin === "ผู้ประสานงานรายวิชา") {
     sql = ``;
     sql2 = ``;
+    personId1 = `,L.PERSON_ID`;
   }
   try {
     const data = await executeQuery(
@@ -41,8 +45,8 @@ export async function GET(req) {
     SUM(REG.ENROLLSEAT) AS ENROLLSEAT,
     L.LABROOM,
     L.SECTION,
-    L.HOUR ,
-    L.PERSON_ID
+    L.HOUR 
+    ${personId1}
 FROM CST_LABCOURSE L
 INNER JOIN PBL_AVSREGCOURSE_V COURSE ON COURSE.COURSEID = L.COURSEID
 INNER JOIN CST_SCHYEAR SCH ON SCH.SCH_ID = L.SCH_ID
@@ -66,7 +70,7 @@ GROUP BY
     L.SECTION,
     L.HOUR,
     L.PERSON_ID
-
+    ${personId1}
 HAVING SUM(REG.TOTALSEAT) > 0`,
       { schId: req.nextUrl.searchParams.get("schId") } // Correct JSON object structure
     );

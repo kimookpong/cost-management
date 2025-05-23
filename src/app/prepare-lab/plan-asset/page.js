@@ -4,6 +4,8 @@ import { use, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import Select from "react-select";
+import { useRef } from "react";
+
 import {
   FiPlus,
   FiEdit,
@@ -24,6 +26,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 import TableList from "@/components/TableList";
+import AutocompleteSelect2 from "@/components/AutocompleteSelect2";
 
 export default function Detail() {
   const { data: session } = useSession();
@@ -257,13 +260,6 @@ export default function Detail() {
   });
   useEffect(() => {
     if (inventFormModal && inventForm.values.assetId) {
-      const selected = invent.find(
-        (inv) => inv.assetId === inventForm.values.assetId
-      );
-      // ตั้งชื่อวัสดุในช่อง input
-      setTimeout(() => {
-        setSearch(selected?.assetNameTh || "");
-      }, 100);
       const found = invent.find(
         (inv) => inv.assetId === parseInt(inventForm.values.assetId)
       );
@@ -399,8 +395,7 @@ export default function Detail() {
     } else if (type === 3) {
       asset = labasset.type3.find((item) => item.labassetId === id);
     }
-    // หา assetNameTh จาก assetId ทันที
-    const assetData = invent.find((inv) => inv.assetId === asset.assetId);
+
     inventForm.setValues({
       labassetId: asset.labassetId,
       assetId: asset.assetId,
@@ -411,9 +406,7 @@ export default function Detail() {
       type: type,
       userId: session?.user.person_id,
     });
-    // const info = invent.find((inv) => inv.assetId === asset.assetId);
-    // setAssetInfo(info || null);
-    setSearch(assetData?.assetNameTh || "");
+
     await _callInvent(type);
     setInventFormModal(true);
   };
@@ -448,22 +441,10 @@ export default function Detail() {
     setInventFormModal(status);
     inventForm.resetForm();
   };
-  const [search, setSearch] = useState("");
-  const [filtered, setFiltered] = useState([]);
-  const [showDropdown, setShowDropdown] = useState(false);
-
-  useEffect(() => {
-    const keyword = search.toLowerCase();
-    setFiltered(
-      invent.filter((inv) => inv.assetNameTh.toLowerCase().includes(keyword))
-    );
-  }, [search, invent]);
-
-  const handleSelect = (inv) => {
-    setSearch(inv.assetNameTh);
-    inventForm.setFieldValue("assetId", inv.assetId);
-    setShowDropdown(false);
-  };
+  const assetOptions = invent.map((inv) => ({
+    label: `${inv.assetNameTh} ${inv.amountUnit} (${inv.unitName})`,
+    value: inv.assetId,
+  }));
 
   return (
     <Content breadcrumb={breadcrumb} title=" แผนการใช้ทรัพยากร ">
@@ -522,7 +503,7 @@ export default function Detail() {
                               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                               onClick={() => _onPressAddInvent(type.type)}>
                               <FiPlus className="w-4 h-4" />
-                              เพิ่มใหม่
+                              เพิ่ม
                             </button>
                           </div>
                           <TableList
@@ -896,70 +877,18 @@ export default function Detail() {
                         <label className={className.label}>
                           วัสดุที่เลือกใช้
                         </label>
-                        <input
-                          type="text"
-                          value={search}
-                          onChange={(e) => {
-                            setSearch(e.target.value);
-                            setShowDropdown(true);
+
+                        <AutocompleteSelect2
+                          name="assetId"
+                          options={assetOptions}
+                          value={inventForm.values.assetId}
+                          onSelect={(name, item) => {
+                            inventForm.setFieldValue(name, item.value);
                           }}
-                          onFocus={() => setShowDropdown(true)}
-                          onBlur={() =>
-                            setTimeout(() => setShowDropdown(false), 100)
-                          } // หน่วงเพื่อให้คลิก dropdown ทัน
-                          placeholder="พิมพ์หรือเลือกวัสดุ"
-                          className={`border p-2 rounded w-full text-gray-900 dark:text-gray-300 ${
-                            inventForm.touched.assetId &&
-                            inventForm.errors.assetId
-                              ? "border-red-500"
-                              : ""
-                          }`}
+                          error={inventForm.errors.assetId}
+                          touched={inventForm.touched.assetId}
+                          // placeholder="พิมพ์หรือเลือกวัสดุ"
                         />
-                        {showDropdown && filtered.length > 0 && (
-                          <ul className="absolute z-10 w-[93%] bg-white border border-gray-300 mt-1 rounded max-h-40 overflow-y-auto shadow">
-                            {filtered.map((inv) => (
-                              <li
-                                key={inv.assetId}
-                                className="p-2 hover:bg-gray-100 cursor-pointer text-gray-900 dark:text-gray-300"
-                                onClick={() => handleSelect(inv)}>
-                                {inv.assetNameTh} {inv.amountUnit} (
-                                {inv.unitName})
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                        {inventForm.touched.assetId &&
-                          inventForm.errors.assetId && (
-                            <p className="mt-1 text-sm text-red-500">
-                              {inventForm.errors.assetId}
-                            </p>
-                          )}
-                        {inventForm.touched.assetId &&
-                          inventForm.errors.assetId && (
-                            <p className="mt-1 text-sm text-red-500">
-                              {inventForm.errors.assetId}
-                            </p>
-                          )}
-                        {inventForm.touched.assetId &&
-                          inventForm.errors.assetId && (
-                            <p className="mt-1 text-sm text-red-500">
-                              {inventForm.errors.assetId}
-                            </p>
-                          )}
-
-                        {inventForm.touched.assetId &&
-                          inventForm.errors.assetId && (
-                            <p className="mt-1 text-sm text-red-500">
-                              {inventForm.errors.assetId}
-                            </p>
-                          )}
-
-                        {inventForm.touched.assetId &&
-                          inventForm.errors.assetId && (
-                            <p className="mt-1 text-sm text-red-500">
-                              {inventForm.errors.assetId}
-                            </p>
-                          )}
                       </div>
                       {assetInfo && (
                         <div className="sm:col-span-12">

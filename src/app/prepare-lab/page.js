@@ -14,7 +14,7 @@ export default function Page() {
   //console.log("session", session);
   const userlogin = session?.user.userRole;
   const userIdlogin = session?.user.person_id;
-  console.log("userIdlogin", userIdlogin);
+  console.log("userIdlogin", userlogin);
   const breadcrumb = [{ name: "รายวิชา", link: "/prepare-lab" }];
   const searchParams = useSearchParams();
   const initialSchId = searchParams.get("schId") || ""; // Get schId from URL
@@ -188,10 +188,12 @@ export default function Page() {
       },
     });
   } else if (
-    userlogin === "ผู้ประสานงานรายวิชา" ||
-    userlogin === "แอดมิน" ||
-    userlogin === "หัวหน้าฝ่าย" ||
-    userlogin === "หัวหน้าบทปฏิบัติการ"
+    [
+      "ผู้ประสานงานรายวิชา",
+      "แอดมิน",
+      "หัวหน้าฝ่าย",
+      "หัวหน้าบทปฏิบัติการ",
+    ].includes(userlogin)
   ) {
     meta.push({
       key: "labId",
@@ -206,7 +208,9 @@ export default function Page() {
           "vs",
           userIdlogin
         );
-        return String(item.personId) === String(userIdlogin) ? (
+        const isOwner = String(item.personId) === String(userIdlogin);
+        console.log("userIdlogin =", isOwner);
+        return isOwner ? (
           <div className="cursor-pointer items-center justify-center flex gap-1">
             <button
               className="cursor-pointer p-2 text-white text-sm bg-indigo-500 hover:bg-indigo-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
