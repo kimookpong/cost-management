@@ -623,7 +623,7 @@ export default function Detail() {
                               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                               onClick={() => _onPressAddInvent(type.type)}>
                               <FiPlus className="w-4 h-4" />
-                              เพิ่มใหม่
+                              เพิ่ม
                             </button>
                           </div>
                           <TableList
@@ -743,7 +743,7 @@ export default function Detail() {
                               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                               onClick={() => _onPressAddInvent(type.type)}>
                               <FiPlus className="w-4 h-4" />
-                              เพิ่มใหม่
+                              เพิ่ม
                             </button>
                           </div>
                           <TableList

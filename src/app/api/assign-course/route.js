@@ -230,6 +230,7 @@ export async function GET(req) {
         LEFT JOIN PBL_FACULTY_V FAC 
             ON COURSE.FACULTYID = FAC.FACULTYID
         WHERE LAB.FLAG_DEL = 0
+        AND SCH.SCH_ID IS NOT NULL
         GROUP BY LAB.LAB_ID
         ORDER BY MAX(LAB.ACADYEAR) DESC, MAX(LAB.SEMESTER) DESC`
         );
@@ -271,6 +272,7 @@ export async function GET(req) {
             ON COURSE.FACULTYID = FAC.FACULTYID
         INNER JOIN CST_SCHYEAR SCH 
             ON SCH.SCH_ID = :schId
+            AND SCH.SCH_ID IS NOT NULL
             AND SCH.SEMESTER = LAB.SEMESTER
             AND SCH.ACADYEAR = LAB.ACADYEAR
         WHERE LAB.FLAG_DEL = 0 AND LAB.LABGROUP_ID = :labgroupId
@@ -311,7 +313,10 @@ export async function GET(req) {
             ON SCH.SCH_ID = :schId
             AND SCH.SEMESTER = LAB.SEMESTER
             AND SCH.ACADYEAR = LAB.ACADYEAR
+            AND SCH.SEMESTER = REG.SEMESTER
+            AND SCH.ACADYEAR = REG.ACADYEAR
         WHERE LAB.FLAG_DEL = 0
+        AND SCH.SCH_ID IS NOT NULL
         GROUP BY LAB.LAB_ID
         ORDER BY MAX(LAB.ACADYEAR) DESC, MAX(LAB.SEMESTER) DESC`,
             {

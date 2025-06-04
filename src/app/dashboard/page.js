@@ -4,9 +4,7 @@ import { useSession, signOut } from "next-auth/react";
 import Content from "@/components/Content";
 import { useState } from "react";
 import { useEffect } from "react";
-// import React, { useState } from "react";
-// import { Card } from "@/components/ui/card";
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { use } from "react";
 import {
   LineChart,
   Line,
@@ -20,20 +18,39 @@ import { FileText, Users, Beaker, TrendingUp } from "lucide-react";
 const tabs1 = [
   "ภาพรวม",
   "บทปฏิบัติการ",
-  "อุปกรณ์",
-  "หัวหน้าบทปฏิบัติการ",
+  "ครุภัณฑ์",
+  "วัสดุสิ้นเปลือง",
+  "วัสดุไม่สิ้นเปลือง",
+  "อุปกรณ์ชำรุด",
   "คณะ",
   "หลักสูตร",
 ];
-export default function Dashboard() {
+import TableList from "@/components/TableList";
+
+export default function Dashboard({ searchParams }) {
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState("แนวโน้ม");
   const [dataFaculty, setFaculty] = useState(null);
   const [dataReg, setReg] = useState(null);
   const [dataLabjob, setLabjob] = useState(null);
+  const [dataEquipment, setEquipment] = useState(null);
   const [dataCourse, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const id = 102;
+  // const router = useRouter();
+  // const { labId } = router.query;
+  const params = use(searchParams);
+  const encodedLabId = params.labId;
+  const decodeLabId = (encoded) => {
+    if (!encoded) return null;
+    try {
+      return atob(encoded);
+    } catch {
+      return null;
+    }
+  };
+
+  const id = decodeLabId(encodedLabId);
+  console.log("labId", id);
   const [activeTab1, setActiveTab1] = useState("ภาพรวม");
   const chartData = [
     { month: "ม.ค", value: 25000 },
@@ -53,6 +70,7 @@ export default function Dashboard() {
         setData(json.data);
         setReg(json.reg);
         setLabjob(json.labjob);
+        setEquipment(json.equipment);
         console.log("json", json);
       } else {
         console.error("Failed to fetch data");
@@ -93,8 +111,7 @@ export default function Dashboard() {
                   รหัสวิชา:{" "}
                   {dataCourse && dataCourse.length > 0
                     ? dataCourse[0].coursecode
-                    : "กำลังโหลด..."}
-                  -{" "}
+                    : "กำลังโหลด..."}{" "}
                   {dataCourse && dataCourse.length > 0
                     ? dataCourse[0].coursename
                     : "กำลังโหลด..."}
@@ -240,166 +257,80 @@ export default function Dashboard() {
                       {/* Cost Analysis Chart */}
                       <div className="p-6 burder shadow border-black-900 rounded-lg">
                         <h2 className="text-black text-2xl font-bold mb-1">
-                          การวิเคราะห์ต้นทุน
+                          ข้อมูลพื้นฐานของรายวิชา
                         </h2>
                         <p className="text-sm text-gray-500 mb-4">
-                          การเปรียบเทียบสถานะต้นทุนในมุมมองต่างๆ
+                          รายละเอียดเกี่ยวกับรายวิชาห้องปฏิบัติการ
                         </p>
 
-                        <div className="w-full">
-                          <div className="tabs tabs-boxed w-full grid grid-cols-3">
-                            <button
-                              className={`tab ${
-                                activeTab === "แนวโน้ม"
-                                  ? "tab-active !bg-gray-200"
-                                  : ""
-                              }`}
-                              onClick={() => setActiveTab("แนวโน้ม")}>
-                              แนวโน้ม
-                            </button>
-                            <button
-                              className={`tab ${
-                                activeTab === "งบปฏิบัติการ"
-                                  ? "tab-active !bg-gray-200"
-                                  : ""
-                              }`}
-                              onClick={() => setActiveTab("งบปฏิบัติการ")}>
-                              งบปฏิบัติการ
-                            </button>
-                            <button
-                              className={`tab ${
-                                activeTab === "หลักสูตร"
-                                  ? "tab-active !bg-gray-200"
-                                  : ""
-                              }`}
-                              onClick={() => setActiveTab("หลักสูตร")}>
-                              หลักสูตร
-                            </button>
+                        <div className="grid grid-cols-2 gap-y-3 text-sm">
+                          <div className="text-gray-500 text-base">
+                            รหัสวิชา:
+                          </div>
+                          <div className="text-black font-medium text-base">
+                            {" "}
+                            {dataCourse && dataCourse.length > 0
+                              ? dataCourse[0].coursecode
+                              : "กำลังโหลด..."}
+                            -{" "}
                           </div>
 
-                          {/* Tab Content */}
-                          <div className="pt-4">
-                            {activeTab === "แนวโน้ม" && (
-                              <div className="h-[250px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <LineChart data={chartData}>
-                                    <CartesianGrid
-                                      strokeDasharray="3 3"
-                                      vertical={false}
-                                    />
-                                    <XAxis dataKey="month" />
-                                    <YAxis />
-                                    <Tooltip />
-                                    <Line
-                                      type="monotone"
-                                      dataKey="value"
-                                      stroke="#10b981"
-                                      strokeWidth={2}
-                                      dot={{
-                                        r: 4,
-                                        fill: "#10b981",
-                                        stroke: "#10b981",
-                                      }}
-                                      activeDot={{ r: 6 }}
-                                    />
-                                  </LineChart>
-                                </ResponsiveContainer>
-                              </div>
-                            )}
+                          <div className="text-gray-500 text-base">
+                            ชื่อวิชา:
+                          </div>
+                          <div className="text-black font-medium text-base">
+                            {" "}
+                            {dataCourse && dataCourse.length > 0
+                              ? dataCourse[0].coursename
+                              : "กำลังโหลด..."}{" "}
+                          </div>
 
-                            {activeTab === "งบปฏิบัติการ" && (
-                              <div className="h-[250px] flex items-center justify-center">
-                                <p className="text-gray-500">
-                                  ข้อมูลงบปฏิบัติการ
-                                </p>
-                              </div>
-                            )}
+                          <div className="text-gray-500 text-base">คณะ:</div>
+                          <div className="text-black font-medium text-base">
+                            {" "}
+                            {dataCourse && dataCourse.length > 0
+                              ? dataCourse[0].facultyname
+                              : "กำลังโหลด..."}{" "}
+                          </div>
 
-                            {activeTab === "หลักสูตร" && (
-                              <div className="h-[250px] flex items-center justify-center">
-                                <p className="text-gray-500">ข้อมูลหลักสูตร</p>
-                              </div>
-                            )}
+                          <div className="text-gray-500 text-base">
+                            ปีการศึกษา:
+                          </div>
+                          <div className="text-black font-medium text-base">
+                            {" "}
+                            {dataCourse && dataCourse.length > 0
+                              ? dataCourse[0].acadyear
+                              : "กำลังโหลด..."}
+                            {" / "}
+                            {dataCourse && dataCourse.length > 0
+                              ? dataCourse[0].semester
+                              : "กำลังโหลด..."}
+                          </div>
+
+                          <div className="text-gray-500 text-base">
+                            กลุ่มปฏิบัติการ:
+                          </div>
+                          <div className="text-black font-medium text-base">
+                            {" "}
+                            {dataCourse && dataCourse.length > 0
+                              ? dataCourse[0].labgroupName
+                              : "กำลังโหลด..."}{" "}
+                          </div>
+
+                          <div className="text-gray-500 text-base">
+                            จำนวนกลุ่ม:
+                          </div>
+                          <div className="text-black font-medium text-base">
+                            {" "}
+                            {dataCourse && dataCourse.length > 0
+                              ? dataCourse[0].labgroupNum
+                              : "กำลังโหลด..."}{" "}
                           </div>
                         </div>
                       </div>
 
                       {/* Lab Information */}
                       <div className="grid gap-6 ">
-                        <div className="card p-6 burder shadow border-black-900 rounded-lg">
-                          <h2 className="text-black text-2xl font-bold mb-1">
-                            ข้อมูลพื้นฐานของรายวิชา
-                          </h2>
-                          <p className="text-sm text-gray-500 mb-4">
-                            รายละเอียดเกี่ยวกับรายวิชาห้องปฏิบัติการ
-                          </p>
-
-                          <div className="grid grid-cols-2 gap-y-3 text-sm">
-                            <div className="text-gray-500 text-base">
-                              รหัสวิชา:
-                            </div>
-                            <div className="text-black font-medium text-base">
-                              {" "}
-                              {dataCourse && dataCourse.length > 0
-                                ? dataCourse[0].coursecode
-                                : "กำลังโหลด..."}
-                              -{" "}
-                            </div>
-
-                            <div className="text-gray-500 text-base">
-                              ชื่อวิชา:
-                            </div>
-                            <div className="text-black font-medium text-base">
-                              {" "}
-                              {dataCourse && dataCourse.length > 0
-                                ? dataCourse[0].coursename
-                                : "กำลังโหลด..."}{" "}
-                            </div>
-
-                            <div className="text-gray-500 text-base">คณะ:</div>
-                            <div className="text-black font-medium text-base">
-                              {" "}
-                              {dataCourse && dataCourse.length > 0
-                                ? dataCourse[0].facultyname
-                                : "กำลังโหลด..."}{" "}
-                            </div>
-
-                            <div className="text-gray-500 text-base">
-                              ปีการศึกษา:
-                            </div>
-                            <div className="text-black font-medium text-base">
-                              {" "}
-                              {dataCourse && dataCourse.length > 0
-                                ? dataCourse[0].acadyear
-                                : "กำลังโหลด..."}
-                              {" / "}
-                              {dataCourse && dataCourse.length > 0
-                                ? dataCourse[0].semester
-                                : "กำลังโหลด..."}
-                            </div>
-
-                            <div className="text-gray-500 text-base">
-                              กลุ่มปฏิบัติการ:
-                            </div>
-                            <div className="text-black font-medium text-base">
-                              {" "}
-                              {dataCourse && dataCourse.length > 0
-                                ? dataCourse[0].labgroupName
-                                : "กำลังโหลด..."}{" "}
-                            </div>
-
-                            <div className="text-gray-500 text-base">
-                              จำนวนกลุ่ม:
-                            </div>
-                            <div className="text-black font-medium text-base">
-                              {" "}
-                              {dataCourse && dataCourse.length > 0
-                                ? dataCourse[0].labgroupNum
-                                : "กำลังโหลด..."}{" "}
-                            </div>
-                          </div>
-                        </div>
-
                         <div className="card p-6 burder shadow border-black-900 rounded-lg">
                           <h2 className="text-black text-2xl font-bold mb-1">
                             ข้อมูลการลงทะเบียน
@@ -642,6 +573,117 @@ export default function Dashboard() {
                             )}
                           </tbody>
                         </table>
+                      </div>
+                    </div>
+                  </main>
+                )}
+                {isActive && activeTab1 === "ครุภัณฑ์" && (
+                  <main className="container mx-auto py-6 px-4">
+                    {/* Top Lab Costs */}
+                    <div className="card mt-6 p-6 burder shadow border-black-900 rounded-lg">
+                      <h2 className="text-black text-xl font-bold mb-1">
+                        การคิดราคาต้นทุนของรายวิชา
+                        <span>
+                          :{" "}
+                          {dataCourse && dataCourse.length > 0
+                            ? dataCourse[0].coursecode
+                            : "กำลังโหลด..."}{" "}
+                          {dataCourse && dataCourse.length > 0
+                            ? dataCourse[0].coursename
+                            : "กำลังโหลด..."}{" "}
+                        </span>
+                        สำหรับการลงทุนทางครุภัณฑ์
+                      </h2>
+                      <p className="text-sm text-gray-500 mb-4">
+                        รายการครุภัณฑ์
+                      </p>
+
+                      <div className="overflow-x-auto">
+                        <TableList
+                          meta={[
+                            {
+                              key: "assetNameTh",
+                              content: "รายการครุภัณฑ์",
+                              render: (item) => (
+                                <div className="flex flex-col">
+                                  <p className="block">
+                                    {item.assetNameTh} ขนาด
+                                    {item.amountUnit === "unit"
+                                      ? ""
+                                      : " " + item.amountUnit}
+                                  </p>
+                                  <p className="block opacity-60 text-sm">
+                                    {item.assetNameEng}
+                                  </p>
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "unitPrice",
+                              content: "ราคา/หน่วย (บาท/เครื่อง)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.unitPrice?.toLocaleString() ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "totalAmountUsed",
+                              content: "จำนวนที่ใช้ (อัน/เครื่อง)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.totalAmountUsed?.toLocaleString() ??
+                                    "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "itemTotal",
+                              content: "ราคารวม (บาท)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.itemTotal?.toLocaleString() ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "costPerHour5y",
+                              content: "ราคา/ชม. (บาท/ชม)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.costPerHour5y?.toFixed(2) ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "priceSemester",
+                              content: "ราคา/เทอม (บาท/เทอม)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.priceSemester?.toLocaleString(
+                                    undefined,
+                                    {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    }
+                                  ) ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "costPerHourTotalStudents",
+                              content: "ราคา/เทอม/คน (บาท/เทอม/คน)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.costPerHourTotalStudents?.toFixed(2) ??
+                                    "-"}
+                                </div>
+                              ),
+                            },
+                          ]}
+                          data={dataEquipment}
+                          loading={loading}
+                        />
                       </div>
                     </div>
                   </main>

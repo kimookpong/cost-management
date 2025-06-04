@@ -674,7 +674,7 @@ export default function Detail() {
                                 )
                               }>
                               <FiPlus className="w-4 h-4" />
-                              เพิ่มใหม่
+                              เพิ่ม
                             </button>
                           </div>
                         </div>
@@ -822,7 +822,7 @@ export default function Detail() {
                                 )
                               }>
                               <FiPlus className="w-4 h-4" />
-                              เพิ่มใหม่
+                              เพิ่ม
                             </button>
                           </div>
                         </div>
