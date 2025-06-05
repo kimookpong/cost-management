@@ -34,6 +34,8 @@ export default function Dashboard({ searchParams }) {
   const [dataReg, setReg] = useState(null);
   const [dataLabjob, setLabjob] = useState([]);
   const [dataEquipment, setEquipment] = useState(null);
+  const [dataSupplies, setSupplies] = useState(null);
+  const [dataDurableitems, setDurableitems] = useState(null);
   const [dataCourse, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   // const router = useRouter();
@@ -71,6 +73,8 @@ export default function Dashboard({ searchParams }) {
         setReg(json.reg);
         setLabjob(json.labjob);
         setEquipment(json.equipment);
+        setSupplies(json.supplies);
+        setDurableitems(json.durableitems);
         console.log("json", json);
       } else {
         console.error("Failed to fetch data");
@@ -700,6 +704,232 @@ export default function Dashboard({ searchParams }) {
                             },
                           ]}
                           data={dataEquipment}
+                          loading={loading}
+                        />
+                      </div>
+                    </div>
+                  </main>
+                )}
+                {isActive && activeTab1 === "วัสดุสิ้นเปลือง" && (
+                  <main className="container mx-auto py-6 px-4">
+                    {/* Top Lab Costs */}
+                    <div className="card mt-6 p-6 burder shadow border-black-900 rounded-lg">
+                      <h2 className="text-black text-xl font-bold mb-1">
+                        การคิดราคาต้นทุนของรายวิชา
+                        <span>
+                          :{" "}
+                          {dataCourse && dataCourse.length > 0
+                            ? dataCourse[0].coursecode
+                            : "กำลังโหลด..."}{" "}
+                          {dataCourse && dataCourse.length > 0
+                            ? dataCourse[0].coursename
+                            : "กำลังโหลด..."}{" "}
+                        </span>
+                        สำหรับการลงทุนทางวัสดุสิ้นเปลือง
+                      </h2>
+                      <p className="text-sm text-gray-500 mb-4">
+                        รายการวัสดุสิ้นเปลือง
+                      </p>
+
+                      <div className="overflow-x-auto">
+                        <TableList
+                          meta={[
+                            {
+                              key: "assetNameTh",
+                              content: "รายการวัสดุสิ้นเปลือง",
+                              render: (item) => (
+                                <div className="flex flex-col">
+                                  <p className="block">{item.assetNameTh}</p>
+                                  <p className="block opacity-60 text-sm">
+                                    {item.assetNameEng}
+                                  </p>
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "packPrice",
+                              content: "ราคา/pack (บาท/pack)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.packPrice?.toLocaleString() ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "amountUnit",
+                              content: "จำนวน/pack (หน่วย/pack)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.amountUnit?.toLocaleString() ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "unitPrice",
+                              content: "ราคา/หน่วย (บาท/หน่วย)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.unitPrice?.toLocaleString() ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "amountUsed",
+                              content: "จำนวนที่ใช้ (หน่วย)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.amountUsed?.toFixed(2) ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "itemTotal",
+                              content: "ราคารวม (บาท)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.itemTotal?.toLocaleString(undefined, {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  }) ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "priceStd",
+                              content: "ราคารวม/คน (บาท/คน)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.priceStd?.toFixed(2) ?? "-"}
+                                </div>
+                              ),
+                            },
+                          ]}
+                          data={dataSupplies}
+                          loading={loading}
+                        />
+                      </div>
+                    </div>
+                  </main>
+                )}
+                {isActive && activeTab1 === "วัสดุไม่สิ้นเปลือง" && (
+                  <main className="container mx-auto py-6 px-4">
+                    {/* Top Lab Costs */}
+                    <div className="card mt-6 p-6 burder shadow border-black-900 rounded-lg">
+                      <h2 className="text-black text-xl font-bold mb-1">
+                        การคิดราคาต้นทุนของรายวิชา
+                        <span>
+                          :{" "}
+                          {dataCourse && dataCourse.length > 0
+                            ? dataCourse[0].coursecode
+                            : "กำลังโหลด..."}{" "}
+                          {dataCourse && dataCourse.length > 0
+                            ? dataCourse[0].coursename
+                            : "กำลังโหลด..."}{" "}
+                        </span>
+                        สำหรับการลงทุนทางวัสดุไม่สิ้นเปลือง
+                      </h2>
+                      <p className="text-sm text-gray-500 mb-4">
+                        รายการวัสดุไม่สิ้นเปลือง
+                      </p>
+
+                      <div className="overflow-x-auto">
+                        <TableList
+                          meta={[
+                            {
+                              key: "assetNameTh",
+                              content: "รายการวัสดุไม่สิ้นเปลือง",
+                              render: (item) => (
+                                <div className="flex flex-col">
+                                  <p className="block">{item.assetNameTh}</p>
+                                  <p className="block opacity-60 text-sm">
+                                    {item.assetNameEng}
+                                  </p>
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "packPrice",
+                              content: "ราคา/pack (บาท/pack)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.packPrice?.toLocaleString() ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "unitPrice",
+                              content: "ราคา/หน่วย (บาท/หน่วย)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.unitPrice?.toLocaleString() ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "amountUsed",
+                              content: "จำนวนที่ใช้ (หน่วย)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.amountUsed?.toFixed(2) ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "itemTotal",
+                              content: "ราคารวม (บาท)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.itemTotal?.toLocaleString(undefined, {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  }) ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "costStd",
+                              content: "ราคาที่ใช้/ชม. (บาท/ชม.)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.costPerHour5y?.toFixed(2) ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "hourUsed",
+                              content: "จำนวนชม. (ที่ใช้/เทอม)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.hourUsed?.toFixed(2) ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "priceSemester",
+                              content: "ราคา/ภาคการศึกษา (บาท/เทอม)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.priceSemester?.toLocaleString(
+                                    undefined,
+                                    {
+                                      minimumFractionDigits: 2,
+                                      maximumFractionDigits: 2,
+                                    }
+                                  ) ?? "-"}
+                                </div>
+                              ),
+                            },
+                            {
+                              key: "costStd",
+                              content: "ราคารวม/คน (บาท/คน)",
+                              render: (item) => (
+                                <div className="text-right">
+                                  {item.costStd?.toFixed(2) ?? "-"}
+                                </div>
+                              ),
+                            },
+                          ]}
+                          data={dataDurableitems}
                           loading={loading}
                         />
                       </div>
