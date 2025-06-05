@@ -32,7 +32,7 @@ export default function Dashboard({ searchParams }) {
   const [activeTab, setActiveTab] = useState("แนวโน้ม");
   const [dataFaculty, setFaculty] = useState(null);
   const [dataReg, setReg] = useState(null);
-  const [dataLabjob, setLabjob] = useState(null);
+  const [dataLabjob, setLabjob] = useState([]);
   const [dataEquipment, setEquipment] = useState(null);
   const [dataCourse, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -190,8 +190,18 @@ export default function Dashboard({ searchParams }) {
                           </span>
                         </div>
                         <h2 className="text-black text-2xl font-bold">
-                          3,053,449.27 บาท
+                          {dataEquipment
+                            ?.reduce(
+                              (sum, item) => sum + (item.itemTotal || 0),
+                              0
+                            )
+                            .toLocaleString(undefined, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}{" "}
+                          บาท
                         </h2>
+
                         <p className="text-sm text-gray-500">
                           ต้นทุนทั้งหมดของห้องปฏิบัติการ
                         </p>
@@ -208,8 +218,15 @@ export default function Dashboard({ searchParams }) {
                           </span>
                         </div>
                         <h2 className="text-black text-2xl font-bold">
-                          280 คน
+                          {Array.isArray(dataReg)
+                            ? dataReg.reduce(
+                                (sum, cls) => sum + (cls.enrollseat || 0),
+                                0
+                              )
+                            : 0}{" "}
+                          คน
                         </h2>
+
                         <p className="text-sm text-gray-500">
                           จำนวนนักศึกษาที่ลงทะเบียน
                         </p>
@@ -226,7 +243,8 @@ export default function Dashboard({ searchParams }) {
                           </span>
                         </div>
                         <h2 className="text-black text-2xl font-bold">
-                          7 รายการ
+                          {Array.isArray(dataLabjob) ? dataLabjob.length : 0}{" "}
+                          รายการ
                         </h2>
                         <p className="text-sm text-gray-500">
                           จำนวนบทปฏิบัติการทั้งหมด
