@@ -22,8 +22,8 @@ const tabs1 = [
   "วัสดุสิ้นเปลือง",
   "วัสดุไม่สิ้นเปลือง",
   "อุปกรณ์ชำรุด",
-  "คณะ",
-  "หลักสูตร",
+  // "คณะ",
+  // "หลักสูตร",
 ];
 import TableList from "@/components/TableList";
 
@@ -83,9 +83,18 @@ export default function Dashboard({ searchParams }) {
     }
     fetchData();
   }, [id]);
-
+  const breadcrumb = [
+    // { name: "แผนการให้บริการห้องปฎิบัติการ" },
+    { name: "รายงานต้นทุนห้องปฏิบัติการ" },
+  ];
   return (
-    <Content>
+    <Content
+      breadcrumb={breadcrumb}
+      title={`รายงานต้นทุนห้องปฏิบัติการรายวิชา ${
+        dataCourse && dataCourse.length > 0
+          ? dataCourse[0].coursename
+          : " (กำลังโหลด...)"
+      }`}>
       {/* <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-semibold text-white dark:text-gray-300">
           Dashboard
@@ -95,55 +104,7 @@ export default function Dashboard({ searchParams }) {
           <button onClick={() => signOut()}>Logout</button>
         </main>
       </div> */}
-      <div className="min-h-screen bg-purple-50">
-        <header className="bg-black text-white p-4">
-          <div className="container mx-auto flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <FileText className="h-6 w-6" />
-              <div>
-                <h1 className="text-xl font-bold">
-                  รายงานต้นทุนห้องปฏิบัติการ
-                </h1>
-                <p className="text-sm text-gray-300">
-                  ระบบบริหารและจัดสรรงบประมาณห้องปฏิบัติการ
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="flex items-center gap-2">
-                <span>
-                  รหัสวิชา:{" "}
-                  {dataCourse && dataCourse.length > 0
-                    ? dataCourse[0].coursecode
-                    : "กำลังโหลด..."}{" "}
-                  {dataCourse && dataCourse.length > 0
-                    ? dataCourse[0].coursename
-                    : "กำลังโหลด..."}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span>
-                  คณะ:{" "}
-                  {dataCourse && dataCourse.length > 0
-                    ? dataCourse[0].facultyname
-                    : "กำลังโหลด..."}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span>
-                  ปีการศึกษา:{" "}
-                  {dataCourse && dataCourse.length > 0
-                    ? dataCourse[0].acadyear
-                    : "กำลังโหลด..."}
-                  {" / "}
-                  {dataCourse && dataCourse.length > 0
-                    ? dataCourse[0].semester
-                    : "กำลังโหลด..."}
-                </span>
-              </div>
-            </div>
-          </div>
-        </header>
+      <div className="min-h-screen bg-purple-50 rounded-lg p-4">
         <div
           role="tablist"
           aria-orientation="horizontal"
