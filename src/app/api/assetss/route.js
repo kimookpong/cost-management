@@ -18,7 +18,7 @@ export async function GET(req, { params }) {
                  u.unit_name, 
                  b.brand_name, 
                  g.INVGROUP_NAME, 
-                t."INVTYPE _NAME"
+                t.INVTYPE_NAME
                FROM cst_invasset s
                INNER JOIN cst_invunit u ON s.unit_id = u.unit_id
                INNER JOIN cst_invbrand b ON s.brand_id = b.brand_id

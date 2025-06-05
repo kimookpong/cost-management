@@ -202,10 +202,15 @@ export default function AssetForm() {
                       required: requiredSelect,
                     })}
                     className={className.select}>
-                    <option value="">- เลือก -</option>
+                    <option className="text-gray-900" value="">
+                      - เลือก -
+                    </option>
                     {types.map((type) => (
-                      <option key={type.invtypeId} value={type.invtypeId}>
-                        {type["invtype Name"]}
+                      <option
+                        key={type.invtypeId}
+                        value={type.invtypeId}
+                        className="text-gray-900">
+                        {type["invtypeName"]}
                       </option>
                     ))}
                   </select>
@@ -279,14 +284,22 @@ export default function AssetForm() {
               <div className="grid grid-cols-2 gap-4">
                 {/* Amount and Version */}
                 <div className="form-control">
-                  <label className={className.label}>ขนาด/ขนาดบรรจุ *</label>
+                  <label className={className.label}>
+                    {typeassetValue === "1" || typeassetValue === "2"
+                      ? "ขนาด/ขนาดบรรจุ * "
+                      : " จำนวน/แพ็ค *"}{" "}
+                  </label>
                   <input
                     type="text"
                     {...register("amountUnit", {
                       required: requiredMessage,
                     })}
                     className={className.input}
-                    placeholder="ขนาด/ขนาดบรรจุ"
+                    placeholder={
+                      typeassetValue === "1" || typeassetValue === "2"
+                        ? "ขนาด/ขนาดบรรจุ * "
+                        : " จำนวน/แพ็ค *"
+                    }
                   />
                   {errors.amountUnit && (
                     <label className={className.label}>
@@ -298,7 +311,7 @@ export default function AssetForm() {
                 </div>
 
                 <div className="form-control">
-                  <label className={className.label}>รุ่น *</label>
+                  <label className={className.label}>รุ่น </label>
                   <input
                     type="text"
                     {...register("version", {

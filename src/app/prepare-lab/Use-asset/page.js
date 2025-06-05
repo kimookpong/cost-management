@@ -78,6 +78,10 @@ export default function Detail() {
     assetUsedRemark: Yup.string()
       .nullable()
       .max(100, "ข้อความต้องไม่เกิน 100 ตัวอักษร"),
+    hourUsed: Yup.number()
+      .nullable()
+      .min(0, "ชั่วโมงต้องไม่น้อยกว่า 0")
+      .max(24, "ชั่วโมงต้องไม่เกิน 24"),
   });
   const inventForm = useFormik({
     initialValues: {
@@ -86,6 +90,7 @@ export default function Detail() {
       labjobId: "",
       assetId: "",
       amountUsed: 0,
+      hourUsed: 0,
       assetUsedRemark: "",
       type: "",
       assetextraFlag: 0,
@@ -175,6 +180,7 @@ export default function Detail() {
     initialValues: {
       assetId: "",
       amountUsed: "",
+      hourUsed: "",
       labjobId: labjobId, // Ensure labjobId is properly passed in
       assetUsedRemark: "",
     },
@@ -190,6 +196,7 @@ export default function Detail() {
             assetBroken: {
               labjobId: searchParams.get("labjobId"),
               brokenAmount: values.amountUsed,
+              hourUsed: values.hourUsed || "",
               assetId: values.assetId,
               userId: session.user.person_id, // Assuming this comes from session/context
               labId: searchParams.get("id"), // Ensure labId is available in context/props
@@ -440,6 +447,7 @@ export default function Detail() {
       assetId: "",
       labjobId: labjobId,
       amountUsed: "",
+      hourUsed: "",
       assetUsedRemark: "",
       flagDel: 0,
       type: type,
@@ -470,6 +478,7 @@ export default function Detail() {
       labjobAssetId: asset.labjobAssetId,
       assetId: asset.assetId,
       amountUsed: asset.amountUsed,
+      hourUsed: asset.hourUsed || "",
       assetUsedRemark: asset.assetUsedRemark || "",
       flagDel: 0,
       type: type,
@@ -586,6 +595,7 @@ export default function Detail() {
       assetId: "",
       labjobId: labjobId,
       amountUsed: "",
+      hourUsed: "",
       assetUsedRemark: "",
       flagDel: 0,
       type: type,
@@ -1281,7 +1291,7 @@ export default function Detail() {
                         </div>
                       )}
 
-                      <div className="sm:col-span-6">
+                      <div className="sm:col-span-4">
                         <label className={className.label}>จำนวนที่ใช้</label>
                         <input
                           type="number"
@@ -1301,10 +1311,34 @@ export default function Detail() {
                               : ""
                           }`}
                         />
-                        {inventForm.touched.amountUsed &&
-                          inventForm.errors.amountUsed && (
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className={className.label}>
+                          ชม.ที่ใช้/เทอม
+                        </label>
+
+                        <input
+                          type="number"
+                          name="hourUsed"
+                          min="0"
+                          value={inventForm.values.hourUsed || ""}
+                          onChange={(e) =>
+                            inventForm.setFieldValue(
+                              "hourUsed",
+                              e.target.value ? parseInt(e.target.value, 10) : ""
+                            )
+                          }
+                          className={`${className.input} ${
+                            inventForm.touched.hourUsed &&
+                            inventForm.errors.hourUsed
+                              ? "border-red-500"
+                              : ""
+                          }`}
+                        />
+                        {inventForm.touched.hourUsed &&
+                          inventForm.errors.hourUsed && (
                             <p className="mt-1 text-sm text-red-500">
-                              {inventForm.errors.amountUsed}
+                              {inventForm.errors.hourUsed}
                             </p>
                           )}
                       </div>

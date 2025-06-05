@@ -159,6 +159,46 @@ ORDER BY LJ.LAB_ID, ITEM_TOTAL DESC `,
     { labId }
   );
 }
+async function getSupplies(labId) {
+  return await executeQuery(
+    `WITH ENROLL_SUM AS (
+  SELECT COURSEID, SEMESTER, ACADYEAR, SUM(ENROLLSEAT) AS ENROLLSEAT
+  FROM PBL_AVSREGCLASS_V  
+  GROUP BY COURSEID, SEMESTER, ACADYEAR
+)
+SELECT 
+  LJ.LAB_ID,
+  CAS.ASSET_ID,
+  CAS.PACK_PRICE,
+  CAS.ASSET_NAME_TH,
+  CAS.ASSET_NAME_ENG,
+  CAS.AMOUNT_UNIT,
+  LB.COURSEID,
+  MAX(LB.SEMESTER) AS SEMESTER,
+  MAX(LB.ACADYEAR) AS ACADYEAR,
+  MAX(CAS.INVTYPE_ID) AS INVTYPE_ID,
+  SUM(LJA.AMOUNT_USED) AS TOTAL_AMOUNT_USED,
+  MAX(LJA.UNIT_PRICE) AS UNIT_PRICE,
+  SUM(LJA.AMOUNT_USED * LJA.UNIT_PRICE) AS ITEM_TOTAL,
+  ROUND(SUM(LJA.AMOUNT_USED * LJA.UNIT_PRICE) / (5 * 365 * 24), 2) AS COST_PER_HOUR_5Y,
+  ROUND(SUM(LJA.AMOUNT_USED * LJA.UNIT_PRICE) / (5 * 365 * 24) * LB.HOUR, 2) AS Price_semester,
+  ES.ENROLLSEAT,
+  ROUND(SUM(LJA.AMOUNT_USED * LJA.UNIT_PRICE) / (5 * 365 * 24) * LB.HOUR / ES.ENROLLSEAT, 2) AS Cost_per_hour_total_students
+FROM CST_LABJOB_ASSET LJA
+INNER JOIN CST_INVASSET CAS ON CAS.ASSET_ID = LJA.ASSET_ID
+INNER JOIN CST_LABJOB LJ ON LJA.LABJOB_ID = LJ.LABJOB_ID
+INNER JOIN CST_LABCOURSE LB ON LJ.LAB_ID = LB.LAB_ID
+LEFT JOIN ENROLL_SUM ES ON ES.COURSEID = LB.COURSEID
+                        AND ES.SEMESTER = LB.SEMESTER
+                        AND ES.ACADYEAR = LB.ACADYEAR
+WHERE  LB.LAB_ID = :labId  
+  AND CAS.INVTYPE_ID = 2
+GROUP BY LJ.LAB_ID, CAS.ASSET_ID, CAS.ASSET_NAME_TH, LB.HOUR, ES.ENROLLSEAT,LB.COURSEID ,CAS.AMOUNT_UNIT,CAS.ASSET_NAME_ENG
+ORDER BY LJ.LAB_ID, ITEM_TOTAL DESC `,
+    { labId }
+  );
+}
+
 export async function GET(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
@@ -211,6 +251,7 @@ export async function GET(req) {
       asset: await getAsset(id),
       labjob: await getLabjob(id),
       equipment: await getEquipment(id),
+      supplies: await getSupplies(id),
     });
   } catch (error) {
     return NextResponse.json(

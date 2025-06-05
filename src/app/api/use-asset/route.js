@@ -116,7 +116,8 @@ export async function GET(req) {
       const uselabasset = await executeQuery(
         `SELECT ASSET.LABJOB_ASSET_ID,ASSET.ASSET_ID,
          ASSET.AMOUNT_USED, 
-         ASSET.UNIT_PRICE, 
+         ASSET.HOUR_USED,
+         ASSET.UNIT_PRICE,          
          ASSET.ASSET_USED_REMARK, 
         INV.ASSET_NAME_TH,
         BRAND.BRAND_NAME,
@@ -334,6 +335,7 @@ export async function POST(req) {
       labjobId,
       assetId,
       amountUsed,
+      hourUsed,
       assetUsedRemark,
       userId,
       assetextraFlag,
@@ -358,21 +360,22 @@ export async function POST(req) {
     console.log(
       "Executing query:",
       `INSERT INTO CST_LABJOB_ASSET 
-    (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED, ASSET_USED_REMARK, DATE_CREATED, USER_CREATED, ASSETEXTRA_FLAG, ASSET_NAME_TH, BRAND_NAME, AMOUNT_UNIT, UNIT_NAME, UNIT_PRICE) 
+    (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED,HOUR_USED, ASSET_USED_REMARK, DATE_CREATED, USER_CREATED, ASSETEXTRA_FLAG, ASSET_NAME_TH, BRAND_NAME, AMOUNT_UNIT, UNIT_NAME, UNIT_PRICE) 
     VALUES 
-    (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :assetUsedRemark, SYSDATE, :userId, :assetextraFlag, :assetNameTh, :brandName, :amountUnit, :unitName,unitPrice)`
+    (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :hourUsed,:assetUsedRemark, SYSDATE, :userId, :assetextraFlag, :assetNameTh, :brandName, :amountUnit, :unitName,unitPrice)`
     );
 
     // Execute the query
     await executeQuery(
       `INSERT INTO CST_LABJOB_ASSET 
-  (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED, ASSET_USED_REMARK, FLAG_DEL, USER_CREATED, DATE_CREATED, ASSETEXTRA_FLAG, UNIT_PRICE)
+  (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED,HOUR_USED, ASSET_USED_REMARK, FLAG_DEL, USER_CREATED, DATE_CREATED, ASSETEXTRA_FLAG, UNIT_PRICE)
   VALUES 
-  (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :assetUsedRemark, :flagDel, :userId, SYSDATE, :assetextraFlag, :unitPrice)`,
+  (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :hourUsed,:assetUsedRemark, :flagDel, :userId, SYSDATE, :assetextraFlag, :unitPrice)`,
       {
         labjobId: labjobIdNumber,
         assetId,
         amountUsed,
+        hourUsed: hourUsed || 0,
         assetUsedRemark: assetUsedRemark || "",
         flagDel: 0,
         userId: userIdNumber,
@@ -438,6 +441,7 @@ export async function PUT(req) {
         LABJOB_ID = :labjobId,
         ASSET_ID = :assetId,
         AMOUNT_USED = :amountUsed,
+        HOUR_USED = :hourUsed,
         ASSET_USED_REMARK = :assetUsedRemark,
         FLAG_DEL = :flagDel,
         USER_UPDATED = :userId,
