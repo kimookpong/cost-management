@@ -6,8 +6,8 @@ const nextConfig = {
   images: {
     domains: ["hrms.wu.ac.th"],
   },
-  assetPrefix: isProd ? "/cost-management/" : "",
-  basePath: isProd ? "/cost-management" : "",
+  // assetPrefix: isProd ? "/cost-management/" : "",
+  // basePath: isProd ? "/cost-management" : "",
   eslint: {
     ignoreDuringBuilds: true,
   },
