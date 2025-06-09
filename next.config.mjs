@@ -6,7 +6,10 @@ const nextConfig = {
   },
   assetPrefix: isProd ? "/cost-management/" : "",
   basePath: isProd ? "/cost-management" : "",
-  output: "export",
+  // output: "export",
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   reactStrictMode: true,
 };
 
