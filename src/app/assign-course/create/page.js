@@ -4,23 +4,37 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FiCheckCircle } from "react-icons/fi";
+import { useSession } from "next-auth/react";
 
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 
 export default function Detail() {
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [facultyId, setFacultyId] = useState(
     searchParams.get("facultyId") || ""
   );
+  const [selected, setSelected] = useState("0");
+
   const [schId, setSchId] = useState(searchParams.get("schId") || "");
   const [data, setData] = useState({
     course: [],
     faculty: [],
     term: [],
   });
+
+  const [filterData, setFilterData] = useState([]);
+
+  useEffect(() => {
+    if (selected === "0") {
+      setFilterData(data.course);
+    } else {
+      setFilterData(data.course.filter((item) => item.type === selected));
+    }
+  }, [selected]);
 
   useEffect(() => {
     setLoading(true);
@@ -36,6 +50,13 @@ export default function Detail() {
             faculty: data.faculty,
             term: data.term,
           });
+
+          if (selected === "0") {
+            setFilterData(data.data);
+          } else {
+            setFilterData(data.data.filter((item) => item.type === selected));
+          }
+
           setLoading(false);
         }
       } catch (err) {
@@ -46,6 +67,26 @@ export default function Detail() {
     fetchData();
   }, [facultyId, schId]);
 
+  const handleCreate = async (courseid) => {
+    const term = data.term.find((item) => item.schId == schId);
+    const section = filterData.find(
+      (item) => item.courseid === courseid
+    )?.section;
+    const response = await axios.post(`/api/assign-course`, {
+      courseid: courseid,
+      schId: schId,
+      acadyear: term.acadyear,
+      semester: term.semester,
+      section,
+      userId: session?.user.person_id,
+    });
+
+    const res = response.data;
+    if (res.success) {
+      router.push(`/assign-course/${res.labId}`);
+    }
+  };
+
   const breadcrumb = [
     { name: "แผนการให้บริการห้องปฎิบัติการ" },
     { name: "กำหนดรายวิชา", link: "/assign-course" },
@@ -54,13 +95,19 @@ export default function Detail() {
 
   const meta = [
     {
-      key: "coursecode",
-      content: "รหัสรายวิชา",
-      width: 120,
-    },
-    {
       key: "coursename",
       content: "ชื่อรายวิชา",
+      render: (item) => (
+        <div className="text-left">
+          {item.coursecode} {item.coursename}
+        </div>
+      ),
+    },
+    {
+      key: "courseunit",
+      content: "หน่วยกิต",
+      className: "text-center",
+      width: 150,
     },
     {
       key: "section",
@@ -83,11 +130,7 @@ export default function Detail() {
         <div className="flex justify-center">
           <button
             className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() =>
-              router.push(
-                `/assign-course/new?courseId=${item.courseid}&schId=${schId}`
-              )
-            }
+            onClick={() => handleCreate(item.courseid)}
           >
             <FiCheckCircle className="w-4 h-4" />
             เลือก
@@ -155,9 +198,37 @@ export default function Detail() {
             </select>
           </div>
           <div className="sm:col-span-12">
+            <div className="flex justify-end space-x-4">
+              {[
+                { id: "0", label: "ทั้งหมด" },
+                { id: "1", label: "บรรยาย" },
+                { id: "2", label: "ปฎิบัติการ" },
+                { id: "3", label: "บรรยายและปฎิบัติการ" },
+              ].map((option) => (
+                <label
+                  key={option.id}
+                  className="flex items-center space-x-2 cursor-pointer"
+                >
+                  <input
+                    type="radio"
+                    name="options"
+                    value={option.id}
+                    checked={selected === option.id}
+                    onChange={() => setSelected(option.id)}
+                    className="peer hidden "
+                  />
+                  <div className="w-5 h-5 border-2 border-gray-400 rounded-full peer-checked:border-white peer-checked:ring-2 peer-checked:ring-blue-300 peer-checked:bg-blue-500"></div>
+                  <span className="text-gray-700 peer-checked:text-blue-600">
+                    {option.label}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="sm:col-span-12">
             <TableList
               meta={meta}
-              data={data.course}
+              data={filterData}
               loading={loading}
               exports={false}
             />

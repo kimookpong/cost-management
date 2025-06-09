@@ -42,22 +42,40 @@ const navigation = [
   },
   {
     id: 3,
-    name: "จัดการข้อมูลพัสดุ ",
+    name: "จัดการข้อมลตั้งต้น ",
     description: "จัดการข้อมูลพัสดุ ",
     icon: FiBox,
 
     child: [
       {
         id: 31,
-        name: "กำหนดค่าตั้งต้น",
+        name: "ยี่ห้อ",
         icon: FiSettings,
-        href: "/matter",
+        href: "/brand",
       },
       {
         id: 32,
-        name: "ข้อมูลพัสดุ",
+        name: "หน่วยนับ",
         icon: FiBox,
-        href: "/matter2",
+        href: "/materials",
+      },
+      {
+        id: 33,
+        name: "ครุภัณฑ์",
+        icon: FiBox,
+        href: "/assetss?idType=1",
+      },
+      {
+        id: 34,
+        name: "วัสดุไม่สินเปลือง",
+        icon: FiBox,
+        href: "/assetss?idType=2",
+      },
+      {
+        id: 35,
+        name: "วัสดุสิ้นเปลือง",
+        icon: FiBox,
+        href: "/assetss?idType=3",
       },
     ],
   },
@@ -96,13 +114,14 @@ const navigation = [
         id: 21,
         name: "บันทึกใบงานเตรียมปฏิบัติการ",
         icon: FiChevronsRight,
-        href: "/user",
+        href: "/prepare-lab",
       },
-      // {
-      //   name: "แผนการใช้ทรัพยากร",
-      //   icon: FiChevronsRight,
-      //   href: "/userRole",
-      // },
+      {
+        id: 22,
+        name: "บันทึกการใช้ทรัพยากรตามใบงาน",
+        icon: FiChevronsRight,
+        href: "/prepare-lab",
+      },
       // {
       //   name: "บันทึกการใช้ทรัพยากรตามใบงาน",
       //   icon: FiChevronsRight,
@@ -112,8 +131,8 @@ const navigation = [
   },
   {
     id: 5,
-    name: "รายงานต้นทุน",
-    description: "รายงานต้นทุน",
+    name: "รายงานต่างๆ",
+    description: "รายงานต่างๆ",
     icon: FiArchive,
     child: [
       {
@@ -121,6 +140,12 @@ const navigation = [
         name: "รายงานแผนการใช้บริการห้องปฎิบัติการ",
         icon: FiChevronsRight,
         href: "/report/assign-course",
+      },
+      {
+        id: 52,
+        name: "รายงานสรุปหัวข้อใบงานเตรียมปฏิบัติการตามรายวิชา",
+        icon: FiChevronsRight,
+        href: "/report/prepare-lab",
       },
     ],
   },

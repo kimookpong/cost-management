@@ -83,6 +83,16 @@ export default function List() {
     {
       key: "roleName",
       content: "สิทธิ์การใช้งาน",
+      render: (item) => {
+        return (
+          <div className="min-w-0 flex-auto">
+            <p className="font-semibold">{item.roleName}</p>
+            <p className="mt-1 truncate text-xs/5 text-gray-500">
+              {item.labgroupName}
+            </p>
+          </div>
+        );
+      },
     },
     {
       key: "statusId",
@@ -106,8 +116,8 @@ export default function List() {
       key: "personId",
       content: "Action",
       width: "100",
-      sort: false,
-      export: false,
+      sort: false, // ไม่ต้องเรียงข้อมูล
+      export: false, // ไม่ต้อง export ข้อมูล
       render: (item) => (
         <div className="flex gap-1">
           <button
@@ -138,7 +148,7 @@ export default function List() {
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between items-center">
           <div>
-            <h3 className="font-semibold ">กำหนดผู้รับผิดชอบ</h3>
+            <h3 className="font-semibold">กำหนดผู้รับผิดชอบ</h3>
           </div>
           <div className="flex gap-1">
             <button
@@ -155,7 +165,13 @@ export default function List() {
           {error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (
-            <TableList meta={meta} data={employees} loading={loading} />
+            <TableList
+              meta={meta}
+              data={employees}
+              loading={loading}
+              exports={false}
+            />
+            // <TableList meta={meta} data={employees} loading={loading}  />
           )}
         </div>
       </div>

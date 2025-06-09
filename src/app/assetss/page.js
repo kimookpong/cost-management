@@ -187,18 +187,18 @@ export default function List() {
       render: (item) => (
         <div className="flex gap-1">
           <button
-            className="btn btn-xs cursor-pointer  text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressEdit(item.assetId);
             }}>
-            <FiEdit className="w-4 h-4" />
+            <FiEdit className="w-4 h-4" /> แก้ไข 
           </button>
           <button
-            className="btn btn-xs cursor-pointer  text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
               return _onPressDelete(item.assetId);
             }}>
-            <FiTrash2 className="w-4 h-4" />
+            <FiTrash2 className="w-4 h-4" /> ลบ
           </button>
         </div>
       ),
@@ -222,7 +222,7 @@ export default function List() {
           <Link href="/matter2">
             <label className="swap text-6xl">
               {/* <div className="swap-off">🥶</div> */}
-              <svg
+              {/* <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 16 16"
                 fill="currentColor"
@@ -232,7 +232,7 @@ export default function List() {
                   d="M12.5 9.75A2.75 2.75 0 0 0 9.75 7H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 1.06L4.56 5.5h5.19a4.25 4.25 0 0 1 0 8.5h-1a.75.75 0 0 1 0-1.5h1a2.75 2.75 0 0 0 2.75-2.75Z"
                   clipRule="evenodd"
                 />
-              </svg>
+              </svg> */}
             </label>
           </Link>
           <div className="flex gap-2 items-center p-4">

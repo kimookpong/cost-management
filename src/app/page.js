@@ -1,3 +1,4 @@
+"use client";
 import {
   FiBook,
   FiDollarSign,
@@ -7,26 +8,138 @@ import {
 } from "react-icons/fi";
 import Content from "@/components/Content";
 import ExportButton from "@/components/ExportButton";
-
+import Link from "next/link";
+import { useEffect, useState } from "react";
+// import { useSession } from "next-auth/react";
+import TableList from "@/components/TableList";
 export default function Dashboard() {
+  const [academicYears, setAcademicYears] = useState([]);
+  const [labGroups, setLabGroups] = useState([]);
+  const [selectedSchId, setSelectedSchId] = useState("");
+  const [selectedLg, setSelectedLg] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchAcademicYears() {
+      try {
+        const response = await fetch("/api/academic");
+        const result = await response.json();
+        console.log("Academic Years:", result);
+
+        if (result.data && result.data.length > 0) {
+          setAcademicYears(result.data);
+
+          const defaultYear = result.data.find((item) => item.status === 1);
+          console.log("Default Year:", defaultYear);
+
+          if (defaultYear) {
+            setSelectedSchId(defaultYear.schId);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching academic years:", error);
+      }
+    }
+
+    fetchAcademicYears();
+  }, []);
+
+  useEffect(() => {
+    async function fetchLabGroups() {
+      try {
+        const response = await fetch("/api/labgroup");
+        const result = await response.json();
+        console.log("Lab Groups:", result);
+
+        if (result.data && result.data.length > 0) {
+          // เพิ่มตัวเลือก "ทั้งหมด" ไว้ด้านหน้า
+          const labGroupsWithAll = [
+            { labgroupId: " ", labgroupName: "ทั้งหมด" },
+            ...result.data,
+          ];
+          setLabGroups(labGroupsWithAll);
+          setSelectedLg(" "); // ตั้งค่า default เป็น "ทั้งหมด"
+        }
+      } catch (error) {
+        console.error("Error fetching lab groups:", error);
+      }
+    }
+
+    fetchLabGroups();
+  }, []);
+  useEffect(() => {
+    // ตรวจสอบว่าเลือกครบทั้งสองค่าแล้ว
+    if (selectedSchId && selectedLg !== null) {
+      fetchData();
+    }
+  }, [selectedSchId, selectedLg]);
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch(
+        `/api/assign-course?schId=${selectedSchId}&labgroupId=${selectedLg}`
+      );
+      const result = await response.json();
+      console.log("ผลลัพธ์:", result.data);
+      if (result.data) {
+        setSearchResults(result.data);
+      }
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดในการดึงข้อมูล:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // const schId = "1"; // Replace with actual schId if needed
   return (
     <Content>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-semibold text-white dark:text-gray-300">
-          Dashboard
+          {/* Dashboard */}
+          <Link href="/dashboard">คลิก</Link>
         </h1>
 
         <div className="flex items-center justify-end space-x-4">
           <label className="text-gray-900 dark:text-gray-300 text-xl">
-            ปีการศึกษา
+            ภาคการศึกษา
           </label>
 
-          <select className="p-4 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-lg focus:outline-none w-28 text-right text-gray-800 dark:text-gray-300 items-center">
-            <option className="text-left">2 / 2568</option>
-            <option className="text-left">1 / 2568</option>
-            <option className="text-left">2 / 2567</option>
-            <option className="text-left">1 / 2567</option>
+          <select
+            className="p-4 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-lg focus:outline-none w-28  text-gray-800 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600"
+            value={selectedSchId}
+            onChange={(e) => setSelectedSchId(e.target.value)}>
+            {academicYears.map((year) => (
+              <option
+                key={year.schId}
+                value={year.schId}
+                className="text-gray-800 dark:text-gray-300 !w-28 p-4">
+                {year.semester} / {year.acadyear}
+                {/* {year.status === 1 ? " (ปัจจุบัน)" : ""} */}
+              </option>
+            ))}
           </select>
+
+          <select
+            className="p-4 bg-gray-100 dark:bg-gray-800 dark:text-gray-300 rounded-lg focus:outline-none w-260 text-gray-800 dark:text-gray-300 text-sm border border-gray-300 dark:border-gray-600"
+            value={selectedLg}
+            onChange={(e) => setSelectedLg(e.target.value)}>
+            {labGroups.map((year) => (
+              <option
+                key={year.labgroupId}
+                value={year.labgroupId}
+                className="text-gray-800 dark:text-gray-300 !w-64 p-4 text-base">
+                {year.labgroupName}
+              </option>
+            ))}
+          </select>
+          {/* <button
+            className="outline-2 outline-offset-2 outline-sky-300 bg-sky-300 text-white px-4 py-4 rounded-lg hover:bg-sky-600 transition-colors duration-300 text-2xl w-24"
+            onClick={handleSearch}>
+            {" "}
+            ค้นหา
+          </button> */}
         </div>
       </div>
 
@@ -34,21 +147,24 @@ export default function Dashboard() {
         {[
           {
             title: "รายวิชาที่เปิดให้บริการ",
-            value: "120",
+            value: searchResults.length,
             unit: "รายวิชา",
             icon: <FiBook className="text-blue-500" />,
             bg: "bg-green-100",
           },
           {
             title: "ต้นทุนรวม",
-            value: "11,810,124",
+            value: "-",
             unit: "บาท",
             icon: <FiDollarSign className="text-green-500" />,
             bg: "bg-orange-100",
           },
           {
             title: "จำนวนนักศึกษา",
-            value: "23,644",
+            value: searchResults.reduce(
+              (sum, item) => sum + item.enrollseat,
+              0
+            ),
             unit: "คน",
             icon: <FiUsers className="text-purple-500" />,
             bg: "bg-blue-200",
@@ -78,31 +194,39 @@ export default function Dashboard() {
           <p>ฝ่ายห้องปฏิบติการ</p>
         </div>
         <div className="collapse-content text-gray-800 dark:text-gray-300">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
-                title: "ฝ่ายห้องปฏิบัติการวิทยาศาสตร์สุขภาพ",
+                title: "วิทยาศาสตร์สุขภาพ",
                 value: "10",
                 number: "20",
                 unit: "รายวิชา",
                 icon: <FiHome className="text-green-500" />,
-                unitn: "ห้องปฏิบัติการ",
+                unitn: "ห้อง",
               },
               {
-                title: "ฝ่ายห้องปฏิบัติการวิทยาศาสตร์พื้นฐาน",
+                title: "วิทยาศาสตร์พื้นฐาน",
                 value: "30",
                 number: "29",
                 unit: "รายวิชา",
                 icon: <FiHome className="text-red-500" />,
-                unitn: "ห้องปฏิบัติการ",
+                unitn: "ห้อง",
               },
               {
-                title: "ฝ่ายห้องปฏิบัติการวิทยาศาสตร์เทคโนโลยี",
+                title: "วิทยาศาสตร์เทคโนโลยี",
                 value: "40",
                 number: "35",
                 unit: "รายวิชา",
                 icon: <FiHome className="text-purple-500" />,
-                unitn: "ห้องปฏิบัติการ",
+                unitn: "ห้อง",
+              },
+              {
+                title: "วิทยาศาสตร์การแพทย์",
+                value: "50",
+                number: "45",
+                unit: "รายวิชา",
+                icon: <FiHome className="text-purple-500" />,
+                unitn: "ห้อง",
               },
             ].map((stat, index) => (
               <div
@@ -125,8 +249,8 @@ export default function Dashboard() {
                       )}
                     </span>
                   </span>{" "}
-                  <div className="mt-2 flex items-center text-xs bg-gray-300 dark:bg-gray-700 p-2 rounded-lg">
-                    <div className="flex items-center text-gray-800 dark:text-gray-300">
+                  <div className="mt-2  items-center text-xs bg-gray-300 dark:bg-gray-700 p-2 rounded-lg">
+                    <div className="flex items-center text-gray-800 dark:text-gray-300 justify-center">
                       <span className="text-base"> {stat.title}</span>
                     </div>
                   </div>
@@ -142,207 +266,87 @@ export default function Dashboard() {
           <FiChevronsDown className="text-purple-500" /> <p>รายงาน</p>
         </div>
         <div className="collapse-content">
-          <div className="flex justify-end mb-4">
-            <ExportButton tableId="reportTable" fileName="report" />
-          </div>
           <div className="overflow-x-auto text-gray-800 dark:text-gray-300">
-            <table
-              id="reportTable"
-              className="table table-xs text-gray-800 dark:text-gray-300 p-4">
-              <thead>
-                <tr className="text-gray-800 dark:text-gray-100">
-                  <th>#</th>
-                  <th>สำนักวิชา</th>
-                  <th>หลักสูตร</th>
-                  <th>รหัสวิชา</th>
-                  <th>ชื่อวิชา (ภาษาไทย)</th>
-                  <th>จำนวนนักศึกษา</th>
-                  <th>ต้นทุนรวม</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>วิทยาศาสตร์</td>
-                  <td>คอมพิวเตอร์</td>
-                  <td>CS101</td>
-                  <td>โครงสร้างข้อมูล</td>
-                  <td>50</td>
-                  <td>100,000</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>วิศวกรรมศาสตร์</td>
-                  <td>วิศวกรรมไฟฟ้า</td>
-                  <td>EE201</td>
-                  <td>วงจรไฟฟ้า</td>
-                  <td>40</td>
-                  <td>80,000</td>
-                </tr>
-                <tr>
-                  <td>3</td>
-                  <td>บริหารธุรกิจ</td>
-                  <td>การจัดการ</td>
-                  <td>MG301</td>
-                  <td>การบริหารองค์กร</td>
-                  <td>60</td>
-                  <td>120,000</td>
-                </tr>
-                <tr>
-                  <td>4</td>
-                  <td>แพทยศาสตร์</td>
-                  <td>แพทยศาสตร์</td>
-                  <td>MD101</td>
-                  <td>กายวิภาคศาสตร์</td>
-                  <td>45</td>
-                  <td>200,000</td>
-                </tr>
-                <tr>
-                  <td>5</td>
-                  <td>วิทยาศาสตร์</td>
-                  <td>ชีววิทยา</td>
-                  <td>BI201</td>
-                  <td>ชีววิทยาทั่วไป</td>
-                  <td>55</td>
-                  <td>90,000</td>
-                </tr>
-                <tr>
-                  <td>6</td>
-                  <td>วิศวกรรมศาสตร์</td>
-                  <td>โยธา</td>
-                  <td>CE301</td>
-                  <td>กลศาสตร์โครงสร้าง</td>
-                  <td>35</td>
-                  <td>70,000</td>
-                </tr>
-                <tr>
-                  <td>7</td>
-                  <td>มนุษยศาสตร์</td>
-                  <td>ภาษาอังกฤษ</td>
-                  <td>EN101</td>
-                  <td>การเขียนภาษาอังกฤษ</td>
-                  <td>80</td>
-                  <td>60,000</td>
-                </tr>
-                <tr>
-                  <td>8</td>
-                  <td>นิติศาสตร์</td>
-                  <td>กฎหมาย</td>
-                  <td>LA101</td>
-                  <td>กฎหมายเบื้องต้น</td>
-                  <td>70</td>
-                  <td>110,000</td>
-                </tr>
-                <tr>
-                  <td>9</td>
-                  <td>เกษตรศาสตร์</td>
-                  <td>พืชไร่</td>
-                  <td>AG101</td>
-                  <td>การเพาะปลูกพืช</td>
-                  <td>40</td>
-                  <td>95,000</td>
-                </tr>
-                <tr>
-                  <td>10</td>
-                  <td>วิทยาศาสตร์</td>
-                  <td>เคมี</td>
-                  <td>CH201</td>
-                  <td>เคมีอินทรีย์</td>
-                  <td>50</td>
-                  <td>85,000</td>
-                </tr>
-                <tr>
-                  <td>11</td>
-                  <td>ศิลปกรรมศาสตร์</td>
-                  <td>ดนตรี</td>
-                  <td>MU101</td>
-                  <td>พื้นฐานดนตรี</td>
-                  <td>30</td>
-                  <td>75,000</td>
-                </tr>
-                <tr>
-                  <td>12</td>
-                  <td>วิศวกรรมศาสตร์</td>
-                  <td>คอมพิวเตอร์</td>
-                  <td>CS202</td>
-                  <td>ระบบปฏิบัติการ</td>
-                  <td>60</td>
-                  <td>105,000</td>
-                </tr>
-                <tr>
-                  <td>13</td>
-                  <td>วิศวกรรมศาสตร์</td>
-                  <td>เครื่องกล</td>
-                  <td>ME301</td>
-                  <td>กลศาสตร์ของไหล</td>
-                  <td>45</td>
-                  <td>95,000</td>
-                </tr>
-                <tr>
-                  <td>14</td>
-                  <td>บริหารธุรกิจ</td>
-                  <td>บัญชี</td>
-                  <td>AC101</td>
-                  <td>บัญชีพื้นฐาน</td>
-                  <td>70</td>
-                  <td>100,000</td>
-                </tr>
-                <tr>
-                  <td>15</td>
-                  <td>มนุษยศาสตร์</td>
-                  <td>จิตวิทยา</td>
-                  <td>PS101</td>
-                  <td>จิตวิทยาทั่วไป</td>
-                  <td>50</td>
-                  <td>80,000</td>
-                </tr>
-                <tr>
-                  <td>16</td>
-                  <td>สาธารณสุข</td>
-                  <td>สาธารณสุขศาสตร์</td>
-                  <td>PH101</td>
-                  <td>สุขศึกษา</td>
-                  <td>55</td>
-                  <td>90,000</td>
-                </tr>
-                <tr>
-                  <td>17</td>
-                  <td>เศรษฐศาสตร์</td>
-                  <td>เศรษฐศาสตร์</td>
-                  <td>EC101</td>
-                  <td>เศรษฐศาสตร์จุลภาค</td>
-                  <td>65</td>
-                  <td>95,000</td>
-                </tr>
-                <tr>
-                  <td>18</td>
-                  <td>เทคโนโลยีสารสนเทศ</td>
-                  <td>IT</td>
-                  <td>IT101</td>
-                  <td>เครือข่ายคอมพิวเตอร์</td>
-                  <td>50</td>
-                  <td>85,000</td>
-                </tr>
-                <tr>
-                  <td>19</td>
-                  <td>แพทยศาสตร์</td>
-                  <td>พยาบาลศาสตร์</td>
-                  <td>NU101</td>
-                  <td>การพยาบาลพื้นฐาน</td>
-                  <td>40</td>
-                  <td>150,000</td>
-                </tr>
-                <tr>
-                  <td>20</td>
-                  <td>มนุษยศาสตร์</td>
-                  <td>ประวัติศาสตร์</td>
-                  <td>HI101</td>
-                  <td>ประวัติศาสตร์ไทย</td>
-                  <td>75</td>
-                  <td>70,000</td>
-                </tr>
-              </tbody>
-            </table>
+            <TableList
+              meta={[
+                {
+                  key: "coursename",
+                  content: "ชื่อรายวิชา",
+                  render: (item) => (
+                    <div className="flex flex-col">
+                      <p className="block">
+                        {item.coursecode} {item.coursename}
+                      </p>
+                    </div>
+                  ),
+                },
+                {
+                  key: "facultyname",
+                  content: "สำนักวิชา",
+                  render: (item) => (
+                    <div className="flex flex-col">
+                      <p className="block">{item.facultyname}</p>
+                      <p className="block opacity-70">{item.facultycode}</p>
+                    </div>
+                  ),
+                },
+                {
+                  key: "section",
+                  content: "รายละเอียดวิชา",
+                  width: "300",
+                  render: (item) => (
+                    <div className="flex flex-col">
+                      <p className="block">
+                        จำนวนกลุ่มเรียน : {item.section} กลุ่ม
+                      </p>
+                      <p className="block opacity-70">
+                        จำนวนนักศึกษา : {item.enrollseat}/{item.totalseat} คน
+                      </p>
+                    </div>
+                  ),
+                },
+                {
+                  key: "fullname",
+                  content: "รายละเอียดห้องปฎิบัติการ",
+                  width: "300",
+                  render: (item) => {
+                    if (!item.labgroupName) {
+                      return (
+                        <div className="flex flex-col">
+                          <i className="text-xs text-gray-300 dark:text-gray-700">
+                            (ไม่มีข้อมูล)
+                          </i>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="flex flex-col">
+                        <p className="block">{item.labgroupName}</p>
+                        <p className="block opacity-70">
+                          ผู้รับผิดชอบหลัก : {item.fullname}
+                        </p>
+                      </div>
+                    );
+                  },
+                },
+
+                {
+                  key: "labId",
+                  content: "รายละเอียด",
+                  render: (item) => (
+                    <div className="flex flex-col">
+                      <Link
+                        href={`/dashboard?labId=${btoa(item.labId.toString())}`}
+                        className="text-blue-500 hover:underline">
+                        ดูรายละเอียด
+                      </Link>
+                    </div>
+                  ),
+                },
+              ]}
+              data={searchResults}
+              loading={loading}
+            />
           </div>
         </div>
       </div>

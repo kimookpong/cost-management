@@ -1,53 +1,68 @@
 "use client";
-import { useRouter } from "next/navigation";
+
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import Content from "@/components/Content";
-import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
+import { FiEdit } from "react-icons/fi";
 import TableList from "@/components/TableList";
+import { useSession } from "next-auth/react";
 
-const data = [
-  {
-    plabId: 1,
-    brandName: "BIO61-192",
-    status: "1",
-    brandId: 1,
-    used: 0,
-    nameSub: "Basic Medical Biochemistry Laboratory",
-    numLab: 1,
-    num: 20,
-    numStu: 30,
-  },
-  {
-    plabId: 2,
-    brandName: "BIO62-192",
-    status: "1",
-    brandId: 1,
-    used: 0,
-    nameSub: "Basic Medical Biochemistry Laboratory 2",
-    numLab: 10,
-    num: 10,
-    numStu: 30,
-  },
-];
 export default function Page() {
-  const breadcrumb = [{ name: "เตรียมปฏิบัติการ", link: "/prepare-lab" }];
-  const router = useRouter();
-  const [employees, setEmployees] = useState([]);
+  const router = useRouter(); // Get the router object
+  const { data: session } = useSession();
+  //console.log("session", session);
+  const userlogin = session?.user.userRole;
+  const userIdlogin = session?.user.person_id;
+  console.log("userIdlogin", userlogin);
+  const breadcrumb = [{ name: "รายวิชา", link: "/prepare-lab" }];
+  const searchParams = useSearchParams();
+  const initialSchId = searchParams.get("schId") || ""; // Get schId from URL
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [reload, setReload] = useState(0);
+  const [schYears, setSchYears] = useState([]);
+  const [lab, setLab] = useState([]);
+  const [schId, setSchId] = useState(initialSchId);
 
-  const _onPressAdd = () => {
-    router.push("/prepare-lab/new");
+  const _onPressAdd = (labId) => {
+    router.push(`/prepare-lab/new?labId=${labId}`);
   };
-
+  const _onPressAddasset = (labId) => {
+    router.push(`/prepare-lab/plan-asset?id=${labId}`);
+  };
   useEffect(() => {
     async function fetchData() {
       try {
-        // ใช้ข้อมูลจำลองโดยตรง
-        setEmployees(data);
+        const schYearRes = await axios.get("/api/academic");
+        //console.log("Academic Data:", schYearRes.data); // Debugging
+        const fetchedSchYears = schYearRes.data.data || [];
+        setSchYears(fetchedSchYears);
+        // Set the initial schId where status is 1
+        if (!schId) {
+          const defaultSchId = fetchedSchYears.find(
+            (item) => item.status === 1
+          )?.schId;
+          if (defaultSchId) {
+            setSchId(defaultSchId);
+          }
+        }
+
+        const response = await axios.get(`/api/prepare-lab`, {
+          params: { schId, userIdlogin, userlogin },
+        });
+
+        const data = response.data;
+        //console.log("lab", data);
+        if (response.data.success) {
+          setLab(response.data.data || []); // Access `data.data`
+        } else {
+          setLab([]); // Ensure it's always an array
+        }
       } catch (err) {
+        console.error(
+          "Error fetching lab data:",
+          err.response?.data || err.message
+        );
         setError("เกิดข้อผิดพลาดในการดึงข้อมูล");
       } finally {
         setLoading(false);
@@ -55,84 +70,213 @@ export default function Page() {
     }
 
     fetchData();
-  }, [reload]);
-  if (loading) return <p>กำลังโหลด...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
-  // Define the meta variable if needed
+  }, [schId]);
+
+  // if (loading) return <p>กำลังโหลด...</p>;
+  // if (error) return <p className="text-red-500">{error}</p>;
+  // // Define the meta variable if needed
 
   const meta = [
     {
-      key: "brandName",
+      key: "courseunicode",
       content: "รหัสวิชา",
-    },
-    {
-      key: "nameSub",
-      content: "รายวิชา",
-    },
-    {
-      key: "numLab",
-      content: " จำนวนห้อง LAB ที่เปิด",
-      width: "200",
       className: "text-center",
+      width: "150",
       render: (item) => {
-        return <span className="item-center">{item.numLab}</span>;
+        return (
+          <>
+            <div className="item-center">
+              <span>
+                {item.courseunicode}
+                {/* {item.personId} */}
+              </span>
+            </div>
+            <div className="item-center">
+              <span>{item.courseunit}</span>
+            </div>
+          </>
+        );
+      },
+    },
+    ,
+    {
+      key: "coursename",
+      content: "รายวิชา",
+      render: (item) => {
+        return (
+          <>
+            <div className="item-center">
+              <span> {item.coursename}</span>
+            </div>
+            <div className="item-center">
+              <span>({item.coursenameeng})</span>
+            </div>
+          </>
+        );
       },
     },
     {
-      key: "num",
-      content: " จำนวนกลุ่ม (กลุ่ม)",
-      width: "200",
+      key: "enrollseat",
+      content: "เปิดลง | นักศึกษา",
+      width: "150",
+      className: "text-center",
+      render: (item) => {
+        return (
+          <span className="item-center">
+            {item.totalseat} | {item.enrollseat}
+          </span>
+        );
+      },
+    },
+    {
+      key: "labroom",
+      content: " จำนวนห้อง LAB ",
+      width: "150",
+      className: "text-center",
+      render: (item) => {
+        return <span className="item-center">{item.labroom}</span>;
+      },
+    },
+    {
+      key: "section",
+      content: " จำนวนกลุ่ม",
+      width: "120",
       className: "text-center",
     },
     {
-      key: "numStu",
-      content: " จำนวนนักศึกษาทั้งหมด (คน)",
+      key: "hour",
+      content: " จำนวนชม.ที่เรียนต่อสัปดาห์",
       width: "200",
       className: "text-center",
-    },
-    {
-      key: "plabId",
-      content: "จัดการใบเตรียมปฏิบัติการ",
-      width: "200",
-      className: "text-center",
-      render: (item) => (
-        <div className="cursor-pointer items-center justify-center flex gap-1">
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-            onClick={() => _onPressAdd(item.plabId)}>
-            <FiEdit className="w-4 h-4" />
-            จัดการ
-          </button>
-        </div>
-      ),
     },
   ];
 
+  if (
+    userlogin === "ผู้ประสานงานรายวิชา" ||
+    userlogin === "แอดมิน" ||
+    userlogin === "หัวหน้าฝ่าย"
+  ) {
+    meta.push({
+      key: "labId",
+      content: "จัดการ",
+      width: "270",
+      className: "text-center",
+      render: (item) => {
+        console.log(
+          "Rendering item:",
+          item.labId,
+          item.personId,
+          "vs",
+          userIdlogin
+        );
+        return String(item.personId) === String(userIdlogin) ? (
+          <div className="cursor-pointer items-center justify-center flex gap-1">
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-fuchsia-600 hover:bg-fuchsia-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+              onClick={() => _onPressAdd(item.labId)}>
+              กำหนดปฏิบัติการ
+            </button>
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-purple-600 hover:bg-purple-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+              onClick={() => _onPressAddasset(item.labId)}>
+              แผนการใช้ทรัพยากร
+            </button>
+          </div>
+        ) : (
+          "-"
+        );
+      },
+    });
+  } else if (
+    [
+      "ผู้ประสานงานรายวิชา",
+      "แอดมิน",
+      "หัวหน้าฝ่าย",
+      "หัวหน้าบทปฏิบัติการ",
+    ].includes(userlogin)
+  ) {
+    meta.push({
+      key: "labId",
+      content: "จัดการ",
+      width: "270",
+      className: "text-center",
+      render: (item) => {
+        console.log(
+          "Rendering item:",
+          item.labId,
+          item.personId,
+          "vs",
+          userIdlogin
+        );
+        const isOwner = String(item.personId) === String(userIdlogin);
+        console.log("userIdlogin =", isOwner);
+        return isOwner ? (
+          <div className="cursor-pointer items-center justify-center flex gap-1">
+            <button
+              className="cursor-pointer p-2 text-white text-sm bg-indigo-500 hover:bg-indigo-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
+              onClick={() => _onPressAdd(item.labId)}>
+              การใช้ทรัพยากรและอุปกรณ์ชำรุด
+            </button>
+          </div>
+        ) : null;
+      },
+    });
+  }
+
+  // else {
+  //   <div className="cursor-pointer items-center justify-center flex gap-1">
+  //     {"-"}
+  //   </div>;
+  // }
+
+  let title;
+  if (userlogin === "หัวหน้าบทปฏิบัติการ") {
+    title = "ใบงานปฏิบัติการตามรายวิชา";
+  } else if (userlogin === "แอดมิน") {
+    title = "บันทึกใบงานเตรียมปฏิบัติการตามรายวิชา";
+  }
   return (
-    <Content breadcrumb={breadcrumb} title="เตรียมปฏิบัติการ">
+    <Content breadcrumb={breadcrumb} title={title}>
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 flex justify-between items-center">
           <div>
-            <h3 className="font-semibold">เตรียมปฏิบัติการ</h3>
+            <h3 className="font-semibold text-lg">{title}</h3>
           </div>
 
-          <div className="flex gap-1">
-            {/* <button
-              className="cursor-pointer p-3 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 justify-center"
-              onClick={_onPressAdd}>
-              <FiPlus className="w-4 h-4" />
-              เพิ่มใหม่
-            </button> */}
+          <div className=" gap-1  justify-end">
+            <div className="flex gap-2 justify-end items-center">
+              <label className="block text-base font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300 w-full">
+                ปีการศึกษา
+              </label>
+              <select
+                name="schId"
+                className="border border-gray-500 p-2 rounded-lg w-full"
+                value={schId}
+                onChange={(e) => setSchId(e.target.value)}>
+                {schYears.map((item) => (
+                  <option key={item.schId} value={item.schId}>
+                    {item.semester} / {item.acadyear}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
         <div className="p-4 overflow-auto">
           {error ? (
             <p className="text-center text-red-500">{error}</p>
           ) : (
-            <TableList meta={meta} data={employees} loading={loading} />
+            <TableList meta={meta} data={lab} loading={loading} />
           )}
         </div>
       </div>
     </Content>
   );
 }
+const className = {
+  label:
+    "block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300",
+  input:
+    "block w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
+  select: "block px-4 py-2 border rounded-md dark:bg-gray-800",
+};

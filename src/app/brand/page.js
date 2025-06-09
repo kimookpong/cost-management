@@ -90,7 +90,7 @@ export default function List() {
       width: "100",
       render: (item) => {
         return (
-          <div className="flex  items-center">
+          <div className="flex items-center">
             <span
               className={`px-2 py-1 text-sm font-medium rounded-full ${
                 item.status === "1"
@@ -136,7 +136,7 @@ export default function List() {
           <Link href="/matter">
             <label className="swap text-6xl">
               {/* <div className="swap-off">🥶</div> */}
-              <svg
+              {/* <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 16 16"
                 fill="currentColor"
@@ -146,7 +146,7 @@ export default function List() {
                   d="M12.5 9.75A2.75 2.75 0 0 0 9.75 7H4.56l2.22 2.22a.75.75 0 1 1-1.06 1.06l-3.5-3.5a.75.75 0 0 1 0-1.06l3.5-3.5a.75.75 0 0 1 1.06 1.06L4.56 5.5h5.19a4.25 4.25 0 0 1 0 8.5h-1a.75.75 0 0 1 0-1.5h1a2.75 2.75 0 0 0 2.75-2.75Z"
                   clipRule="evenodd"
                 />
-              </svg>
+              </svg> */}
             </label>
           </Link>
           <div>

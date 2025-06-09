@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -11,8 +11,32 @@ const TableList = ({ data, meta, loading, exports }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState({ key: "", order: "" });
-
   const [itemsPerPage, setItemsPerPage] = useState(20);
+
+  const [selectedOptions, setSelectedOptions] = useState([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const toggleSelection = (option) => {
+    setSelectedOptions((prev) =>
+      prev.includes(option)
+        ? prev.filter((o) => o !== option)
+        : [...prev, option]
+    );
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -70,26 +94,72 @@ const TableList = ({ data, meta, loading, exports }) => {
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-1">
         <div className="flex gap-2">
           {exports !== false && (
             <TableListExport
               tableId="myTable"
               fileName="excel-export.xlsx"
+              selectedOptions={selectedOptions}
               data={data}
               meta={meta}
             />
           )}
         </div>
-        <div className="flex gap-2">
-          <div className="flex gap-2 items-center">
+        <div className="flex gap-1">
+          <div className="flex gap-1 items-center">
+            <div className=" w-40">
+              <button
+                className="w-40 h-7 text-sm px-3 py-1 border border-gray-300 rounded-md bg-white dark:bg-gray-800 w-full flex justify-between items-centeพ"
+                onClick={() => setIsOpen(!isOpen)}
+              >
+                <span>แสดงรายการ</span>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+              <div className="absolute" ref={dropdownRef}>
+                {isOpen && (
+                  <div className="absolute w-40">
+                    <div className="absolute right-0 z-10 mt-2 w-64 p-2 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 ring-1 shadow-lg ring-black/5 transition focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+                      {meta.map((m, index) => (
+                        <label
+                          key={`show-${index}`}
+                          className="flex text-sm items-center m-1 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={!selectedOptions.includes(index)}
+                            onChange={() => toggleSelection(index)}
+                            className="mr-1"
+                          />
+                          {m.content}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-1 items-center">
             <label className="block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300"></label>
             <select
               value={itemsPerPage}
               onChange={(e) => {
                 updateItemsPerPage(e.target.value);
               }}
-              className="block px-4 py-2 border rounded-md bg-white dark:bg-gray-800"
+              className="w-40 h-7 text-sm px-3 py-1 border border-gray-300 rounded-md bg-white dark:bg-gray-800"
             >
               <option value="10">10 รายการ/หน้า</option>
               <option value="20">20 รายการ/หน้า</option>
@@ -103,15 +173,15 @@ const TableList = ({ data, meta, loading, exports }) => {
               placeholder="ค้นหา..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pr-10 h-10 pl-3 py-1  border border-gray-300 rounded shadow-sm focus:outline-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-white"
+              className="w-40 h-7 text-sm pr-8 pl-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-indigo-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-white"
             />
             {search ? (
               <FiXCircle
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-5 h-5 cursor-pointer"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4 cursor-pointer"
                 onClick={() => setSearch("")}
               />
             ) : (
-              <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-5 h-5 " />
+              <FiSearch className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 w-4 h-4 " />
             )}
           </div>
         </div>
@@ -132,49 +202,51 @@ const TableList = ({ data, meta, loading, exports }) => {
                     #
                   </p>
                 </th>
-                {meta.map((m, index) => (
-                  <th
-                    key={`header-${index}`}
-                    width={m.width || ""}
-                    className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-600"
-                  >
-                    {m.sort === false ? (
-                      <p className="flex items-center justify-center gap-1">
-                        {m.content}
-                      </p>
-                    ) : (
-                      <p
-                        className="flex items-center justify-center gap-1 hover:text-gray-900 cursor-pointer dark:hover:text-white"
-                        onClick={() => {
-                          if (sort.key === m.key) {
-                            setSort((prev) => ({
-                              key: prev.key,
-                              order: prev.order === "asc" ? "desc" : "asc",
-                            }));
-                          } else {
-                            setSort({ key: m.key, order: "asc" });
-                          }
-                        }}
-                      >
-                        {m.content}
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth="2"
-                          stroke="currentColor"
-                          className="w-4 h-4"
+                {meta.map((m, index) =>
+                  !selectedOptions.includes(index) ? (
+                    <th
+                      key={`header-${index}`}
+                      width={m.width || ""}
+                      className="border text-sm border-gray-200 dark:border-gray-700 px-1 py-3 text-center font-medium text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-gray-600"
+                    >
+                      {m.sort === false ? (
+                        <p className="flex items-center justify-center gap-1">
+                          {m.content}
+                        </p>
+                      ) : (
+                        <p
+                          className="flex items-center justify-center gap-1 hover:text-gray-900 cursor-pointer dark:hover:text-white"
+                          onClick={() => {
+                            if (sort.key === m.key) {
+                              setSort((prev) => ({
+                                key: prev.key,
+                                order: prev.order === "asc" ? "desc" : "asc",
+                              }));
+                            } else {
+                              setSort({ key: m.key, order: "asc" });
+                            }
+                          }}
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
-                          ></path>
-                        </svg>
-                      </p>
-                    )}
-                  </th>
-                ))}
+                          {m.content}
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="2"
+                            stroke="currentColor"
+                            className="w-4 h-4"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"
+                            ></path>
+                          </svg>
+                        </p>
+                      )}
+                    </th>
+                  ) : null
+                )}
               </tr>
             </thead>
             <tbody>
@@ -188,11 +260,13 @@ const TableList = ({ data, meta, loading, exports }) => {
                       <div className="animate-pulse bg-gray-300 dark:bg-gray-700 h-4 w-8 mx-auto rounded-md"></div>
                     </td>
 
-                    {meta.map((_, i) => (
-                      <td key={`loading-cell-${index}-${i}`} className="p-3">
-                        <div className="animate-pulse bg-gray-300 dark:bg-gray-700 h-4 w-full rounded-md"></div>
-                      </td>
-                    ))}
+                    {meta.map((_, i) =>
+                      !selectedOptions.includes(i) ? (
+                        <td key={`loading-cell-${i}`} className="p-3">
+                          <div className="animate-pulse bg-gray-300 dark:bg-gray-700 h-4 w-full rounded-md"></div>
+                        </td>
+                      ) : null
+                    )}
                   </tr>
                 ))
               ) : dataDisplay.length > 0 ? (
@@ -207,23 +281,25 @@ const TableList = ({ data, meta, loading, exports }) => {
                       <td className="border border-gray-200 dark:border-gray-700 p-2 text-center text-gray-900 dark:text-gray-300">
                         {currentRow}
                       </td>
-                      {meta.map((m, i) => (
-                        <td
-                          key={`row-${currentRow}-col-${i}`}
-                          className={[
-                            "border border-gray-200 dark:border-gray-700 p-2 text-gray-900 dark:text-gray-300",
-                            m.className || "",
-                          ].join(" ")}
-                        >
-                          {m.render
-                            ? m.render(item)
-                            : item[m.key] || (
-                                <i className="text-xs text-gray-300 dark:text-gray-700">
-                                  (ไม่มีข้อมูล)
-                                </i>
-                              )}
-                        </td>
-                      ))}
+                      {meta.map((m, i) =>
+                        !selectedOptions.includes(i) ? (
+                          <td
+                            key={`row-${currentRow}-col-${i}`}
+                            className={[
+                              "border border-gray-200 dark:border-gray-700 p-2 text-gray-900 dark:text-gray-300",
+                              m.className || "",
+                            ].join(" ")}
+                          >
+                            {m.render
+                              ? m.render(item)
+                              : item[m.key] || (
+                                  <i className="text-xs text-gray-300 dark:text-gray-700">
+                                    (ไม่มีข้อมูล)
+                                  </i>
+                                )}
+                          </td>
+                        ) : null
+                      )}
                     </tr>
                   );
                 })

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { executeQuery } from "@/lib/oracle";
-
 async function getSemester() {
   return await executeQuery(
     `SELECT SCH_ID, ACADYEAR, SEMESTER 
@@ -33,7 +32,7 @@ async function getLabgroup() {
 
 async function courseUser(id) {
   return await executeQuery(
-    `SELECT USR.LABCOURSE_USER_ID,USR.PERSON_ID,USR.ROLE_ID,
+    `SELECT USR.PERSON_ID,ROLE_ID,
     PERSON.TITLE_NAME || PERSON.FIRST_NAME || ' ' || PERSON.LAST_NAME AS FULLNAME
     FROM CST_LABCOURSE_USER USR
     INNER JOIN PBL_VPER_PERSON PERSON
@@ -49,16 +48,12 @@ async function getUser() {
   return await executeQuery(
     `SELECT ADMIN.PERSON_ID, 
       PERSON.TITLE_NAME || PERSON.FIRST_NAME || ' ' || PERSON.LAST_NAME AS FULLNAME,
-      ROLE.ROLE_NAME,
-      ADMIN.LABGROUP_ID,
-      LABGROUP.LABGROUP_NAME
+      ROLE.ROLE_NAME
     FROM CST_USER ADMIN
     INNER JOIN PBL_VPER_PERSON PERSON 
       ON ADMIN.PERSON_ID = PERSON.PERSON_ID
     INNER JOIN CST_ROLE ROLE 
       ON ADMIN.ROLE = ROLE.ROLE_ID
-    INNER JOIN CST_LABGROUP LABGROUP
-      ON ADMIN.LABGROUP_ID = LABGROUP.LABGROUP_ID
     WHERE ADMIN.FLAG_DEL = 0
     ORDER BY PERSON.FIRST_NAME ASC`
   );
@@ -81,80 +76,10 @@ async function getClass(courseId, schId) {
   );
 }
 
-const saveCourseUser = async (courseUser, id) => {
-  if (courseUser) {
-    await executeQuery(`DELETE FROM CST_LABCOURSE_USER WHERE LAB_ID = :id`, {
-      id,
-    });
-
-    courseUser.map(async (user) => {
-      await executeQuery(
-        `INSERT INTO CST_LABCOURSE_USER (LAB_ID, PERSON_ID, ROLE_ID, DATE_CREATED, USER_CREATED)
-        VALUES (:id, :personId, :roleId, SYSDATE, :userCreated)`,
-        {
-          id,
-          personId: user.personId,
-          roleId: user.roleId,
-          userCreated: user.userId,
-        }
-      );
-    });
-  }
-};
-
-const saveLabasset = async (labasset, id) => {
-  if (labasset) {
-    await executeQuery(`DELETE FROM CST_LABCOURSE_ASSET WHERE LAB_ID = :id`, {
-      id,
-    });
-
-    labasset.type1.map(async (asset) => {
-      await executeQuery(
-        `INSERT INTO CST_LABCOURSE_ASSET (LAB_ID, ASSET_ID, AMOUNT,ASSET_REMARK, DATE_CREATED, USER_CREATED)
-        VALUES (:id, :assetId, :amount,:assetRemark, SYSDATE, :userCreated)`,
-        {
-          id,
-          assetId: asset.assetId,
-          amount: asset.amount,
-          assetRemark: asset.assetRemark,
-          userCreated: asset.userId,
-        }
-      );
-    });
-
-    labasset.type2.map(async (asset) => {
-      await executeQuery(
-        `INSERT INTO CST_LABCOURSE_ASSET (LAB_ID, ASSET_ID, AMOUNT,ASSET_REMARK, DATE_CREATED, USER_CREATED)
-        VALUES (:id, :assetId, :amount,:assetRemark, SYSDATE, :userCreated)`,
-        {
-          id,
-          assetId: asset.assetId,
-          amount: asset.amount,
-          assetRemark: asset.assetRemark,
-          userCreated: asset.userId,
-        }
-      );
-    });
-
-    labasset.type3.map(async (asset) => {
-      await executeQuery(
-        `INSERT INTO CST_LABCOURSE_ASSET (LAB_ID, ASSET_ID, AMOUNT,ASSET_REMARK, DATE_CREATED, USER_CREATED)
-        VALUES (:id, :assetId, :amount,:assetRemark, SYSDATE, :userCreated)`,
-        {
-          id,
-          assetId: asset.assetId,
-          amount: asset.amount,
-          assetRemark: asset.assetRemark,
-          userCreated: asset.userId,
-        }
-      );
-    });
-  }
-};
-
 export async function GET(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
+    const labjobId = req.nextUrl.searchParams.get("labjobId");
     const courseId = req.nextUrl.searchParams.get("courseId");
     const schId = req.nextUrl.searchParams.get("schId");
     const labgroupId = req.nextUrl.searchParams.get("labgroupId");
@@ -188,7 +113,58 @@ export async function GET(req) {
         WHERE ASSET.LAB_ID = :id`,
         { id }
       );
-
+      const uselabasset = await executeQuery(
+        `SELECT ASSET.LABJOB_ASSET_ID,ASSET.ASSET_ID,
+         ASSET.AMOUNT_USED, 
+         ASSET.HOUR_USED,
+         ASSET.UNIT_PRICE,          
+         ASSET.ASSET_USED_REMARK, 
+        INV.ASSET_NAME_TH,
+        BRAND.BRAND_NAME,
+        INV.AMOUNT_UNIT,
+        UNIT.UNIT_NAME,
+        GRP.INVGROUP_NAME,
+        ASSET.ASSETEXTRA_FLAG,
+        INV.INVTYPE_ID AS TYPE
+        FROM CST_LABJOB_ASSET ASSET
+        INNER JOIN CST_INVASSET INV
+          ON ASSET.ASSET_ID = INV.ASSET_ID
+        INNER JOIN CST_INVGROUP GRP 
+          ON INV.INVGROUP_ID = GRP.INVGROUP_ID
+        INNER JOIN CST_INVUNIT UNIT 
+          ON INV.UNIT_ID = UNIT.UNIT_ID
+        INNER JOIN CST_INVBRAND BRAND
+          ON INV.BRAND_ID = BRAND.BRAND_ID
+        WHERE ASSET.FLAG_DEL = 0
+        AND ASSET.LABJOB_ID = :labjobId 
+        ORDER BY LABJOB_ASSET_ID DESC
+        `,
+        { labjobId }
+      );
+      const assetbroken = await executeQuery(
+        `SELECT ASSET.ASSET_BROKEN_ID,
+         ASSET.LABJOB_ID,
+         ASSET.BROKEN_AMOUNT,
+        INV.ASSET_NAME_TH,
+        BRAND.BRAND_NAME,
+        INV.AMOUNT_UNIT,
+        UNIT.UNIT_NAME,
+        GRP.INVGROUP_NAME,       
+        INV.INVTYPE_ID AS TYPE
+        FROM CST_ASSET_BROKEN ASSET
+        INNER JOIN CST_INVASSET INV
+          ON ASSET.ASSET_ID = INV.ASSET_ID
+        INNER JOIN CST_INVGROUP GRP 
+          ON INV.INVGROUP_ID = GRP.INVGROUP_ID
+        INNER JOIN CST_INVUNIT UNIT 
+          ON INV.UNIT_ID = UNIT.UNIT_ID
+        INNER JOIN CST_INVBRAND BRAND
+          ON INV.BRAND_ID = BRAND.BRAND_ID
+        WHERE ASSET.FLAG_DEL = 0
+        AND ASSET.LABJOB_ID = :labjobId 
+        ORDER BY ASSET_BROKEN_ID DESC`,
+        { labjobId }
+      );
       const course = await getCourse(data[0].courseid);
       const classData = await getClass(data[0].courseid, data[0].schId);
 
@@ -200,6 +176,8 @@ export async function GET(req) {
         users: users,
         labgroup: labgroup,
         labasset: labasset,
+        uselabasset: uselabasset,
+        assetbroken: assetbroken,
         courseUser: await courseUser(id),
       });
     } else if (!courseId) {
@@ -221,16 +199,15 @@ export async function GET(req) {
         FROM CST_LABCOURSE LAB 
         INNER JOIN PBL_AVSREGCOURSE_V COURSE
             ON COURSE.COURSEID = LAB.COURSEID
-        LEFT JOIN PBL_AVSREGCLASS_V REG
+        INNER JOIN PBL_AVSREGCLASS_V REG
             ON REG.COURSEID = LAB.COURSEID
-        LEFT JOIN CST_LABGROUP LABGROUP
+        INNER JOIN CST_LABGROUP LABGROUP
             ON LAB.LABGROUP_ID = LABGROUP.LABGROUP_ID
-        LEFT JOIN PBL_VPER_PERSON PERSON 
+        INNER JOIN PBL_VPER_PERSON PERSON 
             ON LAB.PERSON_ID = PERSON.PERSON_ID
-        LEFT JOIN PBL_FACULTY_V FAC 
+        INNER JOIN PBL_FACULTY_V FAC 
             ON COURSE.FACULTYID = FAC.FACULTYID
         WHERE LAB.FLAG_DEL = 0
-        AND SCH.SCH_ID IS NOT NULL
         GROUP BY LAB.LAB_ID
         ORDER BY MAX(LAB.ACADYEAR) DESC, MAX(LAB.SEMESTER) DESC`
         );
@@ -262,17 +239,16 @@ export async function GET(req) {
         FROM CST_LABCOURSE LAB 
         INNER JOIN PBL_AVSREGCOURSE_V COURSE
             ON COURSE.COURSEID = LAB.COURSEID
-        LEFT JOIN PBL_AVSREGCLASS_V REG
+        INNER JOIN PBL_AVSREGCLASS_V REG
             ON REG.COURSEID = LAB.COURSEID
-        LEFT JOIN CST_LABGROUP LABGROUP
+        INNER JOIN CST_LABGROUP LABGROUP
             ON LAB.LABGROUP_ID = LABGROUP.LABGROUP_ID
-        LEFT JOIN PBL_VPER_PERSON PERSON 
+        INNER JOIN PBL_VPER_PERSON PERSON 
             ON LAB.PERSON_ID = PERSON.PERSON_ID
-        LEFT JOIN PBL_FACULTY_V FAC 
+        INNER JOIN PBL_FACULTY_V FAC 
             ON COURSE.FACULTYID = FAC.FACULTYID
         INNER JOIN CST_SCHYEAR SCH 
             ON SCH.SCH_ID = :schId
-            AND SCH.SCH_ID IS NOT NULL
             AND SCH.SEMESTER = LAB.SEMESTER
             AND SCH.ACADYEAR = LAB.ACADYEAR
         WHERE LAB.FLAG_DEL = 0 AND LAB.LABGROUP_ID = :labgroupId
@@ -301,22 +277,19 @@ export async function GET(req) {
         FROM CST_LABCOURSE LAB 
         INNER JOIN PBL_AVSREGCOURSE_V COURSE
             ON COURSE.COURSEID = LAB.COURSEID
-        LEFT JOIN PBL_AVSREGCLASS_V REG
+        INNER JOIN PBL_AVSREGCLASS_V REG
             ON REG.COURSEID = LAB.COURSEID
-        LEFT JOIN CST_LABGROUP LABGROUP
+        INNER JOIN CST_LABGROUP LABGROUP
             ON LAB.LABGROUP_ID = LABGROUP.LABGROUP_ID
-        LEFT JOIN PBL_VPER_PERSON PERSON 
+        INNER JOIN PBL_VPER_PERSON PERSON 
             ON LAB.PERSON_ID = PERSON.PERSON_ID
-        LEFT JOIN PBL_FACULTY_V FAC 
+        INNER JOIN PBL_FACULTY_V FAC 
             ON COURSE.FACULTYID = FAC.FACULTYID
-        LEFT JOIN CST_SCHYEAR SCH 
+        INNER JOIN CST_SCHYEAR SCH 
             ON SCH.SCH_ID = :schId
             AND SCH.SEMESTER = LAB.SEMESTER
             AND SCH.ACADYEAR = LAB.ACADYEAR
-            AND SCH.SEMESTER = REG.SEMESTER
-            AND SCH.ACADYEAR = REG.ACADYEAR
         WHERE LAB.FLAG_DEL = 0
-        AND SCH.SCH_ID IS NOT NULL
         GROUP BY LAB.LAB_ID
         ORDER BY MAX(LAB.ACADYEAR) DESC, MAX(LAB.SEMESTER) DESC`,
             {
@@ -355,121 +328,68 @@ export async function GET(req) {
   }
 }
 
-// export async function POST(req) {
-//   try {
-//     const body = await req.json();
-//     const {
-//       acadyear,
-//       courseid,
-//       hour,
-//       labgroupId,
-//       labgroupNum,
-//       labroom,
-//       personId,
-//       schId,
-//       section,
-//       semester,
-//       userId,
-//       labasset,
-//       courseUser,
-//     } = body;
-
-//     if (
-//       !acadyear ||
-//       !courseid ||
-//       !hour ||
-//       !labgroupId ||
-//       !labgroupNum ||
-//       !labroom ||
-//       !personId ||
-//       !schId ||
-//       !section ||
-//       !semester ||
-//       !userId
-//     ) {
-//       return NextResponse.json(
-//         { success: false, message: "Missing fields" },
-//         { status: 400 }
-//       );
-//     }
-
-//     const labId = await executeQuery(
-//       `SELECT CST_LABCOURSE_SEQ.NEXTVAL AS ID FROM DUAL`
-//     );
-
-//     await executeQuery(
-//       `INSERT INTO CST_LABCOURSE
-//         (LAB_ID, ACADYEAR, COURSEID, HOUR, LABGROUP_ID, LABGROUP_NUM, LABROOM, SCH_ID, SECTION, SEMESTER, PERSON_ID, DATE_CREATED, USER_CREATED, DATE_UPDATED, USER_UPDATED)
-//       VALUES
-//         (:labId, :acadyear, :courseid, :hour, :labgroupId, :labgroupNum, :labroom, :schId, :section, :semester, :personId, SYSDATE, :userCreated, SYSDATE, :userUpdated)`,
-//       {
-//         labId: labId[0].id,
-//         acadyear,
-//         courseid,
-//         hour,
-//         labgroupId: parseInt(labgroupId),
-//         labgroupNum,
-//         labroom,
-//         schId,
-//         section,
-//         semester,
-//         personId,
-//         userCreated: userId,
-//         userUpdated: userId,
-//       }
-//     );
-
-//     await saveLabasset(labasset, labId[0].id);
-//     await saveCourseUser(courseUser, labId[0].id);
-//     return NextResponse.json(
-//       { success: true, message: "User added successfully" },
-//       { status: 201 }
-//     );
-//   } catch (error) {
-//     return NextResponse.json(
-//       { success: false, message: "Database Error", error },
-//       { status: 500 }
-//     );
-//   }
-// }
-
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { courseid, schId, userId, acadyear, semester, section } = body;
+    const {
+      labjobId,
+      assetId,
+      amountUsed,
+      hourUsed,
+      assetUsedRemark,
+      userId,
+      assetextraFlag,
+      assetNameTh,
+      brandName,
+      amountUnit,
+      unitPrice,
+      unitName,
+    } = body.uselabasset;
 
-    if (!courseid || !schId || !userId || !acadyear || !semester || !section) {
-      return NextResponse.json(
-        { success: false, message: "Missing fields" },
-        { status: 400 }
-      );
+    // แปลงค่า labjobId, userId, amountUnit เป็นตัวเลข
+    const labjobIdNumber = parseInt(labjobId, 10);
+    const userIdNumber = parseInt(userId, 10);
+    const amountUnitNumber = Number(amountUnit);
+
+    // ตรวจสอบว่าค่าที่แปลงเป็นตัวเลขถูกต้องหรือไม่
+    if (isNaN(labjobIdNumber) || isNaN(userIdNumber)) {
+      throw new Error("One or more values are not valid numbers.");
     }
 
-    const labId = await executeQuery(
-      `SELECT CST_LABCOURSE_SEQ.NEXTVAL AS ID FROM DUAL`
+    // Log the query for debugging
+    console.log(
+      "Executing query:",
+      `INSERT INTO CST_LABJOB_ASSET 
+    (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED,HOUR_USED, ASSET_USED_REMARK, DATE_CREATED, USER_CREATED, ASSETEXTRA_FLAG, ASSET_NAME_TH, BRAND_NAME, AMOUNT_UNIT, UNIT_NAME, UNIT_PRICE) 
+    VALUES 
+    (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :hourUsed,:assetUsedRemark, SYSDATE, :userId, :assetextraFlag, :assetNameTh, :brandName, :amountUnit, :unitName,unitPrice)`
     );
 
+    // Execute the query
     await executeQuery(
-      `INSERT INTO CST_LABCOURSE
-        (LAB_ID, COURSEID, SCH_ID, ACADYEAR, SEMESTER,SECTION, DATE_CREATED, USER_CREATED, DATE_UPDATED, USER_UPDATED)
-      VALUES
-        (:labId, :courseid, :schId,:acadyear,:semester,:section,  SYSDATE, :userCreated, SYSDATE, :userUpdated)`,
+      `INSERT INTO CST_LABJOB_ASSET 
+  (LABJOB_ASSET_ID, LABJOB_ID, ASSET_ID, AMOUNT_USED,HOUR_USED, ASSET_USED_REMARK, FLAG_DEL, USER_CREATED, DATE_CREATED, ASSETEXTRA_FLAG, UNIT_PRICE)
+  VALUES 
+  (CST_LABJOB_ASSET_SEQ.NEXTVAL, :labjobId, :assetId, :amountUsed, :hourUsed,:assetUsedRemark, :flagDel, :userId, SYSDATE, :assetextraFlag, :unitPrice)`,
       {
-        labId: labId[0].id,
-        courseid,
-        schId,
-        acadyear,
-        semester,
-        section,
-        userCreated: userId,
-        userUpdated: userId,
+        labjobId: labjobIdNumber,
+        assetId,
+        amountUsed,
+        hourUsed: hourUsed || 0,
+        assetUsedRemark: assetUsedRemark || "",
+        flagDel: 0,
+        userId: userIdNumber,
+        assetextraFlag: assetextraFlag || 0,
+        unitPrice: unitPrice || 0,
       }
     );
+
     return NextResponse.json(
-      { success: true, message: "User added successfully", labId: labId[0].id },
+      { success: true, message: "Asset created successfully" },
       { status: 201 }
     );
   } catch (error) {
+    console.error("Error during POST:", error);
     return NextResponse.json(
       { success: false, message: "Database Error", error },
       { status: 500 }
@@ -479,75 +399,85 @@ export async function POST(req) {
 
 export async function PUT(req) {
   try {
-    const id = req.nextUrl.searchParams.get("id");
     const body = await req.json();
+    console.log("Incoming PUT body:", body); // <--- DEBUG ตรงนี้
+
     const {
-      acadyear,
-      courseid,
-      hour,
-      labgroupId,
-      labgroupNum,
-      labroom,
-      personId,
-      schId,
-      section,
-      semester,
+      labjobAssetId,
+      labjobId,
+      assetId,
+      amountUsed,
+      assetUsedRemark,
       userId,
-      labasset,
-      courseUser,
-    } = body;
+      assetextraFlag,
+      unitPrice,
+    } = body.uselabasset;
+
+    const labjobAssetIdNumber = parseInt(labjobAssetId, 10);
+    const labjobIdNumber = parseInt(labjobId, 10);
+    const userIdNumber = parseInt(userId, 10);
+    const amountUsedNumber = Number(amountUsed);
+    const unitPriceNumber = Number(unitPrice);
 
     if (
-      !id ||
-      !acadyear ||
-      !courseid ||
-      !hour ||
-      !labgroupId ||
-      !labgroupNum ||
-      !labroom ||
-      !personId ||
-      !schId ||
-      !section ||
-      !semester ||
-      !userId
+      isNaN(labjobAssetIdNumber) ||
+      isNaN(labjobIdNumber) ||
+      isNaN(userIdNumber) ||
+      isNaN(amountUsedNumber) ||
+      isNaN(unitPriceNumber)
     ) {
-      return NextResponse.json(
-        { success: false, message: "Missing fields" },
-        { status: 400 }
-      );
+      console.log("Validation failed:", {
+        labjobAssetIdNumber,
+        labjobIdNumber,
+        userIdNumber,
+        amountUsedNumber,
+        unitPriceNumber,
+      }); // Log invalid data to debug
+      throw new Error("One or more values are not valid numbers.");
     }
 
     await executeQuery(
-      `UPDATE CST_LABCOURSE 
-       SET ACADYEAR = :acadyear, COURSEID = :courseid, HOUR = :hour, LABGROUP_ID = :labgroupId, LABGROUP_NUM = :labgroupNum, LABROOM = :labroom, SCH_ID = :schId, SECTION = :section, SEMESTER = :semester, PERSON_ID = :personId, DATE_UPDATED = SYSDATE, USER_UPDATED = :userUpdated
-       WHERE LAB_ID = :id`,
+      `UPDATE CST_LABJOB_ASSET SET 
+        LABJOB_ID = :labjobId,
+        ASSET_ID = :assetId,
+        AMOUNT_USED = :amountUsed,
+        HOUR_USED = :hourUsed,
+        ASSET_USED_REMARK = :assetUsedRemark,
+        FLAG_DEL = :flagDel,
+        USER_UPDATED = :userId,
+        DATE_UPDATED = SYSDATE,
+        ASSETEXTRA_FLAG = :assetextraFlag
+        , UNIT_PRICE = :unitPrice
+      WHERE LABJOB_ASSET_ID = :labjobAssetId`,
       {
-        acadyear,
-        courseid,
-        hour,
-        labgroupId: parseInt(labgroupId),
-        labgroupNum,
-        labroom,
-        schId,
-        section,
-        semester,
-        personId,
-        userUpdated: userId,
-        id,
+        labjobId: labjobIdNumber,
+        assetId,
+        amountUsed: amountUsedNumber,
+        assetUsedRemark: assetUsedRemark || "",
+        flagDel: 0,
+        userId: userIdNumber,
+        assetextraFlag: assetextraFlag || 0,
+        labjobAssetId: labjobAssetIdNumber,
+        unitPrice: unitPriceNumber || 0,
       }
     );
 
-    // await saveLabasset(labasset, id);
-    // await saveCourseUser(courseUser, id);
-
-    return NextResponse.json({
-      success: true,
-      message: "User updated successfully",
-    });
-  } catch (error) {
-    console.error("Database Error:", error);
     return NextResponse.json(
-      { success: false, message: "Database Error", error },
+      { success: true, message: "Asset updated successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error during PUT:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Database Error",
+        error: {
+          message: error?.message,
+          stack: error?.stack,
+        },
+      },
       { status: 500 }
     );
   }
@@ -556,14 +486,26 @@ export async function PUT(req) {
 export async function DELETE(req) {
   try {
     const id = req.nextUrl.searchParams.get("id");
-    const body = await req.json();
+    const userId = req.nextUrl.searchParams.get("userId");
 
-    const data = await executeQuery(
-      `UPDATE CST_LABCOURSE SET FLAG_DEL = 1 WHERE LAB_ID = :id`,
-      { id }
+    if (!id || isNaN(Number(id))) {
+      return NextResponse.json(
+        { success: false, message: "Invalid or missing ID" },
+        { status: 400 }
+      );
+    }
+
+    await executeQuery(
+      `UPDATE CST_LABJOB_ASSET SET FLAG_DEL = 1 ,USER_UPDATED = :userId  WHERE LABJOB_ASSET_ID = :id `,
+      { id: Number(id), userId }
     );
-    return NextResponse.json({ success: true, data: data });
+
+    return NextResponse.json({
+      success: true,
+      message: "Lab job asset deleted successfully",
+    });
   } catch (error) {
+    console.error("❌ Database Error:", error);
     return NextResponse.json(
       { success: false, message: "Database Error", error },
       { status: 500 }

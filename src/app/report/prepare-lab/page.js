@@ -2,43 +2,32 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
+import { FiInfo } from "react-icons/fi";
 import Content from "@/components/Content";
 import TableList from "@/components/TableList";
 import axios from "axios";
-import { navigation } from "@/lib/params";
-import { confirmDialog, toastDialog } from "@/lib/stdLib";
 
 export default function List() {
   const searchParams = useSearchParams();
   const breadcrumb = [
-    { name: "แผนการให้บริการห้องปฎิบัติการ" },
-    { name: "กำหนดรายวิชา", link: "/assign-course" },
+    { name: "รายงาน" },
+    {
+      name: "รายงานแผนการให้บริการห้องปฎิบัติการ",
+      link: "/report/assign-course",
+    },
   ];
   const router = useRouter();
-  const [data, setData] = useState({ data: [], semester: [] });
+  const [data, setData] = useState({ data: [], semester: [], labgroup: [] });
   const [reload, setReload] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [schId, setSchId] = useState(searchParams.get("schId") || "");
+  const [labgroupId, setLabgroupId] = useState(
+    searchParams.get("labgroupId") || ""
+  );
 
-  const _onPressAdd = () => {
-    router.push("/assign-course/create?schId=" + schId);
-  };
-  const _onPressEdit = (id) => {
-    router.push(`/assign-course/${id}`);
-  };
-  const _onPressDelete = async (id) => {
-    const result = await confirmDialog(
-      "คุณแน่ใจหรือไม่?",
-      "คุณต้องการลบข้อมูลนี้จริงหรือไม่?"
-    );
-
-    if (result.isConfirmed) {
-      await axios.delete(`/api/assign-course?id=${id}`);
-      await toastDialog("ลบข้อมูลเรียบร้อย!", "success");
-      setReload(reload + 1);
-    }
+  const _onPressDetail = (id) => {
+    router.push(`/report/assign-course/${id}`);
   };
 
   useEffect(() => {
@@ -56,11 +45,15 @@ export default function List() {
         }
 
         const response = await axios.get(`/api/assign-course`, {
-          params: { schId: schselect },
+          params: { schId: schselect, labgroupId },
         });
         const data = response.data;
         if (data.success) {
-          setData({ data: data.data, semester: data.semester });
+          setData({
+            data: data.data,
+            semester: data.semester,
+            labgroup: data.labgroup,
+          });
         } else {
           setError("ไม่สามารถโหลดข้อมูลพนักงานได้");
         }
@@ -72,7 +65,7 @@ export default function List() {
     }
 
     fetchData();
-  }, [reload, schId]);
+  }, [reload, schId, labgroupId]);
 
   const meta = [
     {
@@ -81,7 +74,7 @@ export default function List() {
       width: "100",
       render: (item) => (
         <div>
-          {item.semester}/{item.acadyear}
+          เทอม {item.semester}/{item.acadyear}
         </div>
       ),
     },
@@ -90,9 +83,8 @@ export default function List() {
       content: "รายวิชา",
       render: (item) => (
         <div className="flex flex-col">
-          <p className="block">
-            {item.coursecode} {item.coursename}
-          </p>
+          <p className="block">{item.coursename}</p>
+          <p className="block opacity-70">รหัสวิชา : {item.coursecode}</p>
         </div>
       ),
     },
@@ -111,7 +103,7 @@ export default function List() {
     {
       key: "section",
       content: "รายละเอียดวิชา",
-      width: "300",
+      width: "200",
       render: (item) => (
         <div className="flex flex-col">
           <p className="block">จำนวนกลุ่มเรียน : {item.section} กลุ่ม</p>
@@ -126,49 +118,30 @@ export default function List() {
       key: "fullname",
       content: "รายละเอียดห้องปฎิบัติการ",
       width: "300",
-      render: (item) => {
-        if (!item.labgroupName) {
-          return (
-            <div className="flex flex-col">
-              <i className="text-xs text-gray-300 dark:text-gray-700">
-                (ไม่มีข้อมูล)
-              </i>
-            </div>
-          );
-        }
-        return (
-          <div className="flex flex-col">
-            <p className="block">{item.labgroupName}</p>
-            <p className="block opacity-70">
-              ผู้รับผิดชอบหลัก : {item.fullname}
-            </p>
-          </div>
-        );
-      },
+      render: (item) => (
+        <div className="flex flex-col">
+          <p className="block">{item.labgroupName}</p>
+          <p className="block opacity-70">ผู้รับผิดชอบหลัก : {item.fullname}</p>
+        </div>
+      ),
     },
+
     {
       key: "labId",
       content: "Action",
-      width: "100",
+      width: "120",
+      nowrap: true,
       sort: false,
-      export: false,
       render: (item) => (
         <div className="flex gap-1">
           <button
-            className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer p-2 text-white text-sm bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={() => {
-              return _onPressEdit(item.labId);
-            }}>
-            <FiEdit className="w-4 h-4" />
-            แก้ไข
-          </button>
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={() => {
-              return _onPressDelete(item.labId);
-            }}>
-            <FiTrash2 className="w-4 h-4" />
-            ลบ
+              return _onPressDetail(item.labId);
+            }}
+          >
+            <FiInfo className="w-4 h-4" />
+            รายละเอียด
           </button>
         </div>
       ),
@@ -178,39 +151,56 @@ export default function List() {
   return (
     <Content
       breadcrumb={breadcrumb}
-      title="แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
+      title="รายงานแผนการให้บริการห้องปฎิบัติการ"
+    >
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200  flex justify-between">
           <div>
-            <h3 className="font-semibold ">กำหนดรายวิชา</h3>
+            <h3 className="font-semibold">
+              รายงานแผนการให้บริการห้องปฎิบัติการ
+            </h3>
           </div>
           <div className="flex gap-4">
             <div className="flex gap-2 items-center">
-              <label className={className.label}>ปีการศึกษา :</label>
+              <label className={className.label}>กลุ่มห้องปฎิบัติการ :</label>
               <select
-                value={schId}
+                value={labgroupId}
                 onChange={(e) => {
-                  setSchId(e.target.value);
-                  router.push(`/assign-course?schId=${e.target.value}`);
+                  setLabgroupId(e.target.value);
+                  router.push(
+                    `/report/assign-course?schId=${schId}&labgroupId=${e.target.value}`
+                  );
                 }}
-                className="block bg-white px-4 py-2 border rounded-md dark:bg-gray-800">
-                <option value="" disabled>
-                  เลือกเทอมการศึกษา
-                </option>
-                {data.semester.map((item) => (
-                  <option key={item.schId} value={item.schId}>
-                    {item.semester}/{item.acadyear}
+                className="block px-4 py-2 border rounded-md dark:bg-gray-800"
+              >
+                <option value="">แสดงทุกห้องปฎิบัติการ</option>
+                {data.labgroup.map((item) => (
+                  <option key={item.labgroupId} value={item.labgroupId}>
+                    {item.labgroupName}
                   </option>
                 ))}
               </select>
             </div>
-
-            <button
-              className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={_onPressAdd}>
-              <FiPlus className="w-4 h-4" />
-              เพิ่มใหม่
-            </button>
+            <div className="flex gap-2 items-center">
+              <label className={className.label}>เทอมการศึกษา :</label>
+              <select
+                value={schId}
+                onChange={(e) => {
+                  setSchId(e.target.value);
+                  router.push(
+                    `/report/assign-course?schId=${e.target.value}&labgroupId=${labgroupId}`
+                  );
+                }}
+                className="block px-4 py-2 border rounded-md dark:bg-gray-800"
+              >
+                <option value="">แสดงทุกเทอมการศึกษา</option>
+                {data.semester.map((item) => (
+                  <option key={item.schId} value={item.schId}>
+                    เทอม {item.semester}/{item.acadyear}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -228,8 +218,8 @@ export default function List() {
 
 const className = {
   label:
-    "block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300",
+    "block text-sm font-medium text-end text-gray-900 dark:text-gray-300 dark:text-gray-300",
   input:
-    "block bg-white w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
-  select: "block bg-white px-4 py-2 border rounded-md dark:bg-gray-800",
+    "block w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
+  select: "block px-4 py-2 border rounded-md dark:bg-gray-800",
 };

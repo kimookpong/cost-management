@@ -7,18 +7,18 @@ export default function MatterPage() {
   const breadcrumb = [{ name: "กำหนดค่าเริ่มต้น", link: "/matter" }];
   return (
     <Content breadcrumb={breadcrumb} title="กำหนดค่าเริ่มต้น">
-      <div className="relative flex flex-col h-screen text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
-        <div className="flex flex-col items-start h-screen p-9">
-          <div className="p-4">
-            <div className="flex items-center justify-end space-x-2">
+      <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+        <div className="flex flex-col items-start h-screen p-4 ">
+          <div className="p-2 border-b border-gray-200  flex w-full">
+            <div className="flex items-center  space-x-2 w-full">
               <FiBox className="text-xl" />
-              <h2 className="text-2xl font-semibold text-right">
+              <h2 className="text-xl font-semibold text-right">
                 กำหนดค่าเริ่มต้น
               </h2>
             </div>
-            <div className="divider divider-secondary absolute left-2 right-2 "></div>
+            {/* <div className="divider divider-secondary absolute left-2 right-2 "></div> */}
           </div>
-          <div className="flex flex-row justify-center gap-4 p-4 items-start">
+          <div className="p-4 overflow-auto flex flex-row justify-center gap-4 p-4 items-start">
             {[
               { src: "/brand.png", title: "ยี่ห้อ", href: "/brand" },
               { src: "/unit.png", title: "หน่วยนับ", href: "/materials" },

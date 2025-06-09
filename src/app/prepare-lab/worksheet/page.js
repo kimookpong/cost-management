@@ -1,140 +1,218 @@
 "use client";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Content from "@/components/Content";
-import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
-import TableList from "@/components/TableList";
-import Tabs from "@/components/Tabslab";
-// import AddItemForm from "@/components/AddItemForm";
-// import { , FiEdit ,} from "react-feather";
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/Tabs";
-// import Button from "@/components/Button";
+import { confirmDialog, toastDialog } from "@/lib/stdLib";
+import { useSession } from "next-auth/react";
+import { set } from "react-hook-form";
+// import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
+
 /**
  * @typedef {Object} InventoryItem
  * @property {number} id
  * @property {string} name
  * @property {number} quantity
  */
-const data = [
-  {
-    plabId: 1,
-    brandName: "BIO61-192",
-    status: "1",
-    brandId: 1,
-    used: 0,
-    nameSub: "Basic Medical Biochemistry Laboratory",
-    nameH: "ญาปกา สัมพันธมาศ",
-    num: 20,
-    numStu: 30,
-  },
-  {
-    plabId: 2,
-    brandName: "BIO62-192",
-    status: "1",
-    brandId: 1,
-    used: 0,
-    nameSub: "Basic Medical Biochemistry Laboratory 2",
-    nameH: "สุภาพร ทองจันทร์",
-    num: 10,
-    numStu: 30,
-  },
-];
 
 export default function Page() {
-  const [items, setItems] = useState([
-    {
-      id: 1,
-      name: "เครื่องตั้ง 2 ตำแหน่ง พร้อมแปรรูปสาร",
-      quantity: "2 เครื่อง",
-      status: "แก้ไข ลบ",
-    },
-    {
-      id: 2,
-      name: "เครื่องกาพพร้อมแผ่นให้ความร้อน Heidolph",
-      quantity: "1 ชุด",
-      status: "แก้ไข ลบ",
-    },
-  ]); // สร้างตัวแปร items และ setItems ขึ้นมาเพื่อเก็บข้อมูล
+  const { data: session } = useSession();
+
+  const userCreated = session?.user.person_id;
+  const [data, setData] = useState([]); // Data for the first dropdown
+  const [subData, setSubData] = useState([]); // Data for the second dropdown
+  const [divPerson, setDivPerson] = useState(""); // State สำหรับค่า default
+  const searchParams = useSearchParams();
+  const labId = searchParams.get("labId");
+  const labjobId = searchParams.get("labjobId");
+  const isNew = labjobId === "new";
+  const [loading, setLoading] = useState(!isNew);
   const breadcrumb = [
-    {
-      name: "เตรียมปฏิบัติการ",
-      link: "/prepare-lab",
-    },
-    { name: "ใบเตรียมปฏิบัติการ", link: "/prepare-lab" },
+    { name: "รายวิชา", link: "/prepare-lab" },
+    { name: "ใบเตรียมปฏิบัติการ", link: "/prepare-lab/new?labId=" + labId },
+    { name: "กำหนดหัวหน้าบทปฏิบัติการ" },
   ];
   const router = useRouter();
-  const [employees, setEmployees] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [reload, setReload] = useState(0);
-  const _onPressAdd = () => {
-    router.push("/prepare-lab/worksheet");
+  const [datacourse, setDatacourse] = useState(null);
+  const [formData, setFormData] = useState({
+    labjobTitle: "",
+    personId: "",
+    divId: "", // ID ของฝ่าย
+    userCreated: userCreated,
+  });
+
+  // Handle form data changes
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Handle form submission (Create/Update)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      let response;
+      const updatedFormData = { ...formData, labId, userCreated };
+      if (labjobId !== "new") {
+        response = await axios.put(
+          `/api/labjob?labjobId=${labjobId}`,
+          updatedFormData
+        );
+      } else {
+        response = await axios.post("/api/labjob", updatedFormData);
+      }
+
+      if (response.data.success) {
+        toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
+        router.push("/prepare-lab/new?labId=" + labId); // Go back to the main page
+      } else {
+        alert("เกิดข้อผิดพลาดในการบันทึก");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์");
+    }
+  };
+
+  // Fetch Labjob list
+  const fetchLabjobList = async () => {
+    try {
+      const response = await axios.get(`/api/assign-course?id=${labId}`);
+      const fetchedDivPerson = response.data.users[0].personId;
+      setDivPerson(fetchedDivPerson); // เก็บค่า divPerson
+      //console.log("divPerson:", fetchedDivPerson);
+      if (response.data.success) {
+        setData(
+          response.data.users.filter(
+            (user) => user.roleName === "หัวหน้าบทปฏิบัติการ"
+          )
+        ); // Set the first dropdown data
+      }
+    } catch (err) {
+      console.error("❌ Error fetching data:", err);
+    }
+  };
+  // Fetch details of the specific labjob
+  const fetchLabjobDetails = async () => {
+    try {
+      const response = await axios.get(
+        `/api/labjob?labjobId=${labjobId}&sId=${userCreated}`
+      );
+      const data = response.data;
+
+      if (data.success) {
+        const labjob = data.data[0];
+        const person = subData.find(
+          (person) => person.personId === labjob.personId
+        );
+        fetchSubDivisionData(labjob.subdivisionId);
+        setFormData({
+          labjobTitle: labjob.labjobTitle || "", // ตั้งค่าชื่อใบงาน
+          personId: labjob.personId || "", // ตั้งค่าผู้รับผิดชอบ
+          divId: labjob.subdivisionId || "", // ตั้งค่าฝ่าย
+        });
+      } else {
+        console.error("Error fetching labjob data:", data.error);
+        alert("ไม่สามารถโหลดข้อมูลได้");
+      }
+    } catch (err) {
+      console.error("Error fetching labjob data:", err);
+      alert("ไม่สามารถโหลดข้อมูลได้");
+    } finally {
+      setLoading(false);
+    }
   };
   useEffect(() => {
-    async function fetchData() {
-      try {
-        // ใช้ข้อมูลจำลองโดยตรง
-        setEmployees(data);
-      } catch (err) {
-        setError("เกิดข้อผิดพลาดในการดึงข้อมูล");
-      } finally {
-        setLoading(false);
-      }
+    fetchLabjobList();
+  }, []);
+  useEffect(() => {
+    if (isNew && divPerson) {
+      setFormData((prev) => ({ ...prev, divId: divPerson }));
+      fetchSubDivisionData(divPerson);
     }
+  }, [divPerson, isNew]); // รันโค้ดเมื่อ divPerson หรือ isNew เปลี่ยนค่า
 
-    fetchData();
-  }, [reload]);
-  if (loading) return <p>กำลังโหลด...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
-  const meta = [
-    {
-      key: "nameSub",
-      content: "ใบงานเตรียมปฏิบัติการ",
-    },
-    {
-      key: "nameH",
-      content: " หัวหน้าบทปฏิบัติการ",
-      width: "200",
-      className: "text-center",
-      render: (item) => {
-        return <span className="item-center">{item.nameH}</span>;
-      },
-    },
+  const fetchSubDivisionData = async (divId) => {
+    try {
+      let response; // กำหนดตัวแปร response ให้อยู่ข้างนอก
+      if (labjobId === "new") {
+        response = await axios.get(`/api/labjob?divId=${divId}`);
+      } else {
+        response = await axios.get(
+          `/api/labjob?divId=${divId}&labjobId=${labjobId}`
+        );
+      }
+      // console.log("Person:", response.data.data[0].personId);
+      if (response.data.success) {
+        setSubData(response.data.listperson);
+        if (!isNew && response.data.listperson.length > 0) {
+          setFormData((prev) => ({
+            ...prev,
+            personId: response.data.data[0].personId,
+          }));
+        }
+      }
+    } catch (err) {
+      console.error("❌ Error fetching sub-division data:", err);
+    }
+  };
 
-    {
-      key: "plabId",
-      content: "จัดการใบเตรียมปฏิบัติการ",
-      width: "200",
-      className: "text-center",
-      render: (item) => (
-        <div className="cursor-pointer items-center justify-center flex gap-1">
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-green-600 hover:bg-green-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-            onClick={() => _onPressAdd(item.plabId)}>
-            <FiEdit className="w-4 h-4" />
-            แก้ไข
-          </button>
-          <button
-            className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed justify-center"
-            onClick={() => _onPressAdd(item.plabId)}>
-            <FiTrash2 className="w-4 h-4" />
-            ลบ
-          </button>
-        </div>
-      ),
-    },
-  ];
+  // Fetch data when the page loads or labjobId changes
+  useEffect(() => {
+    setLoading(true);
+    // Fetch the labjob list for the dropdown
+    fetchLabjobList();
+
+    if (!isNew) {
+      // Fetch the labjob details if not creating a new labjob
+      fetchLabjobDetails();
+    }
+  }, [isNew, userCreated, labjobId]); // Dependencies to trigger effect
+
+  // Handle dropdown changes
+  useEffect(() => {
+    if (isNew && divPerson) {
+      setFormData((prev) => ({ ...prev, divId: divPerson }));
+    }
+  }, [divPerson, isNew]);
+
+  const handleSelectChange = async (event) => {
+    const value = event.target.value;
+    //console.log("Selected value:", value);
+    setFormData((prev) => ({ ...prev, divId: value })); // อัปเดตค่า divId
+    fetchSubDivisionData(value); // ดึงข้อมูลตามค่าที่เลือก
+  };
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get(`/api/labjob`, { params: { labId } });
+        setDatacourse(response.data.datacourse[0]);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    if (labId) {
+      fetchData();
+    }
+  }, [labId]);
+
   return (
     <Content breadcrumb={breadcrumb} title="เตรียมปฏิบัติการ">
       <div className="relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 items-center">
+          <input type="hidden" name="labjobId" value="" />
           <div className="flex gap-1 justify-center items-center p-4">
             <h3 className="font-semibold text-2xl">ใบเตรียมปฏิบัติการ</h3>
           </div>
           <div className="flex gap-1 justify-center items-center p-1 border-b border-gray-200">
             <p className="text-xl text-gray-500">
-              BlO61-192 Basic Medical Biochemistry Laboratory
+              {" "}
+              {datacourse ? datacourse.coursename : " "}
+            </p>
+            <p className="text-xl text-gray-500">
+              {" "}
+              ({datacourse ? datacourse.coursenameeng : " "})
             </p>
           </div>
           <div className="flex gap-1 justify-left items-left p-1 border-b font-semibold">
@@ -147,10 +225,15 @@ export default function Page() {
           </div>
           <div className="flex gap-1 justify-left items-left  ps-16 border-gray-200">
             <p className="text-lg text-gray-700">
-              1 Section จำนวน 2 ห้องปฏิบัติการ
+              {datacourse ? datacourse.labSection : " "}
+              <span> </span>
+              Section จำนวน <span>
+                {datacourse ? datacourse.labroom : " "}
+              </span>{" "}
+              ห้องปฏิบัติการ
             </p>
           </div>
-          <div className="flex gap-1 justify-left items-left p-1 border-gray-200">
+          {/* <div className="flex gap-1 justify-left items-left p-1 border-gray-200">
             <p className="text-lg text-gray-900 p-2 font-medium">
               วันและเวลาเรียน
             </p>
@@ -159,158 +242,85 @@ export default function Page() {
             <p className="text-lg text-gray-700 ">
               วันพฤหัสบดี เวลา 03.00 - 16.00 น. จำนวน 2 ห้องปฏิบัติการ(เคมี 3-4)
             </p>
-          </div>
-          <div className="flex gap-1 justify-left items-left pt-6 border-b font-semibold">
-            <h3 className="text-xl text-gray-900 p-2 boder">
-              ข้อมูลใบเตรียมปฏิบัติการ
-            </h3>
-          </div>
-          <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
-            <label className="text-lg text-gray-900 font-medium w-60">
-              ชื่อใบงานเตรียมปฎิบัติการ
-            </label>
-            <input
-              type="text"
-              className="border border-gray-500 p-2 rounded-lg w-full"
-            />
-          </div>
-          <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
-            <label className="text-lg text-gray-900 font-medium w-60">
-              หัวหน้าบทปฏิบัติการ
-            </label>
-            <select className="border border-gray-500 p-2 rounded-lg w-full">
-              <option value="1">ญาปกา สัมพันธมาศ</option>
-              <option value="2">สุภาพร ทองจันทร์</option>
-            </select>
-          </div>
-          <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
-            <label className="text-lg text-gray-900 font-medium w-60">
-              รายละเอียด
-            </label>
-            <textarea
-              type="text"
-              className="border border-gray-500 p-2 rounded-lg w-full"
-            />
-          </div>
-
-          <div className="flex gap-1 justify-left items-left pt-6 border-b font-semibold">
-            <h3 className="text-xl text-gray-900 p-2 boder">
-              ข้อมูลวัสดุครุภัณฑ์ที่ต้องจัดเตรียม
-            </h3>
-          </div>
-          <div className="flex gap-1 justify-end items-center p-4 border-gray-200">
-            <button
-              className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
-              onClick={() => document.getElementById("my_modal_4").showModal()}>
-              <FiPlus className="w-4 h-4" />
-              เพิ่มวัสดุครุภัณฑ์
-            </button>
-          </div>
-          <div className="border rounded-lg overflow-hidden">
-            <div className="container mx-auto p-4">
-              <Tabs />
+          </div> */}
+          <form onSubmit={handleSubmit}>
+            <div className="flex gap-1 justify-left items-left pt-6 border-b font-semibold">
+              <h3 className="text-xl text-gray-900 p-2 boder">
+                ข้อมูลใบเตรียมปฏิบัติการ
+              </h3>
             </div>
-          </div>
-          <dialog id="my_modal_4" className="modal">
-            <div className="modal-box w-11/12 max-w-5xl text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 ">
-              <h3 className="font-bold text-lg">เพิ่มวัสดุครุภัณฑ์</h3>
-              <p className="py-4">Click the button below to close</p>
-              <div className="modal-action w-full flex justify-center items-center">
-                <form method="dialog">
-                  {/* if there is a button, it will close the modal */}
-                  <div class="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-12 w-full">
-                    <div class="sm:col-span-4">
-                      <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300">
-                        ประเภทวัสดุ
-                      </label>
-                      <select
-                        name="assetId"
-                        class="block text-gray-900 dark:text-white w-full px-4 py-2 border rounded-md dark:bg-gray-800 ">
-                        <option value="" disabled="">
-                          เลือกวัสดุที่เลือกใช้
-                        </option>
-                        <option value="11">ครุภัณฑ์</option>
-                        <option value="5">วัสดุไม่สิ้นเปลือง</option>
-                        <option value="4">วัสดุสิ้นเปลือง</option>
-                      </select>
-                    </div>
-                    <div class="sm:col-span-8">
-                      <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300">
-                        วัสดุที่เลือกใช้
-                      </label>
-                      <select
-                        name="assetId"
-                        class="block text-gray-900 dark:text-white w-full px-4 py-2 border rounded-md dark:bg-gray-800 ">
-                        <option value="" disabled="">
-                          เลือกวัสดุที่เลือกใช้
-                        </option>
-                        <option value="11">A4 2(กิโลกรัม)</option>
-                        <option value="5">A4 2(เครื่อง)</option>
-                        <option value="4">Algo xx(เครื่อง)</option>
-                        <option value="8">กระดาษกรอง NO.S 125 mm(ขวด)</option>
-                        <option value="211">
-                          เครื่องชั่ง 4 ตำแหน่ง 2(เครื่อง)
-                        </option>
-                        <option value="1">
-                          เครื่องลดความดันแบบใช้น้ำ (เครื่อง)
-                        </option>
-                        <option value="9">
-                          เครื่องลดความดันแบบใช้น้ำ 125 mm(กิโลกรัม)
-                        </option>
-                        <option value="10">
-                          เครื่องลดความดันแบบใช้น้ำ01 2(ชุด)
-                        </option>
-                      </select>
-                    </div>
-                    <div class="sm:col-span-9">
-                      <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300">
-                        จำนวนที่ใช้
-                      </label>
-                      <input
-                        class="block text-gray-900 dark:text-white w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800 "
-                        type="number"
-                        value=""
-                        name="assetQuantity"
-                      />
-                    </div>
-                    <div class="sm:col-span-3">
-                      <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300">
-                        หน่วย
-                      </label>
-                      <input
-                        disabled=""
-                        class="block text-gray-900 dark:text-white w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800"
-                        value="-"
-                      />
-                    </div>
-                    <div class="sm:col-span-12">
-                      <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300">
-                        หมายเหตุ
-                      </label>
-                      <input
-                        class="block text-gray-900 dark:text-white w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800 "
-                        type="text"
-                        value=""
-                        name="assetRemark"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2 justify-center items-center p-4 border-gray-200">
-                    <button className="cursor-pointer p-2 text-white text-sm bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed">
-                      ยกเลิก
-                    </button>
-                    <button className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105">
-                      บันทึกข้อมูล
-                    </button>
-                  </div>
-                  {/* <button className="btn">Close</button> */}
-                </form>
-              </div>
+            <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
+              <label className="text-lg text-gray-900 font-medium w-60">
+                ชื่อใบงานเตรียมปฎิบัติการ
+              </label>
+              <input
+                name="labjobTitle"
+                value={formData.labjobTitle}
+                onChange={handleChange}
+                className="border border-gray-500 p-2 rounded-lg w-full"
+                required
+              />
             </div>
-          </dialog>
+            <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
+              <label className="text-lg text-gray-900 font-medium w-60">
+                หัวหน้าบทปฏิบัติการ
+              </label>
+              <select
+                name="personId"
+                value={formData.personId}
+                onChange={handleChange}
+                className="border border-gray-500 p-2 rounded-lg w-full"
+                required>
+                <option value="">-เลือก-</option>
+                {data?.map((item) => (
+                  <option key={item.personId} value={item.personId}>
+                    {item.fullname}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {/* <div className="flex gap-2 justify-end items-center p-4 border-gray-200">
+              <label className="text-lg text-gray-900 font-medium w-60">
+                หัวหน้าบทปฏิบัติการ
+              </label>
+              <select
+                name="personId"
+                value={formData.personId}
+                onChange={handleChange}
+                className="border border-gray-500 p-2 rounded-lg w-full"
+                required>
+                <option value="">- เลือก -</option>
+                {subData.map((person) => (
+                  <option key={person.personId} value={person.personId}>
+                    {person.fullname}
+                  </option>
+                ))}
+              </select>
+            </div> */}
+
+            <div className="md:col-span-2 flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+              <button
+                type="button"
+                onClick={() => router.push("/prepare-lab/new?labId=" + labId)}
+                className="cursor-pointer p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                ยกเลิก
+              </button>
+              <button
+                type="submit"
+                className="cursor-pointer p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                {isNew ? "บันทึก" : "บันทึก"}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </Content>
   );
 }
+const className = {
+  label:
+    "block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300",
+  input:
+    "block w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
+  select: "block px-4 py-2 border rounded-md dark:bg-gray-800",
+};

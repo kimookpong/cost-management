@@ -1,10 +1,9 @@
 import oracledb from "oracledb";
 
 const dbConfig = {
-  user: process.env.ORACLE_USER || "APPCST",
+  user: process.env.ORACLE_USER,
   password: process.env.ORACLE_PASSWORD || "DnAQEPdIe@P$2sdfPPQW",
-  connectionString:
-    process.env.ORACLE_CONNECTION_STRING || "//10.250.0.115:1521/oltpdev",
+  connectionString: process.env.ORACLE_CONNECTION_STRING,
 };
 
 export async function executeQuery(query, params = []) {

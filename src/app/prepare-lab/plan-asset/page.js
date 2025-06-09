@@ -3,7 +3,16 @@
 import { use, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
-import { FiPlus, FiEdit, FiTrash2, FiCheckCircle } from "react-icons/fi";
+import Select from "react-select";
+import { useRef } from "react";
+
+import {
+  FiPlus,
+  FiEdit,
+  FiTrash2,
+  FiCheckCircle,
+  FiChevronLeft,
+} from "react-icons/fi";
 import { useSession } from "next-auth/react";
 import {
   Dialog,
@@ -11,31 +20,43 @@ import {
   DialogPanel,
   DialogTitle,
 } from "@headlessui/react";
-import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Content from "@/components/Content";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { confirmDialog, toastDialog } from "@/lib/stdLib";
 import TableList from "@/components/TableList";
+import AutocompleteSelect2 from "@/components/AutocompleteSelect2";
 
 export default function Detail() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
-  const { id } = useParams();
+  // const { id } = useParams();
   const router = useRouter();
-  const isNew = id === "new";
+  // const isNew = id === "new";
+  const idParam = searchParams.get("id");
+  console.log("Raw id:", idParam);
+
+  const labId = parseInt(idParam, 10);
+  const isNew = labId === "new";
+  console.log("Parsed labId:", labId, typeof labId);
+
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("tab1");
 
   const [invent, setInvent] = useState([]);
+  const [user, setUser] = useState([]);
   const [labasset, setLabasset] = useState({
     type1: [],
     type2: [],
     type3: [],
   });
+
+  const [courseUser, setCourseUser] = useState([]);
   const [loadingInvent, setLoadingInvent] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(false);
   const [inventFormModal, setInventFormModal] = useState(false);
+  const [userFormModal, setUserFormModal] = useState(false);
 
   const [data, setData] = useState({
     course: null,
@@ -47,9 +68,9 @@ export default function Detail() {
   const [assetInfo, setAssetInfo] = useState(null);
 
   const tabs = [
-    { id: "tab1", label: "รายละเอียดวิชา" },
-    { id: "tab2", label: "ผู้รับผิดชอบ" },
-    { id: "tab3", label: "ทรัพยากรตามรายวิชา" },
+    { id: "tab1", label: "ครุภัณฑ์" },
+    { id: "tab2", label: "วัสดุไม่สิ้นเปลือง" },
+    { id: "tab3", label: "วัสดุสิ้นเปลือง" },
   ];
 
   const validationSchema = Yup.object({
@@ -82,15 +103,18 @@ export default function Detail() {
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       values.labasset = labasset;
+      values.courseUser = courseUser;
       try {
+        console.log("values", values);
         if (isNew) {
           await axios.post(`/api/assign-course`, values);
           toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
           router.push("/assign-course?schId=" + searchParams.get("schId"));
         } else {
-          await axios.put(`/api/assign-course?id=${id}`, values);
+          const res = await axios.put(`/api/assign-course?id=${labId}`, values);
+          console.log("res", res);
           toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
-          router.back();
+          router.push("/prepare-lab/plan-asset?id=" + searchParams.get("id"));
         }
       } catch (error) {
         toastDialog("เกิดข้อผิดพลาดในการบันทึกข้อมูล!", "error", 2000);
@@ -108,6 +132,52 @@ export default function Detail() {
       .nullable()
       .max(100, "ข้อความต้องไม่เกิน 100 ตัวอักษร"),
   });
+  const saveLabAsset = async (values) => {
+    console.log("saveLabAsset", values);
+    try {
+      const payload = {
+        labassetId: values.labassetId, // ถ้ามี = ใช้ PUT
+        labId: values.labId || searchParams.get("id"),
+        assetId: values.assetId,
+        amount: values.amount,
+        assetRemark: values.assetRemark || "",
+        userId: values.userId,
+      };
+
+      if (
+        !payload.labId ||
+        !payload.assetId ||
+        !payload.amount ||
+        !payload.userId
+      ) {
+        toastDialog("ข้อมูลไม่ครบถ้วน โปรดตรวจสอบ", "error");
+        return;
+      }
+      console.log("payload", payload);
+      // ถ้ามี labassetId ให้ใช้ PUT แทน POST
+      if (payload.labassetId) {
+        await axios.put(`/api/use-asset/plnasset`, { labaset: payload });
+      } else {
+        await axios.post(`/api/use-asset/plnasset`, { labaset: payload });
+      }
+
+      localStorage.setItem("labCourseAssetData", JSON.stringify(payload));
+      toastDialog("บันทึกข้อมูลเรียบร้อย!", "success");
+      setInventFormModal(false);
+
+      // รีโหลดข้อมูล
+      fetchData();
+
+      // ดึงข้อมูลล่าสุดอีกครั้ง
+      await axios.get(`/api/assign-course?id=${payload.labId}`);
+
+      // เปลี่ยนหน้า
+      await router.push(`/prepare-lab/plan-asset?id=${payload.labId}`);
+    } catch (error) {
+      console.error("Error saving lab course asset:", error);
+      toastDialog("เกิดข้อผิดพลาดในการบันทึก", "error");
+    }
+  };
 
   const inventForm = useFormik({
     initialValues: {
@@ -146,7 +216,7 @@ export default function Detail() {
             ),
           }));
         } else {
-          values.labassetId = uuidv4();
+          values.labassetId = "";
           setLabasset((prevLabasset) => ({
             ...prevLabasset,
             type1: [...(prevLabasset.type1 || []), values],
@@ -161,7 +231,7 @@ export default function Detail() {
             ),
           }));
         } else {
-          values.labassetId = uuidv4();
+          values.labassetId = "";
           setLabasset((prevLabasset) => ({
             ...prevLabasset,
             type2: [...(prevLabasset.type2 || []), values],
@@ -176,124 +246,108 @@ export default function Detail() {
             ),
           }));
         } else {
-          values.labassetId = uuidv4();
+          values.labassetId = "";
           setLabasset((prevLabasset) => ({
             ...prevLabasset,
             type3: [...(prevLabasset.type3 || []), values],
           }));
         }
       }
-
+      await saveLabAsset(values);
       setInventFormModal(false);
       inventForm.resetForm();
     },
   });
-
   useEffect(() => {
-    if (inventForm.values.assetId) {
-      setAssetInfo(
-        invent.find(
-          (inv) => inv.assetId === parseInt(inventForm.values.assetId)
-        )
+    if (inventFormModal && inventForm.values.assetId) {
+      const found = invent.find(
+        (inv) => inv.assetId === parseInt(inventForm.values.assetId)
       );
+      setAssetInfo(found || null);
     } else {
       setAssetInfo(null);
     }
-  }, [inventForm.values.assetId]);
-
+  }, [inventFormModal, inventForm.values.assetId]);
   useEffect(() => {
-    if (!isNew) {
+    fetchData();
+  }, [labId, searchParams.get("id")]);
+  const fetchData = async () => {
+    try {
       setLoading(true);
-      const fetchData = async () => {
-        try {
-          const response = await axios.get(`/api/assign-course?id=${id}`);
-          const data = response.data;
-          if (data.success) {
-            setData({
-              course: data.course,
-              class: data.class,
-              users: data.users,
-              labgroup: data.labgroup,
-            });
+      let response;
 
-            const form = data.data;
-            formik.setValues({
-              courseid: form.courseid,
-              labgroupId: form.labgroupId,
-              schId: form.schId,
-              acadyear: form.acadyear,
-              semester: form.semester,
-              section: form.section,
-              labroom: form.labroom,
-              hour: form.hour,
-              labgroupNum: form.labgroupNum,
-              personId: form.personId,
-              userId: session?.user.person_id,
-            });
+      if (!isNew) {
+        response = await axios.get(`/api/assign-course?id=${labId}`);
+      } else {
+        response = await axios.get(`/api/assign-course`, {
+          params: {
+            courseId: searchParams.get("courseId"),
+            schId: searchParams.get("schId"),
+          },
+        });
+      }
 
-            console.log("data.labasset", data.labasset);
-            setLabasset({
-              type1: data.labasset?.filter((item) => item.type === 1) || [],
-              type2: data.labasset?.filter((item) => item.type === 2) || [],
-              type3: data.labasset?.filter((item) => item.type === 3) || [],
-            });
+      const data = response.data;
 
-            setLoading(false);
-          }
-        } catch (err) {
-          console.error("❌ Error fetching data:", err);
-          toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
-        }
-      };
-      fetchData();
-    } else {
-      setLoading(true);
-      const fetchData = async () => {
-        try {
-          const response = await axios.get(`/api/assign-course`, {
-            params: {
-              courseId: searchParams.get("courseId"),
-              schId: searchParams.get("schId"),
-            },
+      if (data.success) {
+        setData({
+          course: data.course,
+          class: data.class,
+          users: data.users,
+          labgroup: data.labgroup,
+        });
+
+        if (!isNew) {
+          const form = data.data;
+          formik.setValues({
+            courseid: form.courseid,
+            labgroupId: form.labgroupId,
+            schId: form.schId,
+            acadyear: form.acadyear,
+            semester: form.semester,
+            section: form.section,
+            labroom: form.labroom,
+            hour: form.hour,
+            labgroupNum: form.labgroupNum,
+            personId: form.personId,
+            userId: session?.user.person_id,
           });
-          const data = response.data;
 
-          if (data.success) {
-            setData({
-              course: data.course,
-              class: data.class,
-              users: data.users,
-              labgroup: data.labgroup,
-            });
-            formik.setValues({
-              courseid: data.course?.courseid,
-              labgroupId: "",
-              schId: searchParams.get("schId"),
-              acadyear: data.class?.[0]?.acadyear,
-              semester: data.class?.[0]?.semester,
-              section: data.class?.length,
-              labroom: "",
-              hour: "",
-              labgroupNum: "",
-              personId: "",
-              userId: session?.user.person_id,
-            });
+          setLabasset({
+            type1: data.labasset?.filter((item) => item.type === 1) || [],
+            type2: data.labasset?.filter((item) => item.type === 2) || [],
+            type3: data.labasset?.filter((item) => item.type === 3) || [],
+          });
 
-            setLoading(false);
-          }
-        } catch (err) {
-          console.error("❌ Error fetching data:", err);
-          toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
+          setCourseUser(data.courseUser);
+        } else {
+          formik.setValues({
+            courseid: data.course?.courseid,
+            labgroupId: "",
+            schId: searchParams.get("schId"),
+            acadyear: data.class?.[0]?.acadyear,
+            semester: data.class?.[0]?.semester,
+            section: data.class?.length,
+            labroom: "",
+            hour: "",
+            labgroupNum: "",
+            personId: "",
+            userId: session?.user.person_id,
+          });
         }
-      };
-      fetchData();
+      }
+    } catch (err) {
+      console.error("❌ Error fetching data:", err);
+      toastDialog("ไม่สามารถโหลดข้อมูลได้!", "error", 2000);
+    } finally {
+      setLoading(false);
     }
-  }, [id]);
+  };
 
   const breadcrumb = [
-    { name: "แผนการให้บริการห้องปฎิบัติการ" },
-    { name: "กำหนดรายวิชา", link: "/assign-course" },
-    { name: isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล" },
+    // { name: "แผนการให้บริการห้องปฎิบัติการ" },
+    { name: "ใบงานปฏิบัติการตามรายวิชา", link: "/prepare-lab" },
+    { name: isNew ? "เพิ่มใหม่" : "เพิ่มข้อมูล" },
   ];
 
   const _callInvent = async (type) => {
@@ -318,7 +372,6 @@ export default function Detail() {
   };
 
   const _onPressAddInvent = async (type) => {
-    setInventFormModal(true);
     inventForm.setValues({
       labassetId: "",
       assetId: "",
@@ -329,10 +382,11 @@ export default function Detail() {
       userId: session?.user.person_id,
     });
     await _callInvent(type);
+    setInventFormModal(true);
   };
 
   const _onPressEditInvent = async (id, type) => {
-    setInventFormModal(true);
+    // fetchData();
     let asset;
     if (type === 1) {
       asset = labasset.type1.find((item) => item.labassetId === id);
@@ -345,13 +399,16 @@ export default function Detail() {
     inventForm.setValues({
       labassetId: asset.labassetId,
       assetId: asset.assetId,
+      // assetNameTh: assetData?.assetNameTh || "",
       amount: asset.amount,
       assetRemark: asset.assetRemark ? asset.assetRemark : "",
       flagDel: 0,
       type: type,
       userId: session?.user.person_id,
     });
+
     await _callInvent(type);
+    setInventFormModal(true);
   };
 
   const _onPressDeleteInvent = async (id, type) => {
@@ -384,16 +441,18 @@ export default function Detail() {
     setInventFormModal(status);
     inventForm.resetForm();
   };
+  const assetOptions = invent.map((inv) => ({
+    label: `${inv.assetNameTh} ${inv.amountUnit} (${inv.unitName})`,
+    value: inv.assetId,
+  }));
 
   return (
-    <Content
-      breadcrumb={breadcrumb}
-      title=" แผนการให้บริการห้องปฎิบัติการ : กำหนดรายวิชา">
+    <Content breadcrumb={breadcrumb} title=" แผนการใช้ทรัพยากร ">
       <div className="relative flex flex-col w-full text-gray-900 dark:text-gray-300 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="font-semibold">
-            {isNew ? "เพิ่มใหม่" : "แก้ไขข้อมูล"} : {data.course?.coursename} (
-            {data.course?.coursecode})
+            {isNew ? "แผนการใช้ทรัพยากร" : "แผนการใช้ทรัพยากร"} : {"รายวิชา"}{" "}
+            {data.course?.coursename} ({data.course?.coursecode})
           </h3>
         </div>
 
@@ -423,181 +482,247 @@ export default function Detail() {
               <div>
                 {activeTab === "tab1" && (
                   <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                    <div className="sm:col-span-12">
-                      <h3 className="font-xl font-semibold">
-                        {data.course?.coursename} ({data.course?.coursecode})
-                      </h3>
-                    </div>
-                    <div className="sm:col-span-4">
-                      <i>สำนักวิชา</i> : {data.course?.coursename}
-                    </div>
-                    <div className="sm:col-span-8">
-                      <i>เทอมการศึกษา</i> : {data.class?.[0]?.semester}/
-                      {data.class?.[0]?.acadyear}
-                    </div>
-                    <div className="sm:col-span-4">
-                      <i>จำนวน Section</i> : {data.class?.length} Section
-                    </div>
-                    <div className="sm:col-span-4">
-                      <i>จำนวน Seat</i> :{" "}
-                      {data.class?.reduce(
-                        (total, item) => total + item.totalseat,
-                        0
-                      )}{" "}
-                      Seat
-                    </div>
-                    <div className="sm:col-span-12">
-                      <i>รายละเอียด</i> : {data.course?.description1}
-                    </div>
-                    <div className="sm:col-span-6">
-                      <label className={className.label}>
-                        ผู้รับผิดชอบหลัก
-                      </label>
-                      <select
-                        name="personId"
-                        value={formik.values.personId}
-                        onChange={formik.handleChange}
-                        className={`${className.select} ${
-                          formik.touched.personId && formik.errors.personId
-                            ? "border-red-500"
-                            : ""
-                        }`}>
-                        <option value="" disabled>
-                          เลือกผู้รับผิดชอบหลัก
-                        </option>
-                        {data.users.map((user) => (
-                          <option key={user.personId} value={user.personId}>
-                            {user.fullname} ({user.roleName})
-                          </option>
-                        ))}
-                      </select>
-                      {formik.touched.personId && formik.errors.personId && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {formik.errors.personId}
-                        </p>
-                      )}
-                    </div>
-                    <div className="sm:col-span-6">
-                      <label className={className.label}>
-                        กลุ่มห้องปฎิบัติการ
-                      </label>
-                      <select
-                        name="labgroupId"
-                        value={formik.values.labgroupId}
-                        onChange={formik.handleChange}
-                        className={`${className.select} ${
-                          formik.touched.labgroupId && formik.errors.labgroupId
-                            ? "border-red-500"
-                            : ""
-                        }`}>
-                        <option value="" disabled>
-                          เลือกกลุ่มห้องปฎิบัติการ
-                        </option>
-                        {data.labgroup.map((labgroup) => (
-                          <option
-                            key={labgroup.labgroupId}
-                            value={labgroup.labgroupId}>
-                            {labgroup.labgroupName}
-                          </option>
-                        ))}
-                      </select>
-                      {formik.touched.labgroupId &&
-                        formik.errors.labgroupId && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {formik.errors.labgroupId}
-                          </p>
-                        )}
-                    </div>
-
-                    <div className="sm:col-span-4">
-                      <label className={className.label}>
-                        จำนวนห้อง LAB ที่เปิดบริการ
-                      </label>
-
-                      <input
-                        type="number"
-                        name="labroom"
-                        value={formik.values.labroom}
-                        onChange={formik.handleChange}
-                        min="0"
-                        className={`${className.input} ${
-                          formik.touched.labroom && formik.errors.labroom
-                            ? "border-red-500"
-                            : ""
-                        }`}
-                      />
-                      {formik.touched.labroom && formik.errors.labroom && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {formik.errors.labroom}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="sm:col-span-4">
-                      <label className={className.label}>
-                        จำนวนกลุ่มต่อห้อง
-                      </label>
-                      <input
-                        type="number"
-                        name="labgroupNum"
-                        value={formik.values.labgroupNum}
-                        onChange={formik.handleChange}
-                        className={`${className.input} ${
-                          formik.touched.labgroupNum &&
-                          formik.errors.labgroupNum
-                            ? "border-red-500"
-                            : ""
-                        }`}
-                      />
-                      {formik.touched.labgroupNum &&
-                        formik.errors.labgroupNum && (
-                          <p className="mt-1 text-sm text-red-500">
-                            {formik.errors.labgroupNum}
-                          </p>
-                        )}
-                    </div>
-
-                    <div className="sm:col-span-4">
-                      <label className={className.label}>
-                        จำนวนชั่วโมงเรียน
-                      </label>
-                      <input
-                        type="number"
-                        name="hour"
-                        value={formik.values.hour}
-                        onChange={formik.handleChange}
-                        className={`${className.input} ${
-                          formik.touched.hour && formik.errors.hour
-                            ? "border-red-500"
-                            : ""
-                        }`}
-                      />
-                      {formik.touched.hour && formik.errors.hour && (
-                        <p className="mt-1 text-sm text-red-500">
-                          {formik.errors.hour}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-                {activeTab === "tab2" && (
-                  <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
-                    <p>เนื้อหาแท็บที่ 2</p>
-                  </div>
-                )}
-                {activeTab === "tab3" && (
-                  <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
                     {[
                       {
                         type: 1,
                         name: "ครุภัณฑ์",
                         asset: labasset.type1,
                       },
+                    ].map((type) => (
+                      <div className="sm:col-span-12" key={type.type}>
+                        <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+                          <div className="pb-4 border-gray-200 flex justify-between items-center">
+                            <div className="font-xl font-semibold inline">
+                              <span className="pe-2">{type.name}</span>
+                              <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
+                                {type.asset.length} รายการ
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              onClick={() => _onPressAddInvent(type.type)}>
+                              <FiPlus className="w-4 h-4" />
+                              เพิ่ม
+                            </button>
+                          </div>
+                          <TableList
+                            exports={false}
+                            meta={[
+                              {
+                                content: "รายการ",
+                                key: "assetNameTh",
+                                render: (item) => (
+                                  <div>
+                                    <div> {item.assetNameTh}</div>
+                                    <div className="flex gap-2 text-gray-500 dark:text-gray-400">
+                                      <div className="text-sm">
+                                        ยี่ห้อ : {item.brandName || "-"}
+                                      </div>
+                                      <div className="text-sm">
+                                        ขนาด : {item.amountUnit || "-"}
+                                      </div>
+                                      <div className="text-sm">
+                                        ห้องปฎิบัติการ :{" "}
+                                        {item.invgroupName || "-"}
+                                      </div>
+                                    </div>
+                                    <div className="text-sm">
+                                      Remark : {item.assetRemark || "-"}
+                                    </div>
+                                  </div>
+                                ),
+                              },
+                              {
+                                content: "จำนวน",
+                                width: 100,
+                                className: "text-center",
+                                key: "amount",
+                                render: (item) => (
+                                  <div>{item.amount.toLocaleString()}</div>
+                                ),
+                              },
+                              {
+                                content: "หน่วย",
+                                width: 100,
+                                key: "unitName",
+                              },
+                              {
+                                key: "assetId",
+                                content: "Action",
+                                width: "100",
+                                sort: false,
+                                render: (item) => (
+                                  <div className="flex gap-1">
+                                    <button
+                                      type="button"
+                                      className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      onClick={() => {
+                                        return _onPressEditInvent(
+                                          item.labassetId,
+                                          type.type
+                                        );
+                                      }}>
+                                      <FiEdit className="w-4 h-4" />
+                                      แก้ไข
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      onClick={() => {
+                                        return _onPressDeleteInvent(
+                                          item.labassetId,
+                                          type.type
+                                        );
+                                      }}>
+                                      <FiTrash2 className="w-4 h-4" />
+                                      ลบ
+                                    </button>
+                                  </div>
+                                ),
+                              },
+                            ]}
+                            data={type.asset}
+                            loading={loading}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {activeTab === "tab2" && (
+                  <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                    {[
+                      // {
+                      //   type: 1,
+                      //   name: "ครุภัณฑ์",
+                      //   asset: labasset.type1,
+                      // },
                       {
                         type: 2,
                         name: "วัสดุไม่สิ้นเปลือง",
                         asset: labasset.type2,
                       },
+                      // {
+                      //   type: 3,
+                      //   name: "วัสดุสิ้นเปลือง",
+                      //   asset: labasset.type3,
+                      // },
+                    ].map((type) => (
+                      <div className="sm:col-span-12" key={type.type}>
+                        <div className="p-4 border relative flex flex-col w-full text-gray-700 dark:text-gray-100 bg-white dark:bg-gray-800 shadow-md rounded-xl">
+                          <div className="pb-4 border-gray-200 flex justify-between items-center">
+                            <div className="font-xl font-semibold inline">
+                              <span className="pe-2">{type.name}</span>
+                              <span className="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-green-600/20 ring-inset">
+                                {type.asset.length} รายการ
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              onClick={() => _onPressAddInvent(type.type)}>
+                              <FiPlus className="w-4 h-4" />
+                              เพิ่ม
+                            </button>
+                          </div>
+                          <TableList
+                            exports={false}
+                            meta={[
+                              {
+                                content: "รายการ",
+                                key: "assetNameTh",
+                                render: (item) => (
+                                  <div>
+                                    <div> {item.assetNameTh}</div>
+                                    <div className="flex gap-2 text-gray-500 dark:text-gray-400">
+                                      <div className="text-sm">
+                                        ยี่ห้อ : {item.brandName || "-"}
+                                      </div>
+                                      <div className="text-sm">
+                                        ขนาด : {item.amountUnit || "-"}
+                                      </div>
+                                      <div className="text-sm">
+                                        ห้องปฎิบัติการ :{" "}
+                                        {item.invgroupName || "-"}
+                                      </div>
+                                    </div>
+                                    <div className="text-sm">
+                                      Remark : {item.assetRemark || "-"}
+                                    </div>
+                                  </div>
+                                ),
+                              },
+                              {
+                                content: "จำนวน",
+                                width: 100,
+                                className: "text-center",
+                                key: "amount",
+                                render: (item) => (
+                                  <div>{item.amount.toLocaleString()}</div>
+                                ),
+                              },
+                              {
+                                content: "หน่วย",
+                                width: 100,
+                                key: "unitName",
+                              },
+                              {
+                                key: "assetId",
+                                content: "Action",
+                                width: "100",
+                                sort: false,
+                                render: (item) => (
+                                  <div className="flex gap-1">
+                                    <button
+                                      type="button"
+                                      className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      onClick={() => {
+                                        return _onPressEditInvent(
+                                          item.labassetId,
+                                          type.type
+                                        );
+                                      }}>
+                                      <FiEdit className="w-4 h-4" />
+                                      แก้ไข
+                                    </button>
+                                    <button
+                                      type="button"
+                                      className="cursor-pointer p-2 text-white text-sm bg-red-600 hover:bg-red-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                                      onClick={() => {
+                                        return _onPressDeleteInvent(
+                                          item.labassetId,
+                                          type.type
+                                        );
+                                      }}>
+                                      <FiTrash2 className="w-4 h-4" />
+                                      ลบ
+                                    </button>
+                                  </div>
+                                ),
+                              },
+                            ]}
+                            data={type.asset}
+                            loading={loading}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {activeTab === "tab3" && (
+                  <div className="p-4 grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-12">
+                    {[
+                      // {
+                      //   type: 1,
+                      //   name: "ครุภัณฑ์",
+                      //   asset: labasset.type1,
+                      // },
+                      // {
+                      //   type: 2,
+                      //   name: "วัสดุไม่สิ้นเปลือง",
+                      //   asset: labasset.type2,
+                      // },
                       {
                         type: 3,
                         name: "วัสดุสิ้นเปลือง",
@@ -618,10 +743,11 @@ export default function Detail() {
                               className="cursor-pointer p-2 text-white text-sm bg-blue-600 hover:bg-blue-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                               onClick={() => _onPressAddInvent(type.type)}>
                               <FiPlus className="w-4 h-4" />
-                              เพิ่มใหม่
+                              เพิ่ม
                             </button>
                           </div>
                           <TableList
+                            exports={false}
                             meta={[
                               {
                                 content: "รายการ",
@@ -707,18 +833,19 @@ export default function Detail() {
               </div>
             </div>
 
-            <div className="md:col-span-2 flex justify-end gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
-              <button
+            <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
+              {/* <button
                 type="button"
-                className="p-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg"
+                className="cursor-pointer p-3 text-white text-sm bg-gray-600 hover:bg-gray-700 rounded-lg transition-all duration-200 flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105"
                 onClick={() => router.back()}>
-                ยกเลิก
+                <FiChevronLeft className="w-4 h-4" />
+                ย้อนกลับ
               </button>
               <button
                 type="submit"
                 className="p-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg">
                 บันทึกข้อมูล
-              </button>
+              </button> */}
             </div>
           </form>
         )}
@@ -750,32 +877,18 @@ export default function Detail() {
                         <label className={className.label}>
                           วัสดุที่เลือกใช้
                         </label>
-                        <select
+
+                        <AutocompleteSelect2
                           name="assetId"
+                          options={assetOptions}
                           value={inventForm.values.assetId}
-                          onChange={inventForm.handleChange}
-                          className={`${className.select} ${
-                            inventForm.touched.assetId &&
-                            inventForm.errors.assetId
-                              ? "border-red-500"
-                              : ""
-                          }`}>
-                          <option value="" disabled>
-                            เลือกวัสดุที่เลือกใช้
-                          </option>
-                          {invent.map((inv) => (
-                            <option key={inv.assetId} value={inv.assetId}>
-                              {inv.assetNameTh} [{inv.brandName}] (
-                              {inv.unitName})
-                            </option>
-                          ))}
-                        </select>
-                        {inventForm.touched.assetId &&
-                          inventForm.errors.assetId && (
-                            <p className="mt-1 text-sm text-red-500">
-                              {inventForm.errors.assetId}
-                            </p>
-                          )}
+                          onSelect={(name, item) => {
+                            inventForm.setFieldValue(name, item.value);
+                          }}
+                          error={inventForm.errors.assetId}
+                          touched={inventForm.touched.assetId}
+                          // placeholder="พิมพ์หรือเลือกวัสดุ"
+                        />
                       </div>
                       {assetInfo && (
                         <div className="sm:col-span-12">
@@ -855,7 +968,7 @@ export default function Detail() {
                       </div>
                     </div>
                   </div>
-                  <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                  <div className="md:col-span-2 flex justify-center gap-2 p-4 border-t border-gray-200 dark:border-gray-700">
                     <button
                       type="submit"
                       className="inline-flex w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-500 sm:ml-3 sm:w-auto">
@@ -883,7 +996,7 @@ const className = {
   label:
     "mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-300",
   input:
-    "block text-gray-900 dark:text-white w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
+    "block bg-white text-gray-900 dark:text-white w-full px-3 py-1.5 border rounded-md shadow-sm dark:bg-gray-800",
   select:
-    "block text-gray-900 dark:text-white w-full px-4 py-2 border rounded-md dark:bg-gray-800",
+    "block bg-white text-gray-900 dark:text-white w-full px-4 py-2 border rounded-md dark:bg-gray-800",
 };

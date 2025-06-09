@@ -14,14 +14,26 @@ const stripHtmlTags = (htmlString) => {
     .trim();
 };
 
-export default function TableListExport({ fileName, data, meta }) {
+export default function TableListExport({
+  fileName,
+  data,
+  meta,
+  selectedOptions,
+}) {
   const exportToExcel = () => {
     const worksheetData = [
-      ["#", ...meta.map((col) => (col.export !== false ? col.content : ""))], // Header
+      [
+        "#",
+        ...meta.map((col, i) =>
+          col.export !== false && !selectedOptions.includes(i)
+            ? col.content
+            : ""
+        ),
+      ], // Header
       ...data.map((row, index) => [
         index + 1,
-        ...meta.map((col) => {
-          if (col.export === false) {
+        ...meta.map((col, i) => {
+          if (col.export === false || selectedOptions.includes(i)) {
             return "";
           }
 
@@ -59,8 +71,10 @@ export default function TableListExport({ fileName, data, meta }) {
         <tr>
           <th>#</th>
           ${meta
-            .map((col) =>
-              col.export !== false ? `<th>${col.content}</th>` : ""
+            .map((col, i) =>
+              col.export !== false && !selectedOptions.includes(i)
+                ? `<th>${col.content}</th>`
+                : ""
             )
             .join("")}
         </tr>
@@ -72,8 +86,8 @@ export default function TableListExport({ fileName, data, meta }) {
               <tr>
                 <td>${index + 1}</td>
                 ${meta
-                  .map((col) => {
-                    if (col.export === false) {
+                  .map((col, i) => {
+                    if (col.export === false || selectedOptions.includes(i)) {
                       return "";
                     }
                     let value = row[col.key] || "";
@@ -127,20 +141,22 @@ export default function TableListExport({ fileName, data, meta }) {
   };
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-1">
       <button
+        type="button"
         onClick={exportToExcel}
-        className="p-1 border border-green-700 text-green-700 dark:border-green-500 dark:text-green-500 rounded shadow-sm hover:text-green-800 transition-all duration-200 flex items-center gap-1"
+        className="h-7 text-sm px-1 border border-green-700 text-green-700 dark:border-green-500 dark:text-green-500 rounded shadow-sm hover:text-green-800 transition-all duration-200 flex items-center gap-1"
       >
-        <FiFileText size={18} />
+        <FiFileText size={16} />
         Excel
       </button>
 
       <button
+        type="button"
         onClick={print}
-        className="p-1 border border-blue-600 text-blue-600 rounded shadow-sm hover:text-blue-700 transition-all duration-200 flex items-center gap-1"
+        className="h-7 text-sm px-1 border border-blue-600 text-blue-600 rounded shadow-sm hover:text-blue-700 transition-all duration-200 flex items-center gap-1"
       >
-        <FiPrinter size={18} />
+        <FiPrinter size={16} />
         Print
       </button>
     </div>
