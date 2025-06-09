@@ -24,6 +24,7 @@ export const authOptions = {
           });
           const userAuth = await response.json();
           if (userAuth.status !== "success") {
+            console.log("🛑 Auth failed response:", userAuth);
             return null;
           }
 
